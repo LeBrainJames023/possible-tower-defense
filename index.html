@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Possible Tower Defense</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,700;1,9..40,500&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1b2a'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%233d8bfd'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23f4d35e'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <div id="screen-title" class="screen active">
+        <div class="panel hero-panel">
+          <p class="eyebrow">Indie experiment</p>
+          <h1>Possible<br />Tower Defense</h1>
+          <p class="lede">
+            Six towers. Ten maps. Build beside the path — never on it — and hold the line.
+          </p>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" data-action="levels">Play</button>
+            <button type="button" class="btn btn-ghost" data-action="how">How to play</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="screen-how" class="screen">
+        <div class="panel">
+          <h2>How to play</h2>
+          <ul class="howto">
+            <li>
+              <strong>Tower dock</strong> sits under the map — Arrow, Cannon, Ice, Lightning, Fire,
+              Poison.
+            </li>
+            <li><strong>Pick a tower</strong>, then click green grass beside the brown path.</li>
+            <li><strong>Trees are decoration</strong> — not build pads. Path tiles are blocked.</li>
+            <li><strong>Click enemies or towers</strong> anytime (even paused) to inspect them.</li>
+            <li><strong>Pause</strong> freezes combat but leaves the map visible so you can plan.</li>
+          </ul>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" data-action="levels">Choose level</button>
+            <button type="button" class="btn btn-ghost" data-action="title">Back</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="screen-levels" class="screen">
+        <div class="panel wide">
+          <h2>Select level</h2>
+          <p class="lede subtle">Levels unlock in order. Difficulty climbs every stage.</p>
+          <div id="level-grid" class="level-grid"></div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-ghost" data-action="title">Back</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="screen-game" class="screen">
+        <div class="game-shell">
+          <header class="hud">
+            <div class="hud-block">
+              <span class="hud-label">Level</span>
+              <span id="hud-level" class="hud-value">1</span>
+            </div>
+            <div class="hud-block">
+              <span class="hud-label">Wave</span>
+              <span id="hud-wave" class="hud-value">0 / 10</span>
+            </div>
+            <div class="hud-block">
+              <span class="hud-label">Lives</span>
+              <span id="hud-lives" class="hud-value">20</span>
+            </div>
+            <div class="hud-block">
+              <span class="hud-label">Gold</span>
+              <span id="hud-gold" class="hud-value">380</span>
+            </div>
+            <div class="hud-actions">
+              <button type="button" class="btn btn-primary btn-hud" id="btn-wave">Start wave</button>
+              <button type="button" class="btn btn-ghost btn-hud" id="btn-speed">Speed 1x</button>
+              <button type="button" class="btn btn-ghost btn-hud" id="btn-pause">Pause</button>
+              <button type="button" class="btn btn-ghost btn-hud" id="btn-leave">Leave</button>
+            </div>
+          </header>
+
+          <div id="pause-strip" class="pause-strip hidden">
+            <span>Paused — map stays visible. Inspect towers &amp; enemies, then resume.</span>
+            <button type="button" class="btn btn-primary btn-hud" id="btn-resume">Resume</button>
+          </div>
+
+          <div id="leave-strip" class="leave-strip hidden">
+            <span>Leave this level?</span>
+            <button type="button" class="btn btn-ghost btn-hud" id="btn-leave-cancel">Stay</button>
+            <button type="button" class="btn btn-danger btn-hud" id="btn-leave-confirm">
+              Levels
+            </button>
+          </div>
+
+          <p id="toast" class="toast hidden" role="status" aria-live="polite"></p>
+
+          <div class="game-body">
+            <canvas id="game-canvas" width="960" height="576" aria-label="Tower defense map"></canvas>
+          </div>
+
+          <footer class="dock">
+            <div class="dock-shop">
+              <div class="dock-label">Choose a tower, then click grass beside the path</div>
+              <div id="tower-shop" class="tower-shop"></div>
+            </div>
+            <aside id="inspect-panel" class="inspect-panel">
+              <h3 id="selection-title">Inspector</h3>
+              <p id="selection-stats" class="selection-stats">
+                Click a tower or enemy on the map to learn about it.
+              </p>
+              <div id="tower-actions" class="btn-col hidden">
+                <button type="button" class="btn btn-primary" id="btn-upgrade">Upgrade</button>
+                <button type="button" class="btn btn-danger" id="btn-sell">Sell</button>
+                <button type="button" class="btn btn-ghost" id="btn-deselect">Deselect</button>
+              </div>
+              <p id="hint" class="hint">Tip: Pause anytime to study the battlefield.</p>
+            </aside>
+          </footer>
+        </div>
+      </div>
+
+      <div id="overlay-result" class="overlay hidden">
+        <div class="panel">
+          <h2 id="result-title">Victory</h2>
+          <p id="result-body" class="lede"></p>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="btn-result-primary">Continue</button>
+            <button type="button" class="btn btn-ghost" data-action="levels">Levels</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+# Possible Tower Defense
+
+Indie tower defense experiment built to evaluate Cursor as a full-project workflow.
+
+## Play
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL Vite prints (usually `http://localhost:5173`).
+
+## What’s in the game
+
+- **10 levels**, each with **10 waves** that escalate inside the level
+- **6 towers** in a bottom dock: Arrow, Cannon, Ice, Lightning, Fire, Poison
+- Towers **cannot** be placed on the path (or tree decoration tiles)
+- Click enemies/towers to inspect; pause keeps the map visible
+- Lives, gold economy, upgrades (to level 3), sell, speed 1x/2x, level unlock progress
+- Clean procedural canvas art (drawn in code)
+
+## Scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Local game server |
+| `npm run build` | Typecheck + production build |
+| `npm test` | Unit tests |
+| `npm run lint` | ESLint |
+
+## Stack
+
+Vite · TypeScript · Canvas 2D · Vitest · ESLint · Prettier · Husky
+
+## BCI / input notes
+
+Large click targets, click-to-place (no drag-and-drop), no hover-only actions.

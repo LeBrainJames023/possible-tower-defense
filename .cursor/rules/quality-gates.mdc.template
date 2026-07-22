@@ -1,0 +1,27 @@
+---
+description: [PROJECT NAME] — repo test and commit checklist
+alwaysApply: true
+---
+
+# Quality Gates ([PROJECT NAME])
+
+Principles (define done, research, scope) live in **User Rules**. This file is **commands only**.
+
+## During work
+
+- After meaningful chunks: run tests before stacking more
+- Replace `npm test` below if this project uses different commands
+
+## Before calling work complete
+
+1. `npm test` passes for logic touched
+2. [Add: e2e, lint, typecheck, etc.]
+3. No new ESLint errors (Husky on commit)
+4. Summarize what changed and what was verified
+
+## Before commit (only when user asks)
+
+1. `git status` and `git diff`
+2. Tests pass
+3. No secrets or debug scratch in diff
+4. Commit message focused on **why**

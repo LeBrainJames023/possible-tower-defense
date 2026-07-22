@@ -1,0 +1,28 @@
+---
+description: Test commands and when to add tests
+globs: tests/**,**/*.pure.js,package.json,src/**/*.js
+alwaysApply: false
+---
+
+# Testing ([PROJECT NAME])
+
+Adjust globs and commands for your layout (`src/`, `lib/`, `games/`, etc.).
+
+## Commands
+
+| Command | Use when |
+| --- | --- |
+| `npm test` | Default — unit / logic |
+| `npm run test:watch` | While iterating |
+| [Add e2e command] | Page loads, browser behavior |
+
+## When to add tests
+
+- New pure function → unit test
+- New page or critical path → smoke test
+- Bug fixed → regression test
+
+## Guards
+
+- Husky + lint-staged on commit
+- Dependabot weekly — review PRs

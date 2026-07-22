@@ -1,0 +1,35 @@
+---
+description: Collateral impact check — what else breaks when we build this?
+alwaysApply: true
+---
+
+# Collateral impact check
+
+Before implementing a feature — especially **audio, input, Bluetooth, permissions, background processes, or anything system-wide** — run a quick impact pass. Do not wait for the user to name every dependency.
+
+## Three questions
+
+1. **What else uses this path?** (TTS, VoiceOver, mic, calls, notifications, other apps)
+2. **What breaks if we're wrong?**
+3. **Is there a standard mitigation?** (how eqMac, OS defaults, or similar tools handle it)
+
+## How to act
+
+| Situation | Action |
+| --- | --- |
+| Obvious fix, no real downside | **Implement in the same pass.** One-line note: what you protected. |
+| Real tradeoff the user might reject | **Flag before they depend on it** — options first, then build. |
+| User wouldn't knowingly choose the breakage | **Never ship it.** Fix by default (e.g. don't break TTS for EQ). |
+
+## BCI defaults (LeBrain)
+
+Assume **TTS, VoiceOver, and large-target UI are critical** unless the project says otherwise.
+
+## Examples
+
+- **System-wide EQ / audio tap** → exclude speech, accessibility, and IDE processes; EQ off = zero tap/aggregate left behind; clean shutdown on quit.
+- **Global shortcuts** → conflicts with BCI three-click input; prefer on-screen controls.
+- **Auto-start / auto-enable** → respect manual off; don't fight the user every N seconds.
+- **LSUIElement / menu-bar-only** → provide a Dock or window fallback for when the panel vanishes.
+
+Universal copy for Cursor **User Rules** lives in `docs/USER_RULES_COLLATERAL_IMPACT.md` in the scaffold.

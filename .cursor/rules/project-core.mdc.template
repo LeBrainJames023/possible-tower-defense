@@ -1,0 +1,31 @@
+---
+description: [PROJECT NAME] — core scope and conventions
+alwaysApply: true
+---
+
+# [PROJECT NAME] — Core
+
+## What this is
+
+[One sentence: game / app / tool / module]
+
+## Before building
+
+Read on demand:
+
+1. `README.md`
+2. [Add: DESIGN_GUIDE.md, GAME_PLAN.md, docs/ARCHITECTURE.md, etc.]
+
+## Scope
+
+- MVP first; polish later
+- Scope creep → [FUTURE_FEATURES.md or docs/BACKLOG.md] or ask to build now
+- One agent/chat per feature when possible — avoid overlapping file edits
+
+## Shared / high-risk paths
+
+Flag before editing if parallel sessions may be active:
+
+- [List: shared/, config files, generated output, etc.]
+
+Flag format: `Heads up — about to edit <path>. Is the other session done with it?`

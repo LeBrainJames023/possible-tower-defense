@@ -1,0 +1,13 @@
+---
+description: Quality gates before calling work done
+alwaysApply: true
+---
+
+# Quality gates
+
+Before considering a change done:
+
+1. `npm test` passes
+2. `npm run build` typechecks/builds (or explain why untestable)
+3. Manual smoke: title → level 1 → place tower → start wave → enemy takes damage
+4. Path placement still blocked; UI remains large-click friendly
