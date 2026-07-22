@@ -1,6 +1,8 @@
 # Possible Tower Defense
 
-Indie tower defense experiment built to evaluate Cursor as a full-project workflow.
+Indie tower defense experiment — Cursor workflow playground.
+
+**Naming note:** The folder and GitHub repo can stay `possible-tower-defense` even if we later rename the *in-game* title. Treat this repo as the home for the experiment; the displayed game name is free to change.
 
 ## Play
 

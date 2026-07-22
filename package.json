@@ -1,7 +1,7 @@
 {
-  "name": "possible-tower-defense-game",
+  "name": "possible-tower-defense",
   "version": "0.1.0",
-  "description": "Indie tower defense — 10 levels, 10 waves each, clean canvas presentation",
+  "description": "Possible Tower Defense — indie TD experiment (in-game title may change later)",
   "type": "module",
   "engines": {
     "node": ">=20"
