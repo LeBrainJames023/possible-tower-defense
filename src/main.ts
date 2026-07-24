@@ -29,7 +29,12 @@ const pauseStrip = document.getElementById('pause-strip')!;
 const leaveStrip = document.getElementById('leave-strip')!;
 const toastEl = document.getElementById('toast')!;
 const towerShop = document.getElementById('tower-shop')!;
+const shopPop = document.getElementById('shop-pop')!;
+const shopPopSwatch = document.getElementById('shop-pop-swatch')!;
+const shopPopName = document.getElementById('shop-pop-name')!;
+const shopPopBlurb = document.getElementById('shop-pop-blurb')!;
 const levelGrid = document.getElementById('level-grid')!;
+const inspectPanel = document.getElementById('inspect-panel')!;
 const selectionTitle = document.getElementById('selection-title')!;
 const selectionStats = document.getElementById('selection-stats')!;
 const towerActions = document.getElementById('tower-actions')!;
@@ -59,6 +64,8 @@ function showScreen(name: keyof typeof screens): void {
     pauseStrip.classList.add('hidden');
     leaveStrip.classList.add('hidden');
     toastEl.classList.add('hidden');
+    shopPop.classList.add('hidden');
+    inspectPanel.classList.add('hidden');
   }
 }
 
@@ -81,28 +88,41 @@ function renderLevels(): void {
   }
 }
 
+function selectTowerKind(kind: TowerKind): void {
+  game.selectedKind = kind;
+  game.selectedTowerId = null;
+  game.selectedEnemyId = null;
+  audio.play('ui');
+  syncShopSelection();
+  updateHud();
+  const def = TOWERS[kind];
+  showToast(`${def.name} selected — tap open grass to place`);
+}
+
+function clearTowerKind(): void {
+  game.selectedKind = null;
+  audio.play('ui');
+  syncShopSelection();
+  updateHud();
+}
+
 function renderShop(): void {
   towerShop.innerHTML = '';
   for (const kind of TOWER_ORDER) {
     const def = TOWERS[kind];
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'tower-btn';
+    btn.className = 'tower-icon';
     btn.dataset.kind = kind;
+    btn.title = `${def.name} — ${def.cost}g`;
     btn.innerHTML = `
       <span class="tower-swatch" data-kind="${kind}" style="background:linear-gradient(145deg,${def.color},${def.colorDark})"></span>
-      <span class="role">${def.role}</span>
       <strong>${def.name}</strong>
-      <small>${def.cost}g · ${def.description}</small>
+      <span class="cost">${def.cost}g</span>
     `;
     btn.addEventListener('click', () => {
-      game.selectedKind = kind;
-      game.selectedTowerId = null;
-      game.selectedEnemyId = null;
-      audio.play('ui');
-      syncShopSelection();
-      updateHud();
-      showToast(`Selected ${def.name} — click grass beside the path`);
+      if (game.selectedKind === kind) clearTowerKind();
+      else selectTowerKind(kind);
     });
     towerShop.appendChild(btn);
   }
@@ -110,12 +130,23 @@ function renderShop(): void {
 }
 
 function syncShopSelection(): void {
-  towerShop.querySelectorAll('.tower-btn').forEach((el) => {
+  towerShop.querySelectorAll('.tower-icon').forEach((el) => {
     const btn = el as HTMLButtonElement;
     const kind = btn.dataset.kind as TowerKind;
     btn.classList.toggle('selected', game.selectedKind === kind);
-    btn.style.opacity = game.level && game.gold < TOWERS[kind].cost ? '0.55' : '1';
+    btn.style.opacity = game.level && game.gold < TOWERS[kind].cost ? '0.5' : '1';
   });
+
+  if (game.selectedKind) {
+    const def = TOWERS[game.selectedKind];
+    shopPop.classList.remove('hidden');
+    shopPopSwatch.setAttribute('data-kind', def.kind);
+    shopPopSwatch.style.background = `linear-gradient(145deg,${def.color},${def.colorDark})`;
+    shopPopName.textContent = `${def.name} · ${def.role}`;
+    shopPopBlurb.textContent = `${def.cost}g — ${def.description}. Tap grass (not path, water, rocks, or trees).`;
+  } else {
+    shopPop.classList.add('hidden');
+  }
 }
 
 function updatePauseUi(): void {
@@ -141,10 +172,14 @@ function updateHud(): void {
 
   const tower = game.getSelectedTower();
   const enemy = game.getSelectedEnemy();
+  const showInspect = !!(tower || enemy);
+
+  inspectPanel.classList.toggle('hidden', !showInspect);
+
   if (tower) {
     towerActions.classList.remove('hidden');
     selectionTitle.textContent = `${tower.def.name} · Lv ${tower.level}`;
-    selectionStats.textContent = `${tower.def.role} tower\n${tower.def.description}\nDamage ${Math.round(tower.damage)} · Range ${Math.round(tower.range)} · Rate ${tower.fireRate.toFixed(1)}/s\nUpgrade ${tower.level >= 3 ? 'MAX' : tower.upgradeCost() + 'g'} · Sell ${tower.sellValue()}g`;
+    selectionStats.textContent = `${tower.def.role}\n${tower.def.description}\nDmg ${Math.round(tower.damage)} · Range ${Math.round(tower.range)} · ${tower.fireRate.toFixed(1)}/s\nUpgrade ${tower.level >= 3 ? 'MAX' : tower.upgradeCost() + 'g'} · Sell ${tower.sellValue()}g`;
     const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
     up.disabled = tower.level >= 3 || game.gold < tower.upgradeCost();
     up.textContent = tower.level >= 3 ? 'Max level' : `Upgrade (${tower.upgradeCost()}g)`;
@@ -160,22 +195,16 @@ function updateHud(): void {
       .join(', ');
     selectionTitle.textContent = def.name;
     selectionStats.textContent = `${def.blurb}\nHP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${def.speed}\nReward ${def.reward}g${effects ? `\nStatus: ${effects}` : ''}`;
-  } else {
-    towerActions.classList.add('hidden');
-    selectionTitle.textContent = 'Inspector';
-    selectionStats.textContent = game.selectedKind
-      ? `${TOWERS[game.selectedKind].name} ready — click grass to place.`
-      : 'Tap a tower or enemy on the map.';
   }
 
   if (game.selectedKind) {
-    hint.textContent = `Placing ${TOWERS[game.selectedKind].name}. Grass only — path, water & trees blocked.`;
+    hint.textContent = `Placing ${TOWERS[game.selectedKind].name}`;
   } else if (tower) {
-    hint.textContent = 'Upgrade, sell, or pick another tower from the dock.';
+    hint.textContent = 'Tower selected';
   } else if (enemy) {
-    hint.textContent = 'Paused inspect works too — study packs without pressure.';
+    hint.textContent = 'Enemy inspected';
   } else {
-    hint.textContent = 'Dock below → pick a tower → click grass beside the path.';
+    hint.textContent = 'Pick a tower';
   }
   syncShopSelection();
   btnMute.textContent = audio.muted ? 'Muted' : 'Sound on';
@@ -188,7 +217,7 @@ function startLevel(id: number): void {
   leaveStrip.classList.add('hidden');
   game.startLevel(id);
   updateHud();
-  showToast(`Level ${id}: ${LEVELS.find((l) => l.id === id)?.name ?? ''} — pick towers below`);
+  showToast(`Level ${id}: ${LEVELS.find((l) => l.id === id)?.name ?? ''}`);
 }
 
 game.onHud = updateHud;
@@ -271,6 +300,7 @@ document.getElementById('btn-deselect')!.addEventListener('click', () => {
   game.selectedEnemyId = null;
   updateHud();
 });
+document.getElementById('btn-shop-clear')!.addEventListener('click', () => clearTowerKind());
 
 btnResultPrimary.addEventListener('click', () => {
   overlayResult.classList.add('hidden');

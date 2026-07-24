@@ -293,10 +293,20 @@ h3 {
 }
 .game-body {
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   background: #071018;
   display: flex;
   justify-content: center;
+  position: relative;
+  flex: 1;
+}
+
+.map-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
 }
 
 #game-canvas {
@@ -304,7 +314,7 @@ h3 {
   width: 100%;
   max-width: 960px;
   height: auto;
-  max-height: min(576px, calc(96vh - 220px));
+  max-height: min(576px, calc(96vh - 140px));
   object-fit: contain;
   background: #0a1622;
   cursor: crosshair;
@@ -317,7 +327,7 @@ h3 {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border-bottom: 1px solid var(--line);
   font-weight: 700;
 }
@@ -338,62 +348,87 @@ h3 {
   display: none !important;
 }
 
-.dock {
-  display: grid;
-  grid-template-columns: 1fr minmax(240px, 300px);
-  gap: 0;
-  border-top: 1px solid var(--line);
-  background: linear-gradient(180deg, #101d2c, #0b1520);
+/* Slim bottom bar — map stays the hero */
+.dock-slim {
+  position: relative;
   flex-shrink: 0;
-}
-
-.dock-shop {
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, #122033, #0b1520);
   padding: 8px 12px 10px;
-  border-right: 1px solid var(--line);
-  min-width: 0;
 }
 
-.dock-label {
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.tower-shop {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.tower-btn {
+.dock-slim-row {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 4px;
-  min-height: 100px;
-  width: 100%;
-  text-align: left;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.dock-slim-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 88px;
+}
+
+.tower-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+.tower-icon {
+  min-width: 72px;
+  min-height: 56px;
+  padding: 6px 8px;
   border-radius: 14px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-  padding: 7px;
   cursor: pointer;
   font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.tower-btn.selected {
+.tower-icon:active {
+  transform: scale(0.96);
+}
+
+.tower-icon.selected {
   border-color: var(--accent);
-  background: rgba(61, 139, 253, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(61, 139, 253, 0.4);
+  background: rgba(61, 139, 253, 0.2);
+  box-shadow: 0 0 0 2px rgba(61, 139, 253, 0.35);
+  transform: translateY(-3px);
+}
+
+.tower-icon .tower-swatch {
+  width: 36px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.tower-icon strong {
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.tower-icon .cost {
+  font-size: 0.72rem;
+  color: var(--warn);
+  font-weight: 700;
 }
 
 .tower-swatch {
   position: relative;
-  width: 100%;
-  height: 34px;
-  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -439,48 +474,117 @@ h3 {
   box-shadow: 0 -4px 0 0 rgba(180, 255, 200, 0.5);
 }
 
-.tower-btn strong {
-  display: block;
-  font-size: 0.95rem;
-  line-height: 1.1;
+/* Pop-out tower detail above the slim dock */
+.shop-pop {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  pointer-events: none;
 }
 
-.tower-btn .role {
-  color: var(--accent-2);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.shop-pop:not(.hidden) {
+  pointer-events: auto;
+  animation: popIn 0.18s ease-out;
 }
 
-.tower-btn small {
+.shop-pop-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(22, 38, 56, 0.98), rgba(10, 18, 28, 0.98));
+  box-shadow: var(--shadow);
+}
+
+.shop-pop-inner .tower-swatch {
+  width: 48px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.shop-pop-text {
+  flex: 1;
+  min-width: 160px;
+}
+
+.shop-pop-text strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.shop-pop-text p {
+  margin: 4px 0 0;
   color: var(--muted);
-  font-size: 0.75rem;
-  line-height: 1.25;
+  font-size: 0.88rem;
+  line-height: 1.35;
 }
 
-.inspect-panel {
-  padding: 10px 12px;
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Floating inspect card over the map */
+.inspect-float {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: min(280px, calc(100% - 24px));
+  z-index: 4;
+  padding: 12px 14px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(18, 32, 48, 0.96), rgba(8, 16, 26, 0.96));
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 0;
+  gap: 8px;
+  animation: popIn 0.16s ease-out;
+}
+
+.inspect-float.hidden {
+  display: none !important;
+}
+
+.inspect-float h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  padding-right: 72px;
+}
+
+.inspect-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  min-height: 40px !important;
+  padding: 0 12px !important;
 }
 
 .selection-stats {
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   line-height: 1.45;
   margin: 0;
   white-space: pre-line;
-  flex: 1;
 }
 
-.hint {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.4;
+.btn-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .overlay {
@@ -498,21 +602,20 @@ h3 {
 }
 
 @media (max-width: 980px) {
-  .dock {
-    grid-template-columns: 1fr;
-  }
-
-  .dock-shop {
-    border-right: none;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .tower-shop {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .hud-actions {
     margin-left: 0;
     width: 100%;
+  }
+
+  .tower-icon {
+    min-width: 64px;
+  }
+
+  .inspect-float {
+    top: auto;
+    bottom: 12px;
+    right: 8px;
+    left: 8px;
+    width: auto;
   }
 }

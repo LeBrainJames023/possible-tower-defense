@@ -269,9 +269,12 @@ function drawGrassTile(
   }
 
   if (showBuildHints) {
-    ctx.strokeStyle = 'rgba(244, 211, 94, 0.2)';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(x + 6, y + 6, TILE - 12, TILE - 12);
+    ctx.strokeStyle = 'rgba(244, 211, 94, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 5, y + 5, TILE - 10, TILE - 10);
+    // Soft "build here" glow
+    ctx.fillStyle = 'rgba(87, 204, 153, 0.08)';
+    ctx.fillRect(x + 5, y + 5, TILE - 10, TILE - 10);
   }
 }
 
@@ -287,19 +290,25 @@ function drawPathTile(
   const h = hash2(c + 11, r + 3);
   ctx.fillStyle = p.pathA;
   ctx.fillRect(x, y, TILE, TILE);
+  // Soft edge bevel
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(x, y, TILE, 3);
+  ctx.fillRect(x, y, 3, TILE);
   ctx.fillStyle = p.pathB;
-  roundRect(ctx, x + 3, y + 3, TILE - 6, TILE - 6, 4);
+  roundRect(ctx, x + 4, y + 4, TILE - 8, TILE - 8, 5);
   ctx.fill();
 
   ctx.fillStyle = isSnow(theme)
-    ? 'rgba(220, 240, 255, 0.2)'
+    ? 'rgba(220, 240, 255, 0.28)'
     : isLavaWater(theme)
-      ? 'rgba(255, 120, 40, 0.08)'
-      : 'rgba(255, 220, 140, 0.08)';
-  for (let i = 0; i < 3; i++) {
+      ? 'rgba(255, 120, 40, 0.12)'
+      : 'rgba(255, 220, 140, 0.12)';
+  for (let i = 0; i < 4; i++) {
     const ox = 8 + ((h * (i + 2) * 41) % 28);
     const oy = 8 + ((h * (i + 5) * 29) % 28);
-    ctx.fillRect(x + ox, y + oy, 4, 3);
+    ctx.beginPath();
+    ctx.ellipse(x + ox, y + oy, 3, 2, h, 0, Math.PI * 2);
+    ctx.fill();
   }
 }
 
@@ -334,6 +343,27 @@ function drawWaterTile(
   ctx.stroke();
 }
 
+function drawRock(ctx: CanvasRenderingContext2D, cx: number, cy: number, theme: BiomeTheme): void {
+  const cool = isSnow(theme);
+  const hot = isLavaWater(theme);
+  ctx.fillStyle = cool ? '#8aa0b0' : hot ? '#3a2a28' : '#5a5348';
+  ctx.beginPath();
+  ctx.moveTo(cx - 12, cy + 10);
+  ctx.lineTo(cx - 8, cy - 4);
+  ctx.lineTo(cx + 2, cy - 10);
+  ctx.lineTo(cx + 12, cy - 2);
+  ctx.lineTo(cx + 10, cy + 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = cool ? 'rgba(255,255,255,0.35)' : hot ? 'rgba(255,120,60,0.25)' : 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 4, cy - 2);
+  ctx.lineTo(cx + 2, cy - 8);
+  ctx.lineTo(cx + 6, cy);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawTree(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -341,6 +371,12 @@ function drawTree(
   theme: BiomeTheme,
   variant: number,
 ): void {
+  // Rocks / ruins as blocked landmarks (variety of "can't build here")
+  if (variant > 0.72) {
+    drawRock(ctx, cx, cy, theme);
+    return;
+  }
+
   if (theme === 'haunted' || theme === 'swamp') {
     ctx.strokeStyle = '#3a2a20';
     ctx.lineWidth = 3;
@@ -351,10 +387,10 @@ function drawTree(
     ctx.moveTo(cx - 2, cy - 2);
     ctx.lineTo(cx + 10, cy - 12);
     ctx.stroke();
-    ctx.fillStyle = theme === 'haunted' ? 'rgba(120, 60, 140, 0.35)' : 'rgba(80, 100, 40, 0.4)';
+    ctx.fillStyle = theme === 'haunted' ? 'rgba(120, 60, 140, 0.4)' : 'rgba(80, 100, 40, 0.45)';
     ctx.beginPath();
-    ctx.arc(cx - 8, cy - 10, 6, 0, Math.PI * 2);
-    ctx.arc(cx + 6, cy - 8, 5, 0, Math.PI * 2);
+    ctx.arc(cx - 8, cy - 10, 7, 0, Math.PI * 2);
+    ctx.arc(cx + 6, cy - 8, 6, 0, Math.PI * 2);
     ctx.fill();
     return;
   }
@@ -362,18 +398,18 @@ function drawTree(
   if (isSnow(theme)) {
     ctx.fillStyle = '#5c4030';
     ctx.fillRect(cx - 3, cy + 2, 6, 12);
-    ctx.fillStyle = '#dfefff';
+    ctx.fillStyle = '#eef6ff';
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 18);
-    ctx.lineTo(cx + 14, cy + 4);
-    ctx.lineTo(cx - 14, cy + 4);
+    ctx.moveTo(cx, cy - 20);
+    ctx.lineTo(cx + 15, cy + 6);
+    ctx.lineTo(cx - 15, cy + 6);
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = '#c8dff0';
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 10);
-    ctx.lineTo(cx + 11, cy + 6);
-    ctx.lineTo(cx - 11, cy + 6);
+    ctx.moveTo(cx, cy - 12);
+    ctx.lineTo(cx + 12, cy + 8);
+    ctx.lineTo(cx - 12, cy + 8);
     ctx.closePath();
     ctx.fill();
     return;
@@ -382,33 +418,49 @@ function drawTree(
   if (isLavaWater(theme)) {
     ctx.fillStyle = '#2a2420';
     ctx.beginPath();
-    ctx.moveTo(cx - 10, cy + 12);
-    ctx.lineTo(cx - 4, cy - 4);
+    ctx.moveTo(cx - 11, cy + 12);
+    ctx.lineTo(cx - 5, cy - 6);
     ctx.lineTo(cx + 2, cy + 8);
-    ctx.lineTo(cx + 8, cy - 2);
-    ctx.lineTo(cx + 12, cy + 12);
+    ctx.lineTo(cx + 8, cy - 4);
+    ctx.lineTo(cx + 13, cy + 12);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = 'rgba(255, 100, 40, 0.45)';
+    ctx.fillStyle = 'rgba(255, 100, 40, 0.55)';
     ctx.beginPath();
-    ctx.arc(cx, cy + 2, 4 + variant * 2, 0, Math.PI * 2);
+    ctx.arc(cx, cy + 2, 5, 0, Math.PI * 2);
     ctx.fill();
     return;
   }
 
   ctx.fillStyle = '#5c3d2e';
-  ctx.fillRect(cx - 3, cy + 2, 6, 10);
-  const canopy = ctx.createRadialGradient(cx - 2, cy - 6, 2, cx, cy - 2, 16);
-  canopy.addColorStop(0, theme === 'forest' ? '#2f7a48' : '#3f8f5a');
-  canopy.addColorStop(1, '#1f4d30');
+  ctx.fillRect(cx - 3.5, cy + 2, 7, 12);
+  const canopy = ctx.createRadialGradient(cx - 3, cy - 8, 2, cx, cy - 2, 18);
+  canopy.addColorStop(0, theme === 'forest' ? '#3a9a55' : '#4aaf68');
+  canopy.addColorStop(1, '#1a4a2c');
   ctx.fillStyle = canopy;
   ctx.beginPath();
-  ctx.arc(cx, cy - 4, 13 + variant * 2, 0, Math.PI * 2);
+  ctx.arc(cx, cy - 6, 14, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(cx - 8, cy + 2, 8 + variant, 0, Math.PI * 2);
-  ctx.arc(cx + 8, cy + 2, 8 + variant, 0, Math.PI * 2);
+  ctx.arc(cx - 9, cy + 1, 9, 0, Math.PI * 2);
+  ctx.arc(cx + 9, cy + 1, 9, 0, Math.PI * 2);
   ctx.fill();
+  // Highlight leaf
+  ctx.fillStyle = 'rgba(180, 255, 180, 0.2)';
+  ctx.beginPath();
+  ctx.arc(cx - 4, cy - 10, 5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawBlockedMark(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  ctx.strokeStyle = 'rgba(239, 71, 111, 0.45)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x + 14, y + 14);
+  ctx.lineTo(x + TILE - 14, y + TILE - 14);
+  ctx.moveTo(x + TILE - 14, y + 14);
+  ctx.lineTo(x + 14, y + TILE - 14);
+  ctx.stroke();
 }
 
 /** Soft mountain ridge over the top of the map (drawn after tiles so it stays visible). */
@@ -470,10 +522,13 @@ export function drawGrid(
       } else if (kind === 'water') {
         drawGrassTile(ctx, x, y, c, r, theme, false);
         drawWaterTile(ctx, x, y, c, r, theme, time);
+        if (showBuildHints) drawBlockedMark(ctx, x, y);
       } else {
         drawGrassTile(ctx, x, y, c, r, theme, false);
-        drawTree(ctx, x + TILE / 2, y + TILE / 2 + 2, theme, hash2(c, r) > 0.5 ? 1 : 0);
+        drawTree(ctx, x + TILE / 2, y + TILE / 2 + 2, theme, hash2(c, r));
+        if (showBuildHints) drawBlockedMark(ctx, x, y);
       }
+      if (kind === 'path' && showBuildHints) drawBlockedMark(ctx, x, y);
     }
   }
 

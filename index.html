@@ -37,13 +37,13 @@
           <h2>How to play</h2>
           <ul class="howto">
             <li>
-              <strong>Tower dock</strong> sits under the map — Arrow, Cannon, Ice, Lightning, Fire,
-              Poison. Each looks like a real keep with matching shots.
+              <strong>Slim tower bar</strong> under the map — tap an icon to pop details, tap again
+              to cancel. Upgrade/sell opens as a floating card when you select a placed tower.
             </li>
-            <li><strong>Pick a tower</strong>, then click grass beside the path.</li>
+            <li><strong>Pick a tower</strong>, then click open grass beside the path.</li>
             <li>
-              <strong>Trees &amp; water are decoration</strong> — not build pads. Path tiles are
-              blocked.
+              <strong>Blocked tiles</strong> — path, water, trees, and rocks. Later levels steal more
+              of the best pads on purpose.
             </li>
             <li>
               <strong>Mythical foes</strong> — orcs, ghouls, trolls, ghosts, bone serpents, liches,
@@ -115,26 +115,44 @@
           <p id="toast" class="toast hidden" role="status" aria-live="polite"></p>
 
           <div class="game-body">
-            <canvas id="game-canvas" width="960" height="576" aria-label="Tower defense map"></canvas>
+            <div class="map-stage">
+              <canvas
+                id="game-canvas"
+                width="960"
+                height="576"
+                aria-label="Tower defense map"
+              ></canvas>
+              <aside id="inspect-panel" class="inspect-float hidden" aria-live="polite">
+                <button type="button" class="inspect-close btn btn-ghost btn-hud" id="btn-deselect">
+                  Close
+                </button>
+                <h3 id="selection-title">Inspector</h3>
+                <p id="selection-stats" class="selection-stats"></p>
+                <div id="tower-actions" class="btn-col hidden">
+                  <button type="button" class="btn btn-primary" id="btn-upgrade">Upgrade</button>
+                  <button type="button" class="btn btn-danger" id="btn-sell">Sell</button>
+                </div>
+              </aside>
+            </div>
           </div>
 
-          <footer class="dock">
-            <div class="dock-shop">
-              <div class="dock-label">Choose a tower, then click grass beside the path</div>
-              <div id="tower-shop" class="tower-shop"></div>
+          <footer class="dock-slim">
+            <div class="dock-slim-row">
+              <span class="dock-slim-label" id="hint">Pick a tower</span>
+              <div id="tower-shop" class="tower-icons" role="toolbar" aria-label="Tower types"></div>
             </div>
-            <aside id="inspect-panel" class="inspect-panel">
-              <h3 id="selection-title">Inspector</h3>
-              <p id="selection-stats" class="selection-stats">
-                Click a tower or enemy on the map to learn about it.
-              </p>
-              <div id="tower-actions" class="btn-col hidden">
-                <button type="button" class="btn btn-primary" id="btn-upgrade">Upgrade</button>
-                <button type="button" class="btn btn-danger" id="btn-sell">Sell</button>
-                <button type="button" class="btn btn-ghost" id="btn-deselect">Deselect</button>
+            <div id="shop-pop" class="shop-pop hidden" role="dialog" aria-label="Tower details">
+              <div class="shop-pop-inner">
+                <span id="shop-pop-swatch" class="tower-swatch"></span>
+                <div class="shop-pop-text">
+                  <strong id="shop-pop-name">Arrow</strong>
+                  <p id="shop-pop-blurb"></p>
+                </div>
+                <button type="button" class="btn btn-ghost btn-hud" id="btn-shop-clear">
+                  Cancel
+                </button>
               </div>
-              <p id="hint" class="hint">Tip: Pause anytime to study the battlefield.</p>
-            </aside>
+            </div>
           </footer>
         </div>
       </div>

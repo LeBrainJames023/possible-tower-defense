@@ -79,4 +79,13 @@ describe('level themes', () => {
       ]),
     );
   });
+
+  it('later levels block more tiles than early ones', () => {
+    const blockedCount = (id: number) => {
+      const level = LEVELS.find((l) => l.id === id)!;
+      return (level.blocked?.length ?? 0) + (level.water?.length ?? 0);
+    };
+    expect(blockedCount(10)).toBeGreaterThan(blockedCount(1));
+    expect(blockedCount(9)).toBeGreaterThan(blockedCount(3));
+  });
 });
