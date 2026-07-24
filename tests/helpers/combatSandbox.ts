@@ -27,6 +27,12 @@ export function makeFakeCanvas(): HTMLCanvasElement {
     fill: noop,
     stroke: noop,
     fillText: noop,
+    quadraticCurveTo: noop,
+    setLineDash: noop,
+    save: noop,
+    restore: noop,
+    translate: noop,
+    rotate: noop,
     createLinearGradient: () => ({ addColorStop: noop }),
     createRadialGradient: () => ({ addColorStop: noop }),
   };
@@ -56,7 +62,6 @@ export class CombatSandbox {
   projectiles: Projectile[] = [];
   kills = 0;
   damageDealt = 0;
-  /** When true, enemies stay put (for isolated tower DPS checks). */
   freezeEnemies = false;
 
   spawn(kind: Enemy['kind'], hpScale = 1): Enemy {
@@ -122,6 +127,7 @@ export class CombatSandbox {
             poisonDuration: def.poisonDuration,
             chain: 0,
             color: def.color,
+            towerKind: t.kind,
             targetId: target.id,
           }),
         );

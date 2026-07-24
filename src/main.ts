@@ -2,6 +2,7 @@ import './style.css';
 import { ENEMIES, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
 import { LEVELS } from './game/levels';
 import { Game, loadProgress, saveProgress } from './game/Game';
+import { audio } from './game/audio';
 
 const screens = {
   title: document.getElementById('screen-title')!,
@@ -22,6 +23,7 @@ const hudGold = document.getElementById('hud-gold')!;
 const hint = document.getElementById('hint')!;
 const btnWave = document.getElementById('btn-wave') as HTMLButtonElement;
 const btnSpeed = document.getElementById('btn-speed') as HTMLButtonElement;
+const btnMute = document.getElementById('btn-mute') as HTMLButtonElement;
 const btnPause = document.getElementById('btn-pause') as HTMLButtonElement;
 const pauseStrip = document.getElementById('pause-strip')!;
 const leaveStrip = document.getElementById('leave-strip')!;
@@ -88,7 +90,7 @@ function renderShop(): void {
     btn.className = 'tower-btn';
     btn.dataset.kind = kind;
     btn.innerHTML = `
-      <span class="tower-swatch" style="background:linear-gradient(145deg,${def.color},${def.colorDark})"></span>
+      <span class="tower-swatch" data-kind="${kind}" style="background:linear-gradient(145deg,${def.color},${def.colorDark})"></span>
       <span class="role">${def.role}</span>
       <strong>${def.name}</strong>
       <small>${def.cost}g · ${def.description}</small>
@@ -97,6 +99,7 @@ function renderShop(): void {
       game.selectedKind = kind;
       game.selectedTowerId = null;
       game.selectedEnemyId = null;
+      audio.play('ui');
       syncShopSelection();
       updateHud();
       showToast(`Selected ${def.name} — click grass beside the path`);
@@ -160,20 +163,22 @@ function updateHud(): void {
   } else {
     towerActions.classList.add('hidden');
     selectionTitle.textContent = 'Inspector';
-    selectionStats.textContent =
-      'Click a tower or enemy on the map to learn about it.\nTrees are decoration — build on grass only.';
+    selectionStats.textContent = game.selectedKind
+      ? `${TOWERS[game.selectedKind].name} ready — click grass to place.`
+      : 'Tap a tower or enemy on the map.';
   }
 
   if (game.selectedKind) {
-    hint.textContent = `Placing ${TOWERS[game.selectedKind].name}. Grass = buildable. Path & trees = blocked.`;
+    hint.textContent = `Placing ${TOWERS[game.selectedKind].name}. Grass only — path, water & trees blocked.`;
   } else if (tower) {
-    hint.textContent = 'Tower selected. Upgrade, sell, or pick another type from the dock.';
+    hint.textContent = 'Upgrade, sell, or pick another tower from the dock.';
   } else if (enemy) {
-    hint.textContent = 'Enemy inspected. Pause to study packs without pressure.';
+    hint.textContent = 'Paused inspect works too — study packs without pressure.';
   } else {
-    hint.textContent = 'Pick a tower from the dock under the map, then click grass beside the path.';
+    hint.textContent = 'Dock below → pick a tower → click grass beside the path.';
   }
   syncShopSelection();
+  btnMute.textContent = audio.muted ? 'Muted' : 'Sound on';
 }
 
 function startLevel(id: number): void {
@@ -209,6 +214,13 @@ game.onResult = (won) => {
 btnSpeed.addEventListener('click', () => {
   game.timeScale = game.timeScale >= 2 ? 1 : 2;
   btnSpeed.textContent = `Speed ${game.timeScale}x`;
+  audio.play('ui');
+});
+
+btnMute.addEventListener('click', () => {
+  audio.toggleMute();
+  updateHud();
+  if (!audio.muted) audio.play('ui');
 });
 
 document.querySelectorAll('[data-action]').forEach((el) => {
@@ -228,6 +240,7 @@ btnWave.addEventListener('click', () => game.startWave());
 btnPause.addEventListener('click', () => {
   game.togglePause();
   leaveStrip.classList.add('hidden');
+  audio.play('ui');
   updateHud();
 });
 document.getElementById('btn-resume')!.addEventListener('click', () => {

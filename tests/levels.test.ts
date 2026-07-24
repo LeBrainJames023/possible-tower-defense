@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS } from '../src/game/levels';
-import { WAVES_PER_LEVEL } from '../src/game/constants';
+import { ENEMIES, WAVES_PER_LEVEL } from '../src/game/constants';
 
 describe('expandPath', () => {
   it('fills orthogonal steps between corners', () => {
@@ -24,7 +24,6 @@ describe('canPlaceOnCell', () => {
     const grid = buildGrid(LEVELS[0]);
     const pathTile = LEVELS[0].pathTiles[0];
     expect(canPlaceOnCell(grid, pathTile.c, pathTile.r)).toBe(false);
-    // find a grass cell
     let found = false;
     for (let r = 0; r < grid.length && !found; r++) {
       for (let c = 0; c < grid[0].length; c++) {
@@ -51,8 +50,33 @@ describe('buildWave', () => {
     }
   });
 
-  it('includes a boss on wave 10', () => {
+  it('includes a lich boss on wave 10', () => {
     const groups = buildWave(1, 10);
-    expect(groups.some((g) => g.kind === 'boss')).toBe(true);
+    expect(groups.some((g) => g.kind === 'lich')).toBe(true);
+  });
+});
+
+describe('level themes', () => {
+  it('every level has a biome theme', () => {
+    for (const level of LEVELS) {
+      expect(level.theme).toBeTruthy();
+    }
+  });
+
+  it('mythical enemy roster is complete', () => {
+    expect(Object.keys(ENEMIES)).toEqual(
+      expect.arrayContaining([
+        'gnome',
+        'orc',
+        'zombie',
+        'ghoul',
+        'skeletonSnake',
+        'troll',
+        'ghost',
+        'necromancer',
+        'wyrm',
+        'lich',
+      ]),
+    );
   });
 });

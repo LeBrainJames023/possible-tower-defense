@@ -13,8 +13,17 @@ import {
   type LevelDef,
   type WaveSpawn,
 } from './levels';
-import { Enemy, Tower, Projectile, type BeamFx, type FloatingText } from './entities';
-import { Renderer } from './renderer';
+import {
+  Enemy,
+  Tower,
+  Projectile,
+  spawnKillBurst,
+  type BeamFx,
+  type FloatingText,
+  type Particle,
+} from './entities';
+import { Renderer } from './render';
+import { audio } from './audio';
 import { dist } from '../shared/math';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
@@ -47,7 +56,7 @@ export class Game {
 
   gold = 0;
   lives = 0;
-  waveIndex = 0; // completed waves
+  waveIndex = 0;
   phase: GamePhase = 'prepare';
   selectedKind: TowerKind | null = 'arrow';
   selectedTowerId: number | null = null;
@@ -58,6 +67,7 @@ export class Game {
   projectiles: Projectile[] = [];
   beams: BeamFx[] = [];
   floats: FloatingText[] = [];
+  particles: Particle[] = [];
 
   hover: { c: number; r: number } | null = null;
   occupied = new Set<string>();
@@ -73,7 +83,6 @@ export class Game {
   onResult?: (won: boolean) => void;
   onToast?: (message: string) => void;
 
-  /** Playback speed (1 or 2). */
   timeScale = 1;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -89,6 +98,7 @@ export class Game {
     this.level = level;
     this.grid = buildGrid(level);
     this.waypoints = pathWaypoints(level);
+    this.renderer.theme = level.theme;
     this.gold = level.startingGold;
     this.lives = level.lives;
     this.waveIndex = 0;
@@ -98,6 +108,7 @@ export class Game {
     this.projectiles = [];
     this.beams = [];
     this.floats = [];
+    this.particles = [];
     this.occupied.clear();
     this.spawnQueue = [];
     this.waveActive = false;
@@ -137,13 +148,11 @@ export class Game {
     this.onHud?.();
   }
 
-  /** Manual tick for audits/tests when RAF may be throttled. */
   step(dt: number): void {
     this.update(dt);
     this.draw();
   }
 
-  /** Read-only audit snapshot */
   snapshot() {
     return {
       phase: this.phase,
@@ -180,6 +189,7 @@ export class Game {
     this.waveActive = true;
     this.phase = 'wave';
     this.waveIndex = next;
+    audio.play('wave');
     this.onHud?.();
   }
 
@@ -190,7 +200,7 @@ export class Game {
     const y = r * TILE + TILE / 2;
     if (!canPlaceOnCell(this.grid, c, r)) {
       this.floats.push({ x, y, text: 'Blocked', color: '#ef476f', life: 0.7 });
-      this.onToast?.('Towers cannot be placed on the path or rocks.');
+      this.onToast?.('Towers cannot be placed on the path, water, or trees.');
       return false;
     }
     const key = `${c},${r}`;
@@ -213,6 +223,7 @@ export class Game {
     this.selectedEnemyId = null;
     this.selectedKind = null;
     this.floats.push({ x, y: y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
+    audio.play('place');
     this.onHud?.();
     return true;
   }
@@ -223,6 +234,7 @@ export class Game {
     this.selectedTowerId = t.id;
     this.selectedEnemyId = null;
     this.selectedKind = null;
+    audio.play('ui');
     this.onHud?.();
     return true;
   }
@@ -246,6 +258,7 @@ export class Game {
     this.selectedEnemyId = best.id;
     this.selectedTowerId = null;
     this.selectedKind = null;
+    audio.play('ui');
     this.onHud?.();
     return true;
   }
@@ -272,6 +285,7 @@ export class Game {
       color: '#57cc99',
       life: 0.9,
     });
+    audio.play('upgrade');
     this.onHud?.();
     return true;
   }
@@ -283,6 +297,7 @@ export class Game {
     this.occupied.delete(`${t.col},${t.row}`);
     this.towers = this.towers.filter((x) => x.id !== t.id);
     this.selectedTowerId = null;
+    audio.play('ui');
     this.onHud?.();
     return true;
   }
@@ -296,16 +311,30 @@ export class Game {
     return { c: Math.floor(x / TILE), r: Math.floor(y / TILE) };
   }
 
+  private rewardKill(e: Enemy): void {
+    this.gold += e.reward;
+    this.floats.push({
+      x: e.pos.x,
+      y: e.pos.y - 10,
+      text: `+${e.reward}`,
+      color: '#f4d35e',
+      life: 0.7,
+    });
+    this.particles.push(...spawnKillBurst(e.pos.x, e.pos.y, e.color, 12));
+    audio.play('kill');
+  }
+
   private update(dt: number): void {
+    this.renderer.time += dt;
+
     if (this.phase === 'paused' || this.phase === 'won' || this.phase === 'lost') {
-      // still age floaters lightly
       this.floats = this.floats
         .map((f) => ({ ...f, life: f.life - dt, y: f.y - 20 * dt }))
         .filter((f) => f.life > 0);
+      this.particles = this.renderer.tickParticles(this.particles, dt);
       return;
     }
 
-    // spawning
     if (this.waveActive) {
       this.waveTime += dt;
       while (this.spawnQueue.length && this.spawnQueue[0].at <= this.waveTime) {
@@ -314,11 +343,10 @@ export class Game {
       }
     }
 
-    // enemies
     for (const e of this.enemies) {
       e.update(dt, this.waypoints);
       if (e.reachedEnd) {
-        this.lives -= e.kind === 'boss' ? 5 : 1;
+        this.lives -= e.kind === 'lich' ? 5 : 1;
         this.floats.push({
           x: e.pos.x,
           y: e.pos.y,
@@ -329,19 +357,9 @@ export class Game {
       }
     }
     const dead = this.enemies.filter((e) => !e.alive && !e.reachedEnd);
-    for (const e of dead) {
-      this.gold += e.reward;
-      this.floats.push({
-        x: e.pos.x,
-        y: e.pos.y - 10,
-        text: `+${e.reward}`,
-        color: '#f4d35e',
-        life: 0.7,
-      });
-    }
+    for (const e of dead) this.rewardKill(e);
     this.enemies = this.enemies.filter((e) => e.alive);
 
-    // towers fire
     for (const t of this.towers) {
       t.cooldown = Math.max(0, t.cooldown - dt);
       if (t.cooldown > 0) continue;
@@ -352,9 +370,7 @@ export class Game {
       this.fire(t, target);
     }
 
-    // projectiles
     for (const p of this.projectiles) {
-      // homing soft update toward live target
       if (p.targetId != null) {
         const tgt = this.enemies.find((e) => e.id === p.targetId);
         if (tgt) {
@@ -373,8 +389,8 @@ export class Game {
     this.floats = this.floats
       .map((f) => ({ ...f, life: f.life - dt, y: f.y - 24 * dt }))
       .filter((f) => f.life > 0);
+    this.particles = this.renderer.tickParticles(this.particles, dt);
 
-    // Defeat check before victory so a last-frame leak still counts
     if (this.lives <= 0) {
       this.lives = 0;
       this.enemies = [];
@@ -382,13 +398,13 @@ export class Game {
       this.waveActive = false;
       if (this.phase === 'wave' || this.phase === 'prepare') {
         this.phase = 'lost';
+        audio.play('lose');
         this.onResult?.(false);
         this.onHud?.();
       }
       return;
     }
 
-    // wave complete?
     if (
       this.waveActive &&
       this.spawnQueue.length === 0 &&
@@ -402,6 +418,7 @@ export class Game {
         const unlocked = loadProgress();
         const nextUnlock = Math.min(LEVELS.length, this.level.id + 1);
         if (nextUnlock > unlocked) saveProgress(nextUnlock);
+        audio.play('win');
         this.onResult?.(true);
       } else {
         this.phase = 'prepare';
@@ -414,7 +431,6 @@ export class Game {
   private pickTarget(t: Tower): Enemy | null {
     const inRange = this.enemies.filter((e) => dist({ x: t.x, y: t.y }, e.pos) <= t.range);
     if (!inRange.length) return null;
-    // prioritize furthest along path
     inRange.sort((a, b) => b.progress - a.progress);
     return inRange[0];
   }
@@ -422,6 +438,7 @@ export class Game {
   private fire(t: Tower, target: Enemy): void {
     const def = t.def;
     const status = t.statusScale();
+    audio.shootFor(t.kind);
     if (def.chain > 0) {
       const hit = new Set<number>();
       let current: Enemy | null = target;
@@ -436,9 +453,10 @@ export class Game {
           x2: current.pos.x,
           y2: current.pos.y,
           color: def.color,
-          life: 0.18,
+          life: 0.2,
         });
         current.takeDamage(dmg, def.pierceArmor);
+        audio.play('hit', 1.2);
         if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
         if (def.burnDps > 0) current.applyBurn(def.burnDps * status, def.burnDuration);
         if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status, def.poisonDuration);
@@ -451,7 +469,7 @@ export class Game {
         current = next ?? null;
       }
       for (const e of this.enemies) {
-        if (!e.alive && !e.reachedEnd) this.gold += e.reward;
+        if (!e.alive && !e.reachedEnd) this.rewardKill(e);
       }
       this.enemies = this.enemies.filter((e) => e.alive);
       return;
@@ -460,7 +478,7 @@ export class Game {
     this.projectiles.push(
       new Projectile({
         x: t.x,
-        y: t.y,
+        y: t.y - 12,
         tx: target.pos.x,
         ty: target.pos.y,
         speed: def.splash > 0 ? 280 : 420,
@@ -475,13 +493,15 @@ export class Game {
         poisonDuration: def.poisonDuration,
         chain: 0,
         color: def.color,
+        towerKind: t.kind,
         targetId: target.id,
-        trail: t.kind === 'arrow' || t.kind === 'lightning',
+        trail: t.kind === 'arrow' || t.kind === 'fire',
       }),
     );
   }
 
   private applyHit(p: Projectile): void {
+    audio.play('hit');
     const apply = (e: Enemy, mul = 1) => {
       e.takeDamage(p.damage * mul, p.pierceArmor);
       if (p.slow > 0) e.applySlow(p.slow, p.slowDuration);
@@ -494,6 +514,7 @@ export class Game {
         const d = dist({ x: p.x, y: p.y }, e.pos);
         if (d <= p.splash) apply(e, d < p.splash * 0.4 ? 1 : 0.65);
       }
+      this.particles.push(...spawnKillBurst(p.x, p.y, p.color, 6));
     } else if (p.targetId != null) {
       const tgt = this.enemies.find((e) => e.id === p.targetId);
       if (tgt) apply(tgt);
@@ -504,16 +525,7 @@ export class Game {
     }
 
     for (const e of this.enemies) {
-      if (!e.alive && !e.reachedEnd) {
-        this.gold += e.reward;
-        this.floats.push({
-          x: e.pos.x,
-          y: e.pos.y - 10,
-          text: `+${e.reward}`,
-          color: '#f4d35e',
-          life: 0.7,
-        });
-      }
+      if (!e.alive && !e.reachedEnd) this.rewardKill(e);
     }
     this.enemies = this.enemies.filter((e) => e.alive);
     if (this.selectedEnemyId && !this.enemies.some((e) => e.id === this.selectedEnemyId)) {
@@ -547,6 +559,7 @@ export class Game {
     }
     for (const p of this.projectiles) this.renderer.drawProjectile(p);
     this.renderer.drawBeams(this.beams);
+    this.renderer.drawParticles(this.particles);
     this.renderer.drawFloating(this.floats);
     if (this.phase === 'paused') this.renderer.drawPausedBanner();
   }

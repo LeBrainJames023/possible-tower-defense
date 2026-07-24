@@ -171,6 +171,8 @@ export class Projectile {
   id = id();
   x: number;
   y: number;
+  px: number;
+  py: number;
   tx: number;
   ty: number;
   speed: number;
@@ -185,6 +187,7 @@ export class Projectile {
   poisonDuration: number;
   chain: number;
   color: string;
+  towerKind: TowerKind;
   targetId: number | null;
   alive = true;
   trail: boolean;
@@ -206,11 +209,14 @@ export class Projectile {
     poisonDuration: number;
     chain: number;
     color: string;
+    towerKind: TowerKind;
     targetId: number | null;
     trail?: boolean;
   }) {
     this.x = opts.x;
     this.y = opts.y;
+    this.px = opts.x;
+    this.py = opts.y;
     this.tx = opts.tx;
     this.ty = opts.ty;
     this.speed = opts.speed;
@@ -225,11 +231,14 @@ export class Projectile {
     this.poisonDuration = opts.poisonDuration;
     this.chain = opts.chain;
     this.color = opts.color;
+    this.towerKind = opts.towerKind;
     this.targetId = opts.targetId;
     this.trail = opts.trail ?? false;
   }
 
   update(dt: number): boolean {
+    this.px = this.x;
+    this.py = this.y;
     const d = dist({ x: this.x, y: this.y }, { x: this.tx, y: this.ty });
     if (d < 8) {
       this.alive = false;
@@ -258,4 +267,34 @@ export interface BeamFx {
   y2: number;
   color: string;
   life: number;
+}
+
+export interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
+}
+
+export function spawnKillBurst(x: number, y: number, color: string, count = 10): Particle[] {
+  const out: Particle[] = [];
+  for (let i = 0; i < count; i++) {
+    const a = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+    const sp = 40 + Math.random() * 90;
+    out.push({
+      x,
+      y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 20,
+      life: 0.35 + Math.random() * 0.35,
+      maxLife: 0.7,
+      color,
+      size: 2 + Math.random() * 3.5,
+    });
+  }
+  return out;
 }
