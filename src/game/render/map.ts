@@ -249,6 +249,20 @@ function drawGrassTile(
     ctx.fill();
   }
 
+  // Tiny grass blades
+  if (!isSnow(theme) && !isLavaWater(theme)) {
+    ctx.strokeStyle = 'rgba(160, 220, 140, 0.22)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 4; i++) {
+      const bx = x + 8 + ((h * (i + 11) * 37) % 32);
+      const by = y + 14 + ((h * (i + 19) * 29) % 26);
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(bx + 1.5, by - 5);
+      ctx.stroke();
+    }
+  }
+
   if (isSnow(theme)) {
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
     ctx.fillRect(x + 4, y + 4, TILE - 8, 3);

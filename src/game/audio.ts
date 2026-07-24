@@ -26,13 +26,19 @@ class GameAudio {
   }
 
   private ensure(): AudioContext | null {
-    if (typeof AudioContext === 'undefined' && typeof (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext === 'undefined') {
-      return null;
+    if (typeof AudioContext === 'undefined') {
+      const W = globalThis as unknown as {
+        webkitAudioContext?: typeof AudioContext;
+      };
+      if (typeof W.webkitAudioContext === 'undefined') return null;
     }
     if (!this.ctx) {
-      const AC =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const W = globalThis as unknown as {
+        AudioContext?: typeof AudioContext;
+        webkitAudioContext?: typeof AudioContext;
+      };
+      const AC = W.AudioContext ?? W.webkitAudioContext;
+      if (!AC) return null;
       this.ctx = new AC();
     }
     if (this.ctx.state === 'suspended') void this.ctx.resume();

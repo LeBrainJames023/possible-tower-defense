@@ -174,7 +174,7 @@ export class Game {
   }
 
   startWave(): void {
-    if (!this.canStartWave()) return;
+    if (!this.canStartWave() || !this.level) return;
     const next = this.waveIndex + 1;
     const groups = buildWave(this.level.id, next);
     this.spawnQueue = [];
@@ -359,6 +359,13 @@ export class Game {
     const dead = this.enemies.filter((e) => !e.alive && !e.reachedEnd);
     for (const e of dead) this.rewardKill(e);
     this.enemies = this.enemies.filter((e) => e.alive);
+    this.pruneSelection();
+
+    // Leak loss before more combat so a fatal leak can't still shoot/earn that frame
+    if (this.lives <= 0) {
+      this.failLevel();
+      return;
+    }
 
     for (const t of this.towers) {
       t.cooldown = Math.max(0, t.cooldown - dt);
@@ -367,6 +374,7 @@ export class Game {
       if (!target) continue;
       t.cooldown = 1 / t.fireRate;
       t.targetId = target.id;
+      t.aimAngle = Math.atan2(target.pos.y - t.y, target.pos.x - t.x);
       this.fire(t, target);
     }
 
@@ -392,16 +400,7 @@ export class Game {
     this.particles = this.renderer.tickParticles(this.particles, dt);
 
     if (this.lives <= 0) {
-      this.lives = 0;
-      this.enemies = [];
-      this.spawnQueue = [];
-      this.waveActive = false;
-      if (this.phase === 'wave' || this.phase === 'prepare') {
-        this.phase = 'lost';
-        audio.play('lose');
-        this.onResult?.(false);
-        this.onHud?.();
-      }
+      this.failLevel();
       return;
     }
 
@@ -472,6 +471,7 @@ export class Game {
         if (!e.alive && !e.reachedEnd) this.rewardKill(e);
       }
       this.enemies = this.enemies.filter((e) => e.alive);
+      this.pruneSelection();
       return;
     }
 
@@ -528,8 +528,27 @@ export class Game {
       if (!e.alive && !e.reachedEnd) this.rewardKill(e);
     }
     this.enemies = this.enemies.filter((e) => e.alive);
+    this.pruneSelection();
+  }
+
+  private pruneSelection(): void {
     if (this.selectedEnemyId && !this.enemies.some((e) => e.id === this.selectedEnemyId)) {
       this.selectedEnemyId = null;
+    }
+  }
+
+  private failLevel(): void {
+    this.lives = 0;
+    this.enemies = [];
+    this.spawnQueue = [];
+    this.projectiles = [];
+    this.waveActive = false;
+    this.selectedEnemyId = null;
+    if (this.phase === 'wave' || this.phase === 'prepare') {
+      this.phase = 'lost';
+      audio.play('lose');
+      this.onResult?.(false);
+      this.onHud?.();
     }
   }
 

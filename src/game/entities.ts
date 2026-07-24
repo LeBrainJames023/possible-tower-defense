@@ -127,6 +127,8 @@ export class Tower {
   level = 1;
   cooldown = 0;
   targetId: number | null = null;
+  /** Radians — where the weapon points (updated when acquiring a target). */
+  aimAngle = -Math.PI / 2;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;

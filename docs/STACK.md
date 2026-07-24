@@ -28,4 +28,4 @@ No backend. No database. Progress is `localStorage` only.
 - No React/Vue
 - No Phaser/Pixi
 - No server/API
-- No paid asset packs (art is drawn in `renderer.ts`)
+- No paid asset packs (art is drawn in `src/game/render/`; audio in `src/game/audio.ts`)
