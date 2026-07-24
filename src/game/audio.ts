@@ -59,63 +59,72 @@ class GameAudio {
     return this.muted;
   }
 
+  private tone(
+    ctx: AudioContext,
+    type: OscillatorType,
+    freq: number,
+    dur: number,
+    vol: number,
+    when: number,
+    slideTo?: number,
+  ): void {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, when);
+    if (slideTo != null) {
+      osc.frequency.exponentialRampToValueAtTime(Math.max(40, slideTo), when + dur);
+    }
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(vol, when + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(when);
+    osc.stop(when + dur + 0.03);
+  }
+
   play(kind: SfxKind, pitch = 1): void {
     if (this.muted) return;
     const ctx = this.ensure();
     if (!ctx) return;
-
     const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    const beep = (
-      type: OscillatorType,
-      freq: number,
-      dur: number,
-      vol: number,
-      slideTo?: number,
-    ) => {
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq * pitch, now);
-      if (slideTo != null) {
-        osc.frequency.exponentialRampToValueAtTime(Math.max(40, slideTo * pitch), now + dur);
-      }
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(vol, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-      osc.start(now);
-      osc.stop(now + dur + 0.02);
-    };
+    const p = pitch;
 
     switch (kind) {
       case 'ui':
-        beep('sine', 660, 0.06, 0.04);
+        this.tone(ctx, 'sine', 680 * p, 0.05, 0.035, now);
         break;
       case 'place':
-        beep('triangle', 220, 0.12, 0.06, 440);
+        this.tone(ctx, 'triangle', 200 * p, 0.1, 0.05, now, 420 * p);
+        this.tone(ctx, 'sine', 420 * p, 0.08, 0.025, now + 0.05);
         break;
       case 'shoot':
-        beep('square', 380, 0.05, 0.035, 180);
+        this.tone(ctx, 'square', 360 * p, 0.045, 0.028, now, 160 * p);
         break;
       case 'hit':
-        beep('sawtooth', 140, 0.07, 0.045, 60);
+        this.tone(ctx, 'sawtooth', 150 * p, 0.06, 0.04, now, 70 * p);
         break;
       case 'kill':
-        beep('triangle', 520, 0.14, 0.055, 880);
+        this.tone(ctx, 'triangle', 520 * p, 0.1, 0.045, now, 780 * p);
+        this.tone(ctx, 'sine', 880 * p, 0.12, 0.03, now + 0.04);
         break;
       case 'wave':
-        beep('sine', 300, 0.2, 0.05, 600);
+        this.tone(ctx, 'sine', 280 * p, 0.12, 0.04, now, 420 * p);
+        this.tone(ctx, 'triangle', 420 * p, 0.14, 0.03, now + 0.08, 620 * p);
         break;
       case 'upgrade':
-        beep('sine', 440, 0.12, 0.05, 880);
+        this.tone(ctx, 'sine', 440 * p, 0.08, 0.04, now);
+        this.tone(ctx, 'sine', 660 * p, 0.1, 0.035, now + 0.07);
         break;
       case 'win':
-        beep('triangle', 523, 0.35, 0.06, 784);
+        this.tone(ctx, 'triangle', 523 * p, 0.16, 0.05, now);
+        this.tone(ctx, 'triangle', 659 * p, 0.16, 0.045, now + 0.12);
+        this.tone(ctx, 'triangle', 784 * p, 0.22, 0.04, now + 0.24);
         break;
       case 'lose':
-        beep('sawtooth', 220, 0.4, 0.05, 80);
+        this.tone(ctx, 'sawtooth', 220 * p, 0.22, 0.04, now, 110 * p);
+        this.tone(ctx, 'sine', 140 * p, 0.28, 0.03, now + 0.1, 70 * p);
         break;
     }
   }

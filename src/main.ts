@@ -82,7 +82,7 @@ function renderLevels(): void {
     btn.className = 'level-card';
     if (level.id < unlocked) btn.classList.add('cleared');
     btn.disabled = level.id > unlocked;
-    btn.innerHTML = `<strong>Level ${level.id}</strong><span>${level.name}</span><span>${level.blurb}</span>`;
+    btn.innerHTML = `<span class="biome-chip">${level.theme}</span><strong>Level ${level.id} · ${level.name}</strong><span>${level.blurb}</span>`;
     btn.addEventListener('click', () => startLevel(level.id));
     levelGrid.appendChild(btn);
   }
@@ -157,10 +157,18 @@ function updatePauseUi(): void {
 
 function updateHud(): void {
   if (!game.level) return;
+  const prevGold = Number(hudGold.textContent);
   hudLevel.textContent = String(game.level.id);
   hudWave.textContent = `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);
+  if (Number.isFinite(prevGold) && prevGold !== game.gold) {
+    hudGold.classList.remove('pulse');
+    void hudGold.offsetWidth;
+    hudGold.classList.add('pulse');
+  }
+  const livesBlock = hudLives.parentElement;
+  livesBlock?.classList.toggle('lives-low', game.lives <= 5);
   btnWave.disabled = !game.canStartWave();
   btnWave.textContent =
     game.waveIndex >= WAVES_PER_LEVEL
@@ -224,6 +232,11 @@ game.onHud = updateHud;
 game.onToast = showToast;
 game.onResult = (won) => {
   resultWon = won;
+  const panel = document.getElementById('result-panel')!;
+  const eyebrow = document.getElementById('result-eyebrow')!;
+  panel.classList.toggle('won', won);
+  panel.classList.toggle('lost', !won);
+  eyebrow.textContent = won ? 'Victory' : 'Defeat';
   overlayResult.classList.remove('hidden');
   if (won) {
     resultTitle.textContent = activeLevelId >= LEVELS.length ? 'Campaign clear!' : 'Level cleared';
