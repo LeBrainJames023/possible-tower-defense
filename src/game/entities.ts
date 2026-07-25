@@ -1,6 +1,16 @@
-import { ENEMIES, TOWERS, type EnemyKind, type TowerKind } from './constants';
+import {
+  BARRACKS,
+  ENEMIES,
+  TOWERS,
+  TOWER_SPECS,
+  type BarracksKind,
+  type EnemyKind,
+  type TowerKind,
+  type TowerSpecDef,
+  type TowerSpecId,
+} from './constants';
 import type { Vec2 } from '../shared/math';
-import { dist, pathTotalLength } from '../shared/math';
+import { dist, lengthAlongPath, pathTotalLength } from '../shared/math';
 
 let nextId = 1;
 function id(): number {
@@ -27,6 +37,8 @@ export class Enemy {
   burnTimer = 0;
   poisonDps = 0;
   poisonTimer = 0;
+  /** Set each frame by friendlies — freezes path movement while dueling. */
+  blocked = false;
   pos: Vec2 = { x: 0, y: 0 };
 
   constructor(kind: EnemyKind, hpScale: number, waypoints: Vec2[]) {
@@ -91,6 +103,8 @@ export class Enemy {
       }
     }
 
+    if (this.blocked) return;
+
     const total = pathTotalLength(waypoints);
     if (total <= 0) return;
     const speed = this.speed * this.slowMul;
@@ -100,21 +114,14 @@ export class Enemy {
       this.alive = false;
       this.reachedEnd = true;
     }
-    let travel = this.progress * total;
-    for (let i = 0; i < waypoints.length - 1; i++) {
-      const seg = dist(waypoints[i], waypoints[i + 1]);
-      if (travel <= seg) {
-        const t = seg === 0 ? 0 : travel / seg;
-        this.pos = {
-          x: waypoints[i].x + (waypoints[i + 1].x - waypoints[i].x) * t,
-          y: waypoints[i].y + (waypoints[i + 1].y - waypoints[i].y) * t,
-        };
-        return;
-      }
-      travel -= seg;
-    }
-    this.pos = { ...waypoints[waypoints.length - 1] };
+    this.pos = lengthAlongPath(waypoints, this.progress);
   }
+}
+
+function specMul(spec: TowerSpecDef | null, key: keyof TowerSpecDef, fallback = 1): number {
+  if (!spec) return fallback;
+  const v = spec[key];
+  return typeof v === 'number' ? v : fallback;
 }
 
 export class Tower {
@@ -125,6 +132,9 @@ export class Tower {
   x: number;
   y: number;
   level = 1;
+  /** Permanent L3 specialization — null until chosen. */
+  spec: TowerSpecId | null = null;
+  specGoldSpent = 0;
   cooldown = 0;
   targetId: number | null = null;
   /** Radians — where the weapon points (updated when acquiring a target). */
@@ -142,20 +152,145 @@ export class Tower {
     return TOWERS[this.kind];
   }
 
+  get specDef(): TowerSpecDef | null {
+    if (!this.spec) return null;
+    return TOWER_SPECS[this.kind].find((s) => s.id === this.spec) ?? null;
+  }
+
+  get displayName(): string {
+    const s = this.specDef;
+    return s ? `${this.def.name} · ${s.name}` : this.def.name;
+  }
+
+  private levelMul(): number {
+    return Math.pow(this.def.upgradeMul, this.level - 1);
+  }
+
   get damage(): number {
-    return this.def.damage * Math.pow(this.def.upgradeMul, this.level - 1);
+    return this.def.damage * this.levelMul() * specMul(this.specDef, 'damageMul');
   }
 
   get range(): number {
-    return this.def.range * (1 + (this.level - 1) * 0.08);
+    return this.def.range * (1 + (this.level - 1) * 0.08) * specMul(this.specDef, 'rangeMul');
   }
 
   get fireRate(): number {
-    return this.def.fireRate * (1 + (this.level - 1) * 0.1);
+    return this.def.fireRate * (1 + (this.level - 1) * 0.1) * specMul(this.specDef, 'fireRateMul');
+  }
+
+  get splash(): number {
+    const s = this.specDef;
+    const base = this.def.splash * specMul(s, 'splashMul');
+    return base + (s?.splashAdd ?? 0);
+  }
+
+  get slow(): number {
+    return Math.min(0.85, this.def.slow * specMul(this.specDef, 'slowMul'));
+  }
+
+  get slowDuration(): number {
+    return this.def.slowDuration * specMul(this.specDef, 'slowDurationMul');
+  }
+
+  get chain(): number {
+    const s = this.specDef;
+    if (s?.chainSet != null) return s.chainSet;
+    return Math.max(0, this.def.chain + (s?.chainAdd ?? 0));
+  }
+
+  get burnDps(): number {
+    return this.def.burnDps * specMul(this.specDef, 'burnDpsMul');
+  }
+
+  get burnDuration(): number {
+    return this.def.burnDuration * specMul(this.specDef, 'burnDurationMul');
+  }
+
+  get poisonDps(): number {
+    return this.def.poisonDps * specMul(this.specDef, 'poisonDpsMul');
+  }
+
+  get poisonDuration(): number {
+    return this.def.poisonDuration * specMul(this.specDef, 'poisonDurationMul');
   }
 
   statusScale(): number {
-    return Math.pow(this.def.upgradeMul, this.level - 1);
+    return this.levelMul();
+  }
+
+  /** True when L3 and still needs a specialization pick. */
+  needsSpec(): boolean {
+    return this.level >= 3 && this.spec == null;
+  }
+
+  upgradeCost(): number {
+    return Math.round(this.def.upgradeCost * Math.pow(1.35, this.level - 1));
+  }
+
+  specCost(): number {
+    return Math.round(this.def.upgradeCost * Math.pow(1.35, 2) * 1.5);
+  }
+
+  sellValue(): number {
+    const base = this.def.cost;
+    const upgrades = this.def.upgradeCost * (this.level - 1) * 0.7;
+    const spec = this.specGoldSpent * 0.7;
+    return Math.round((base + upgrades + spec) * 0.65);
+  }
+}
+
+export class Barracks {
+  id = id();
+  kind: BarracksKind;
+  col: number;
+  row: number;
+  x: number;
+  y: number;
+  level = 1;
+  rallyX: number;
+  rallyY: number;
+  rallyProgress: number;
+  spawnTimer: number;
+
+  constructor(
+    kind: BarracksKind,
+    col: number,
+    row: number,
+    x: number,
+    y: number,
+    rallyX: number,
+    rallyY: number,
+    rallyProgress: number,
+  ) {
+    this.kind = kind;
+    this.col = col;
+    this.row = row;
+    this.x = x;
+    this.y = y;
+    this.rallyX = rallyX;
+    this.rallyY = rallyY;
+    this.rallyProgress = rallyProgress;
+    this.spawnTimer = 0.6;
+  }
+
+  get def() {
+    return BARRACKS[this.kind];
+  }
+
+  get rallyRadius(): number {
+    return this.def.rallyRadius * (1 + (this.level - 1) * 0.08);
+  }
+
+  unitHp(): number {
+    return Math.round(this.def.unit.hp * (1 + (this.level - 1) * 0.22));
+  }
+
+  unitDamage(): number {
+    return this.def.unit.damage * (1 + (this.level - 1) * 0.18);
+  }
+
+  unitAttackRate(): number {
+    return this.def.unit.attackRate * (1 + (this.level - 1) * 0.08);
   }
 
   upgradeCost(): number {
@@ -166,6 +301,71 @@ export class Tower {
     const base = this.def.cost;
     const upgrades = this.def.upgradeCost * (this.level - 1) * 0.7;
     return Math.round((base + upgrades) * 0.65);
+  }
+}
+
+export class FriendlyUnit {
+  id = id();
+  barracksId: number;
+  unitKind: 'warrior' | 'knight';
+  slot: number;
+  hp: number;
+  maxHp: number;
+  damage: number;
+  attackRate: number;
+  speed: number;
+  engageRange: number;
+  radius: number;
+  color: string;
+  colorDark: string;
+  progress: number;
+  rallyProgress: number;
+  pos: Vec2;
+  targetEnemyId: number | null = null;
+  attackCd = 0;
+  enemyStrikeCd = 0;
+  alive = true;
+  facing = 1;
+
+  constructor(opts: {
+    barracksId: number;
+    unitKind: 'warrior' | 'knight';
+    slot: number;
+    hp: number;
+    damage: number;
+    attackRate: number;
+    speed: number;
+    engageRange: number;
+    radius: number;
+    color: string;
+    colorDark: string;
+    progress: number;
+    rallyProgress: number;
+    pos: Vec2;
+  }) {
+    this.barracksId = opts.barracksId;
+    this.unitKind = opts.unitKind;
+    this.slot = opts.slot;
+    this.maxHp = opts.hp;
+    this.hp = opts.hp;
+    this.damage = opts.damage;
+    this.attackRate = opts.attackRate;
+    this.speed = opts.speed;
+    this.engageRange = opts.engageRange;
+    this.radius = opts.radius;
+    this.color = opts.color;
+    this.colorDark = opts.colorDark;
+    this.progress = opts.progress;
+    this.rallyProgress = opts.rallyProgress;
+    this.pos = { ...opts.pos };
+  }
+
+  takeDamage(raw: number): void {
+    this.hp -= raw;
+    if (this.hp <= 0) {
+      this.hp = 0;
+      this.alive = false;
+    }
   }
 }
 
@@ -190,6 +390,7 @@ export class Projectile {
   chain: number;
   color: string;
   towerKind: TowerKind;
+  spec: TowerSpecId | null;
   targetId: number | null;
   alive = true;
   trail: boolean;
@@ -212,6 +413,7 @@ export class Projectile {
     chain: number;
     color: string;
     towerKind: TowerKind;
+    spec?: TowerSpecId | null;
     targetId: number | null;
     trail?: boolean;
   }) {
@@ -234,6 +436,7 @@ export class Projectile {
     this.chain = opts.chain;
     this.color = opts.color;
     this.towerKind = opts.towerKind;
+    this.spec = opts.spec ?? null;
     this.targetId = opts.targetId;
     this.trail = opts.trail ?? false;
   }

@@ -28,8 +28,8 @@
           <p class="eyebrow">Indie experiment</p>
           <h1>Possible<br />Tower Defense</h1>
           <p class="lede">
-            Six towers. Ten biomes. Mythical foes. Build beside the path — never on it — and hold
-            the line.
+            Six towers with skill paths, warrior & knight barracks, ten biomes. Build beside the
+            path — never on it — and hold the line.
           </p>
           <div class="btn-row">
             <button type="button" class="btn btn-primary" data-action="levels">Play</button>
@@ -43,10 +43,19 @@
           <h2>How to play</h2>
           <ul class="howto">
             <li>
-              <strong>Slim tower bar</strong> under the map — tap an icon to pop details, tap again
-              to cancel. Upgrade/sell opens as a floating card when you select a placed tower.
+              <strong>Slim build bar</strong> under the map — towers plus Warrior / Knight barracks.
+              Tap an icon for details, tap again to cancel.
             </li>
-            <li><strong>Pick a tower</strong>, then click open grass beside the path.</li>
+            <li><strong>Pick a building</strong>, then click open grass beside the path.</li>
+            <li>
+              <strong>Skill paths</strong> — upgrade towers to level 3, then choose one of two
+              specializations (permanent).
+            </li>
+            <li>
+              <strong>Barracks</strong> — deploy up to three troops. Select the barracks, tap Set
+              Flag, then tap the path inside the circle for their rally point. Dead troops respawn
+              one at a time.
+            </li>
             <li>
               <strong>Blocked tiles</strong> — path, water, trees, and rocks. Later levels steal more
               of the best pads on purpose.
@@ -136,6 +145,11 @@
                 <p id="selection-stats" class="selection-stats"></p>
                 <div id="tower-actions" class="btn-col hidden">
                   <button type="button" class="btn btn-primary" id="btn-upgrade">Upgrade</button>
+                  <div id="spec-actions" class="spec-actions hidden">
+                    <button type="button" class="btn btn-primary" id="btn-spec-a">Path A</button>
+                    <button type="button" class="btn btn-primary" id="btn-spec-b">Path B</button>
+                  </div>
+                  <button type="button" class="btn btn-ghost" id="btn-set-flag">Set Flag</button>
                   <button type="button" class="btn btn-danger" id="btn-sell">Sell</button>
                 </div>
               </aside>

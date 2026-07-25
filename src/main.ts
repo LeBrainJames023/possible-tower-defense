@@ -1,5 +1,18 @@
 import './style.css';
-import { ENEMIES, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
+import {
+  BARRACKS,
+  ENEMIES,
+  SHOP_ORDER,
+  TOWER_SPECS,
+  TOWERS,
+  WAVES_PER_LEVEL,
+  isTowerKind,
+  placeableColor,
+  placeableCost,
+  placeableName,
+  type PlaceableKind,
+  type TowerSpecId,
+} from './game/constants';
 import { LEVELS } from './game/levels';
 import { Game, loadProgress, saveProgress } from './game/Game';
 import { audio } from './game/audio';
@@ -38,6 +51,11 @@ const inspectPanel = document.getElementById('inspect-panel')!;
 const selectionTitle = document.getElementById('selection-title')!;
 const selectionStats = document.getElementById('selection-stats')!;
 const towerActions = document.getElementById('tower-actions')!;
+const specActions = document.getElementById('spec-actions')!;
+const btnUpgrade = document.getElementById('btn-upgrade') as HTMLButtonElement;
+const btnSpecA = document.getElementById('btn-spec-a') as HTMLButtonElement;
+const btnSpecB = document.getElementById('btn-spec-b') as HTMLButtonElement;
+const btnSetFlag = document.getElementById('btn-set-flag') as HTMLButtonElement;
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 const game = new Game(canvas);
@@ -45,6 +63,8 @@ const game = new Game(canvas);
 let activeLevelId = 1;
 let resultWon = false;
 let toastTimer = 0;
+let pendingSpecA: TowerSpecId | null = null;
+let pendingSpecB: TowerSpecId | null = null;
 
 function showToast(message: string): void {
   toastEl.textContent = message;
@@ -88,41 +108,49 @@ function renderLevels(): void {
   }
 }
 
-function selectTowerKind(kind: TowerKind): void {
+function selectPlaceable(kind: PlaceableKind): void {
   game.selectedKind = kind;
   game.selectedTowerId = null;
+  game.selectedBarracksId = null;
   game.selectedEnemyId = null;
+  game.rallyModeBarracksId = null;
   audio.play('ui');
   syncShopSelection();
   updateHud();
-  const def = TOWERS[kind];
-  showToast(`${def.name} selected — tap open grass to place`);
+  showToast(`${placeableName(kind)} selected — tap open grass to place`);
 }
 
-function clearTowerKind(): void {
+function clearPlaceable(): void {
   game.selectedKind = null;
   audio.play('ui');
   syncShopSelection();
   updateHud();
 }
 
+function shortShopName(kind: PlaceableKind): string {
+  if (kind === 'warriorBarracks') return 'Warrior';
+  if (kind === 'knightBarracks') return 'Knight';
+  return placeableName(kind);
+}
+
 function renderShop(): void {
   towerShop.innerHTML = '';
-  for (const kind of TOWER_ORDER) {
-    const def = TOWERS[kind];
+  for (const kind of SHOP_ORDER) {
+    const cost = placeableCost(kind);
+    const colors = placeableColor(kind);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'tower-icon';
     btn.dataset.kind = kind;
-    btn.title = `${def.name} — ${def.cost}g`;
+    btn.title = `${placeableName(kind)} — ${cost}g`;
     btn.innerHTML = `
-      <span class="tower-swatch" data-kind="${kind}" style="background:linear-gradient(145deg,${def.color},${def.colorDark})"></span>
-      <strong>${def.name}</strong>
-      <span class="cost">${def.cost}g</span>
+      <span class="tower-swatch" data-kind="${kind}" style="background:linear-gradient(145deg,${colors.color},${colors.colorDark})"></span>
+      <strong>${shortShopName(kind)}</strong>
+      <span class="cost">${cost}g</span>
     `;
     btn.addEventListener('click', () => {
-      if (game.selectedKind === kind) clearTowerKind();
-      else selectTowerKind(kind);
+      if (game.selectedKind === kind) clearPlaceable();
+      else selectPlaceable(kind);
     });
     towerShop.appendChild(btn);
   }
@@ -132,18 +160,26 @@ function renderShop(): void {
 function syncShopSelection(): void {
   towerShop.querySelectorAll('.tower-icon').forEach((el) => {
     const btn = el as HTMLButtonElement;
-    const kind = btn.dataset.kind as TowerKind;
+    const kind = btn.dataset.kind as PlaceableKind;
     btn.classList.toggle('selected', game.selectedKind === kind);
-    btn.style.opacity = game.level && game.gold < TOWERS[kind].cost ? '0.5' : '1';
+    btn.style.opacity = game.level && game.gold < placeableCost(kind) ? '0.5' : '1';
   });
 
   if (game.selectedKind) {
-    const def = TOWERS[game.selectedKind];
+    const kind = game.selectedKind;
+    const colors = placeableColor(kind);
     shopPop.classList.remove('hidden');
-    shopPopSwatch.setAttribute('data-kind', def.kind);
-    shopPopSwatch.style.background = `linear-gradient(145deg,${def.color},${def.colorDark})`;
-    shopPopName.textContent = `${def.name} · ${def.role}`;
-    shopPopBlurb.textContent = `${def.cost}g — ${def.description}. Tap grass (not path, water, rocks, or trees).`;
+    shopPopSwatch.setAttribute('data-kind', kind);
+    shopPopSwatch.style.background = `linear-gradient(145deg,${colors.color},${colors.colorDark})`;
+    if (isTowerKind(kind)) {
+      const def = TOWERS[kind];
+      shopPopName.textContent = `${def.name} · ${def.role}`;
+      shopPopBlurb.textContent = `${def.cost}g — ${def.description}. At Lv3 pick a skill path.`;
+    } else {
+      const def = BARRACKS[kind];
+      shopPopName.textContent = `${def.name} · ${def.role}`;
+      shopPopBlurb.textContent = `${def.cost}g — ${def.description}. Set a rally flag after placing.`;
+    }
   } else {
     shopPop.classList.add('hidden');
   }
@@ -179,18 +215,55 @@ function updateHud(): void {
   updatePauseUi();
 
   const tower = game.getSelectedTower();
+  const barracks = game.getSelectedBarracks();
   const enemy = game.getSelectedEnemy();
-  const showInspect = !!(tower || enemy);
+  const showInspect = !!(tower || barracks || enemy);
 
   inspectPanel.classList.toggle('hidden', !showInspect);
+  pendingSpecA = null;
+  pendingSpecB = null;
 
   if (tower) {
     towerActions.classList.remove('hidden');
-    selectionTitle.textContent = `${tower.def.name} · Lv ${tower.level}`;
-    selectionStats.textContent = `${tower.def.role}\n${tower.def.description}\nDmg ${Math.round(tower.damage)} · Range ${Math.round(tower.range)} · ${tower.fireRate.toFixed(1)}/s\nUpgrade ${tower.level >= 3 ? 'MAX' : tower.upgradeCost() + 'g'} · Sell ${tower.sellValue()}g`;
-    const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
-    up.disabled = tower.level >= 3 || game.gold < tower.upgradeCost();
-    up.textContent = tower.level >= 3 ? 'Max level' : `Upgrade (${tower.upgradeCost()}g)`;
+    btnSetFlag.classList.add('hidden');
+    const needSpec = tower.needsSpec();
+    btnUpgrade.classList.toggle('hidden', needSpec);
+    specActions.classList.toggle('hidden', !needSpec);
+
+    selectionTitle.textContent = `${tower.displayName} · Lv ${tower.level}`;
+    const specLine = tower.specDef ? `\nPath: ${tower.specDef.name}` : '';
+    selectionStats.textContent = `${tower.def.role}\n${tower.def.description}${specLine}\nDmg ${Math.round(tower.damage)} · Range ${Math.round(tower.range)} · ${tower.fireRate.toFixed(1)}/s\nUpgrade ${needSpec ? 'choose path' : tower.level >= 3 ? 'MAX' : tower.upgradeCost() + 'g'} · Sell ${tower.sellValue()}g`;
+
+    if (needSpec) {
+      const [a, b] = TOWER_SPECS[tower.kind];
+      pendingSpecA = a.id;
+      pendingSpecB = b.id;
+      const cost = tower.specCost();
+      btnSpecA.textContent = `${a.name} (${cost}g)`;
+      btnSpecB.textContent = `${b.name} (${cost}g)`;
+      btnSpecA.title = a.description;
+      btnSpecB.title = b.description;
+      btnSpecA.disabled = game.gold < cost;
+      btnSpecB.disabled = game.gold < cost;
+    } else {
+      btnUpgrade.disabled = tower.level >= 3 || game.gold < tower.upgradeCost();
+      btnUpgrade.textContent =
+        tower.level >= 3 ? (tower.spec ? 'Specialized' : 'Max level') : `Upgrade (${tower.upgradeCost()}g)`;
+    }
+  } else if (barracks) {
+    towerActions.classList.remove('hidden');
+    specActions.classList.add('hidden');
+    btnUpgrade.classList.remove('hidden');
+    btnSetFlag.classList.remove('hidden');
+    const living = game.friendlies.filter((u) => u.barracksId === barracks.id && u.alive).length;
+    const cap = barracks.def.unitCap;
+    selectionTitle.textContent = `${barracks.def.name} · Lv ${barracks.level}`;
+    selectionStats.textContent = `${barracks.def.role}\n${barracks.def.description}\nTroops ${living}/${cap} · Rally range ${Math.round(barracks.rallyRadius)}\nUnit HP ${barracks.unitHp()} · Dmg ${Math.round(barracks.unitDamage())}\nUpgrade ${barracks.level >= 3 ? 'MAX' : barracks.upgradeCost() + 'g'} · Sell ${barracks.sellValue()}g`;
+    btnUpgrade.disabled = barracks.level >= 3 || game.gold < barracks.upgradeCost();
+    btnUpgrade.textContent =
+      barracks.level >= 3 ? 'Max level' : `Upgrade (${barracks.upgradeCost()}g)`;
+    btnSetFlag.textContent =
+      game.rallyModeBarracksId === barracks.id ? 'Cancel Flag' : 'Set Flag';
   } else if (enemy) {
     towerActions.classList.add('hidden');
     const def = ENEMIES[enemy.kind];
@@ -198,6 +271,7 @@ function updateHud(): void {
       enemy.slowMul < 1 ? 'chilled' : '',
       enemy.burnTimer > 0 ? 'burning' : '',
       enemy.poisonTimer > 0 ? 'poisoned' : '',
+      enemy.blocked ? 'blocked' : '',
     ]
       .filter(Boolean)
       .join(', ');
@@ -205,14 +279,18 @@ function updateHud(): void {
     selectionStats.textContent = `${def.blurb}\nHP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${def.speed}\nReward ${def.reward}g${effects ? `\nStatus: ${effects}` : ''}`;
   }
 
-  if (game.selectedKind) {
-    hint.textContent = `Placing ${TOWERS[game.selectedKind].name}`;
+  if (game.rallyModeBarracksId != null) {
+    hint.textContent = 'Tap path inside circle for rally flag';
+  } else if (game.selectedKind) {
+    hint.textContent = `Placing ${placeableName(game.selectedKind)}`;
   } else if (tower) {
-    hint.textContent = 'Tower selected';
+    hint.textContent = tower.needsSpec() ? 'Choose a skill path' : 'Tower selected';
+  } else if (barracks) {
+    hint.textContent = 'Barracks selected';
   } else if (enemy) {
     hint.textContent = 'Enemy inspected';
   } else {
-    hint.textContent = 'Pick a tower';
+    hint.textContent = 'Pick a tower or barracks';
   }
   syncShopSelection();
   btnMute.textContent = audio.muted ? 'Muted' : 'Sound on';
@@ -306,14 +384,27 @@ document.getElementById('btn-leave-confirm')!.addEventListener('click', () => {
   game.stopLoop();
 });
 
-document.getElementById('btn-upgrade')!.addEventListener('click', () => game.upgradeSelected());
+btnUpgrade.addEventListener('click', () => game.upgradeSelected());
+btnSpecA.addEventListener('click', () => {
+  if (pendingSpecA) game.applySpec(pendingSpecA);
+});
+btnSpecB.addEventListener('click', () => {
+  if (pendingSpecB) game.applySpec(pendingSpecB);
+});
+btnSetFlag.addEventListener('click', () => {
+  if (game.rallyModeBarracksId != null) game.cancelRallyMode();
+  else game.beginRallyMode();
+  updateHud();
+});
 document.getElementById('btn-sell')!.addEventListener('click', () => game.sellSelected());
 document.getElementById('btn-deselect')!.addEventListener('click', () => {
   game.selectedTowerId = null;
+  game.selectedBarracksId = null;
   game.selectedEnemyId = null;
+  game.cancelRallyMode();
   updateHud();
 });
-document.getElementById('btn-shop-clear')!.addEventListener('click', () => clearTowerKind());
+document.getElementById('btn-shop-clear')!.addEventListener('click', () => clearPlaceable());
 
 btnResultPrimary.addEventListener('click', () => {
   overlayResult.classList.add('hidden');
@@ -337,6 +428,10 @@ canvas.addEventListener('pointerleave', () => {
   game.hover = null;
 });
 canvas.addEventListener('click', (e) => {
+  if (game.rallyModeBarracksId != null) {
+    game.trySetRally(e.clientX, e.clientY);
+    return;
+  }
   if (game.selectEnemyAt(e.clientX, e.clientY)) return;
   const cell = game.canvasToCell(e.clientX, e.clientY);
   if (game.selectTowerAt(cell.c, cell.r)) return;

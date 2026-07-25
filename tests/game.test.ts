@@ -70,6 +70,74 @@ describe('Game integration', () => {
     expect(game.gold).toBe(beforeSell + sell);
   });
 
+  it('reaches L3 then applies a specialization path', () => {
+    game.gold = 2000;
+    game.selectedKind = 'arrow';
+    game.tryPlace(5, 4);
+    const t = game.towers[0];
+    game.selectedTowerId = t.id;
+    expect(game.upgradeSelected()).toBe(true);
+    expect(game.upgradeSelected()).toBe(true);
+    expect(t.level).toBe(3);
+    expect(t.needsSpec()).toBe(true);
+    expect(game.upgradeSelected()).toBe(false);
+    const before = t.fireRate;
+    expect(game.applySpec('rapidFire')).toBe(true);
+    expect(t.spec).toBe('rapidFire');
+    expect(t.needsSpec()).toBe(false);
+    expect(t.fireRate).toBeGreaterThan(before);
+    expect(game.applySpec('heavyBolt')).toBe(false);
+  });
+
+  it('places warrior barracks, sets rally, spawns up to 3, and blocks enemies', () => {
+    game.gold = 2000;
+    game.selectedKind = 'warriorBarracks';
+    expect(game.tryPlace(5, 4)).toBe(true);
+    expect(game.barracks).toHaveLength(1);
+    const b = game.barracks[0];
+    game.selectedBarracksId = b.id;
+    expect(game.beginRallyMode()).toBe(true);
+    // Use current (default) rally which is already nearest path in range
+    const ok = game.trySetRally(b.rallyX, b.rallyY);
+    expect(ok).toBe(true);
+    expect(game.rallyModeBarracksId).toBeNull();
+
+    for (let i = 0; i < 400; i++) game.step(1 / 30);
+    expect(game.friendlies.length).toBe(3);
+
+    const orc = new Enemy('orc', 1, game.waypoints);
+    orc.progress = b.rallyProgress;
+    orc.pos = { x: b.rallyX, y: b.rallyY };
+    game.enemies.push(orc);
+    game.phase = 'wave';
+    game.waveActive = true;
+    const progressBefore = orc.progress;
+    for (let i = 0; i < 20; i++) game.step(1 / 30);
+    const engaged = game.enemies.find((e) => e.id === orc.id);
+    if (engaged) {
+      expect(engaged.blocked || engaged.hp < engaged.maxHp).toBe(true);
+      expect(engaged.progress).toBeLessThanOrEqual(progressBefore + 0.02);
+    } else {
+      // Orc killed by troops — also counts as successful engage
+      expect(game.friendlies.some((u) => u.hp < u.maxHp || u.targetEnemyId != null)).toBe(true);
+    }
+  });
+
+  it('respawns a friendly after one dies', () => {
+    game.gold = 2000;
+    game.selectedKind = 'knightBarracks';
+    game.tryPlace(5, 4);
+    for (let i = 0; i < 500; i++) game.step(1 / 30);
+    expect(game.friendlies.length).toBe(3);
+    const victim = game.friendlies[0];
+    victim.hp = 0;
+    victim.alive = false;
+    game.friendlies = game.friendlies.filter((u) => u.alive);
+    expect(game.friendlies.length).toBe(2);
+    for (let i = 0; i < 200; i++) game.step(1 / 30);
+    expect(game.friendlies.length).toBe(3);
+  });
+
   it('runs a wave, damages orcs, and returns to prepare', () => {
     game.selectedKind = 'arrow';
     game.tryPlace(5, 4);

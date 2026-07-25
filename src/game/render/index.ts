@@ -1,8 +1,19 @@
-import type { BiomeTheme, CellKind, TowerKind } from '../constants';
-import type { Enemy, FloatingText, BeamFx, Particle, Projectile, Tower } from '../entities';
+import type { BiomeTheme, CellKind, PlaceableKind } from '../constants';
+import type {
+  Barracks,
+  Enemy,
+  FloatingText,
+  BeamFx,
+  FriendlyUnit,
+  Particle,
+  Projectile,
+  Tower,
+} from '../entities';
 import type { Vec2 } from '../../shared/math';
 import { clearBackdrop, drawGrid, drawPathGlow, drawSpawnExit } from './map';
 import { drawTower } from './towers';
+import { drawBarracks } from './barracks';
+import { drawFriendly } from './friendlies';
 import { drawEnemy } from './enemies';
 import {
   drawBeams,
@@ -30,7 +41,7 @@ export class Renderer {
     grid: CellKind[][],
     hover: { c: number; r: number } | null,
     canPlace: boolean,
-    selectedKind: TowerKind | null,
+    selectedKind: PlaceableKind | null,
     showBuildHints: boolean,
   ): void {
     drawGrid(
@@ -55,6 +66,14 @@ export class Renderer {
 
   drawTower(t: Tower, selected: boolean): void {
     drawTower(this.ctx, t, selected, this.time);
+  }
+
+  drawBarracks(b: Barracks, selected: boolean, rallyMode: boolean): void {
+    drawBarracks(this.ctx, b, selected, rallyMode, this.time);
+  }
+
+  drawFriendly(u: FriendlyUnit): void {
+    drawFriendly(this.ctx, u);
   }
 
   drawEnemy(e: Enemy, selected: boolean): void {

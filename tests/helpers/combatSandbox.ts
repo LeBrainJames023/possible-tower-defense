@@ -37,6 +37,7 @@ export function makeFakeCanvas(): HTMLCanvasElement {
     restore: noop,
     translate: noop,
     rotate: noop,
+    scale: noop,
     createLinearGradient: () => ({ addColorStop: noop }),
     createRadialGradient: () => ({ addColorStop: noop }),
   };
@@ -94,17 +95,17 @@ export class CombatSandbox {
       if (!target) continue;
       t.cooldown = 1 / t.fireRate;
       const def = t.def;
-      if (def.chain > 0) {
+      if (t.chain > 0) {
         const hit = new Set<number>();
         let current: Enemy | null = target;
         let dmg = t.damage;
-        for (let i = 0; i < def.chain && current; i++) {
+        for (let i = 0; i < t.chain && current; i++) {
           hit.add(current.id);
           current.takeDamage(dmg, def.pierceArmor);
           this.damageDealt += dmg;
-          if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
-          if (def.burnDps > 0) current.applyBurn(def.burnDps, def.burnDuration);
-          if (def.poisonDps > 0) current.applyPoison(def.poisonDps, def.poisonDuration);
+          if (t.slow > 0) current.applySlow(t.slow, t.slowDuration);
+          if (t.burnDps > 0) current.applyBurn(t.burnDps, t.burnDuration);
+          if (t.poisonDps > 0) current.applyPoison(t.poisonDps, t.poisonDuration);
           const from = current;
           dmg *= 0.7;
           current =
@@ -119,19 +120,20 @@ export class CombatSandbox {
             y: t.y,
             tx: target.pos.x,
             ty: target.pos.y,
-            speed: def.splash > 0 ? 280 : 420,
+            speed: t.splash > 0 ? 280 : 420,
             damage: t.damage,
-            splash: def.splash,
+            splash: t.splash,
             pierceArmor: def.pierceArmor,
-            slow: def.slow,
-            slowDuration: def.slowDuration,
-            burnDps: def.burnDps,
-            burnDuration: def.burnDuration,
-            poisonDps: def.poisonDps,
-            poisonDuration: def.poisonDuration,
+            slow: t.slow,
+            slowDuration: t.slowDuration,
+            burnDps: t.burnDps,
+            burnDuration: t.burnDuration,
+            poisonDps: t.poisonDps,
+            poisonDuration: t.poisonDuration,
             chain: 0,
             color: def.color,
             towerKind: t.kind,
+            spec: t.spec,
             targetId: target.id,
           }),
         );

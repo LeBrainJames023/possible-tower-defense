@@ -11,7 +11,10 @@ type SfxKind =
   | 'wave'
   | 'win'
   | 'lose'
-  | 'upgrade';
+  | 'upgrade'
+  | 'flag'
+  | 'spawn'
+  | 'unitDown';
 
 class GameAudio {
   private ctx: AudioContext | null = null;
@@ -116,6 +119,17 @@ class GameAudio {
       case 'upgrade':
         this.tone(ctx, 'sine', 440 * p, 0.08, 0.04, now);
         this.tone(ctx, 'sine', 660 * p, 0.1, 0.035, now + 0.07);
+        break;
+      case 'flag':
+        this.tone(ctx, 'triangle', 320 * p, 0.08, 0.04, now, 520 * p);
+        this.tone(ctx, 'sine', 620 * p, 0.1, 0.03, now + 0.05);
+        break;
+      case 'spawn':
+        this.tone(ctx, 'square', 180 * p, 0.06, 0.03, now, 360 * p);
+        this.tone(ctx, 'triangle', 400 * p, 0.08, 0.028, now + 0.04);
+        break;
+      case 'unitDown':
+        this.tone(ctx, 'sawtooth', 160 * p, 0.1, 0.035, now, 80 * p);
         break;
       case 'win':
         this.tone(ctx, 'triangle', 523 * p, 0.16, 0.05, now);

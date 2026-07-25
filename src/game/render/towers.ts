@@ -522,6 +522,113 @@ function drawPoisonTower(
   ctx.fill();
 }
 
+function drawSpecFlourish(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  spec: Tower['spec'],
+): void {
+  if (!spec) return;
+  ctx.save();
+  ctx.font = 'bold 9px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  roundRect(ctx, x - 22, y - 48, 44, 12, 3);
+  ctx.fill();
+  ctx.fillStyle = '#f4d35e';
+  const label =
+    spec === 'rapidFire'
+      ? 'RAPID'
+      : spec === 'heavyBolt'
+        ? 'HEAVY'
+        : spec === 'cluster'
+          ? 'CLUSTER'
+          : spec === 'siege'
+            ? 'SIEGE'
+            : spec === 'deepFreeze'
+              ? 'DEEP'
+              : spec === 'frostNova'
+                ? 'NOVA'
+                : spec === 'stormChain'
+                  ? 'STORM'
+                  : spec === 'thunderstrike'
+                    ? 'STRIKE'
+                    : spec === 'inferno'
+                      ? 'INFERNO'
+                      : spec === 'meteor'
+                        ? 'METEOR'
+                        : spec === 'contagion'
+                          ? 'PLAGUE'
+                          : 'SPIKE';
+  ctx.fillText(label, x, y - 39);
+
+  // Visual accents per path
+  if (spec === 'rapidFire') {
+    ctx.strokeStyle = 'rgba(91, 159, 212, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 14, y - 30);
+    ctx.lineTo(x + 22, y - 34);
+    ctx.moveTo(x + 14, y - 26);
+    ctx.lineTo(x + 22, y - 26);
+    ctx.stroke();
+  } else if (spec === 'heavyBolt') {
+    ctx.fillStyle = '#eef4ff';
+    ctx.beginPath();
+    ctx.moveTo(x + 18, y - 28);
+    ctx.lineTo(x + 28, y - 30);
+    ctx.lineTo(x + 18, y - 32);
+    ctx.closePath();
+    ctx.fill();
+  } else if (spec === 'cluster') {
+    ctx.fillStyle = 'rgba(217, 119, 58, 0.8)';
+    for (const [ox, oy] of [
+      [16, -28],
+      [22, -24],
+      [20, -32],
+    ]) {
+      ctx.beginPath();
+      ctx.arc(x + ox, y + oy, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (spec === 'siege') {
+    ctx.fillStyle = '#1a1514';
+    ctx.beginPath();
+    ctx.arc(x + 20, y - 28, 5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (spec === 'deepFreeze' || spec === 'frostNova') {
+    ctx.strokeStyle = 'rgba(180, 235, 255, 0.9)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x, y - 20, spec === 'frostNova' ? 16 : 10, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (spec === 'stormChain' || spec === 'thunderstrike') {
+    ctx.strokeStyle = '#fff6b0';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#f0c94d';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(x - 10, y - 40);
+    ctx.lineTo(x - 2, y - 48);
+    ctx.lineTo(x + 4, y - 42);
+    ctx.lineTo(x + 12, y - 52);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  } else if (spec === 'inferno' || spec === 'meteor') {
+    ctx.fillStyle = spec === 'meteor' ? '#ff6b35' : '#ffb347';
+    ctx.beginPath();
+    ctx.arc(x + 14, y - 36, spec === 'meteor' ? 6 : 4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (spec === 'contagion' || spec === 'venomSpike') {
+    ctx.fillStyle = '#3dff8a';
+    ctx.beginPath();
+    ctx.arc(x + 12, y - 34, 3, 0, Math.PI * 2);
+    ctx.arc(x + 18, y - 30, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 export function drawTower(
   ctx: CanvasRenderingContext2D,
   t: Tower,
@@ -560,5 +667,6 @@ export function drawTower(
       break;
   }
 
+  drawSpecFlourish(ctx, x, y, t.spec);
   levelBadge(ctx, x, y, t.level);
 }

@@ -1,8 +1,12 @@
 import {
   TILE,
-  TOWERS,
+  TOWER_SPECS,
   WAVES_PER_LEVEL,
-  type TowerKind,
+  enemyMeleeDamage,
+  isBarracksKind,
+  placeableCost,
+  type PlaceableKind,
+  type TowerSpecId,
 } from './constants';
 import {
   buildGrid,
@@ -14,7 +18,9 @@ import {
   type WaveSpawn,
 } from './levels';
 import {
+  Barracks,
   Enemy,
+  FriendlyUnit,
   Tower,
   Projectile,
   spawnKillBurst,
@@ -24,7 +30,7 @@ import {
 } from './entities';
 import { Renderer } from './render';
 import { audio } from './audio';
-import { dist } from '../shared/math';
+import { dist, lengthAlongPath, nearestPathSample, pathTotalLength } from '../shared/math';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
 
@@ -58,11 +64,16 @@ export class Game {
   lives = 0;
   waveIndex = 0;
   phase: GamePhase = 'prepare';
-  selectedKind: TowerKind | null = 'arrow';
+  selectedKind: PlaceableKind | null = 'arrow';
   selectedTowerId: number | null = null;
+  selectedBarracksId: number | null = null;
   selectedEnemyId: number | null = null;
+  /** When set, next valid map click sets that barracks' rally flag. */
+  rallyModeBarracksId: number | null = null;
 
   towers: Tower[] = [];
+  barracks: Barracks[] = [];
+  friendlies: FriendlyUnit[] = [];
   enemies: Enemy[] = [];
   projectiles: Projectile[] = [];
   beams: BeamFx[] = [];
@@ -104,6 +115,8 @@ export class Game {
     this.waveIndex = 0;
     this.phase = 'prepare';
     this.towers = [];
+    this.barracks = [];
+    this.friendlies = [];
     this.enemies = [];
     this.projectiles = [];
     this.beams = [];
@@ -114,7 +127,9 @@ export class Game {
     this.waveActive = false;
     this.selectedKind = 'arrow';
     this.selectedTowerId = null;
+    this.selectedBarracksId = null;
     this.selectedEnemyId = null;
+    this.rallyModeBarracksId = null;
     this.onHud?.();
     this.ensureLoop();
   }
@@ -160,6 +175,8 @@ export class Game {
       lives: this.lives,
       gold: this.gold,
       towers: this.towers.length,
+      barracks: this.barracks.length,
+      friendlies: this.friendlies.length,
       enemies: this.enemies.length,
       projectiles: this.projectiles.length,
       beams: this.beams.length,
@@ -200,7 +217,7 @@ export class Game {
     const y = r * TILE + TILE / 2;
     if (!canPlaceOnCell(this.grid, c, r)) {
       this.floats.push({ x, y, text: 'Blocked', color: '#ef476f', life: 0.7 });
-      this.onToast?.('Towers cannot be placed on the path, water, or trees.');
+      this.onToast?.('Cannot place on the path, water, or trees.');
       return false;
     }
     const key = `${c},${r}`;
@@ -208,21 +225,40 @@ export class Game {
       this.floats.push({ x, y, text: 'Taken', color: '#ef476f', life: 0.7 });
       return false;
     }
-    const def = TOWERS[this.selectedKind];
-    if (this.gold < def.cost) {
+    const cost = placeableCost(this.selectedKind);
+    if (this.gold < cost) {
       this.floats.push({ x, y, text: 'Need gold', color: '#f4d35e', life: 0.7 });
-      this.onToast?.(`Need ${def.cost}g for ${def.name}.`);
+      this.onToast?.(`Need ${cost}g.`);
       return false;
     }
 
-    this.gold -= def.cost;
+    this.gold -= cost;
+    if (isBarracksKind(this.selectedKind)) {
+      const kind = this.selectedKind;
+      const rally = nearestPathSample(this.waypoints, x, y);
+      const b = new Barracks(kind, c, r, x, y, rally.pos.x, rally.pos.y, rally.progress);
+      this.barracks.push(b);
+      this.occupied.add(key);
+      this.selectedBarracksId = b.id;
+      this.selectedTowerId = null;
+      this.selectedEnemyId = null;
+      this.selectedKind = null;
+      this.rallyModeBarracksId = null;
+      this.floats.push({ x, y: y - 20, text: `-${cost}g`, color: '#f4d35e', life: 0.8 });
+      audio.play('place');
+      this.onHud?.();
+      return true;
+    }
+
     const tower = new Tower(this.selectedKind, c, r, x, y);
     this.towers.push(tower);
     this.occupied.add(key);
     this.selectedTowerId = tower.id;
+    this.selectedBarracksId = null;
     this.selectedEnemyId = null;
     this.selectedKind = null;
-    this.floats.push({ x, y: y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
+    this.rallyModeBarracksId = null;
+    this.floats.push({ x, y: y - 20, text: `-${cost}g`, color: '#f4d35e', life: 0.8 });
     audio.play('place');
     this.onHud?.();
     return true;
@@ -230,8 +266,20 @@ export class Game {
 
   selectTowerAt(c: number, r: number): boolean {
     const t = this.towers.find((x) => x.col === c && x.row === r);
-    if (!t) return false;
-    this.selectedTowerId = t.id;
+    if (t) {
+      this.selectedTowerId = t.id;
+      this.selectedBarracksId = null;
+      this.selectedEnemyId = null;
+      this.selectedKind = null;
+      this.rallyModeBarracksId = null;
+      audio.play('ui');
+      this.onHud?.();
+      return true;
+    }
+    const b = this.barracks.find((x) => x.col === c && x.row === r);
+    if (!b) return false;
+    this.selectedBarracksId = b.id;
+    this.selectedTowerId = null;
     this.selectedEnemyId = null;
     this.selectedKind = null;
     audio.play('ui');
@@ -240,6 +288,7 @@ export class Game {
   }
 
   selectEnemyAt(clientX: number, clientY: number): boolean {
+    if (this.rallyModeBarracksId != null) return false;
     const rect = this.canvas.getBoundingClientRect();
     const scaleX = this.canvas.width / rect.width;
     const scaleY = this.canvas.height / rect.height;
@@ -257,7 +306,9 @@ export class Game {
     if (!best) return false;
     this.selectedEnemyId = best.id;
     this.selectedTowerId = null;
+    this.selectedBarracksId = null;
     this.selectedKind = null;
+    this.rallyModeBarracksId = null;
     audio.play('ui');
     this.onHud?.();
     return true;
@@ -271,17 +322,49 @@ export class Game {
     return this.towers.find((t) => t.id === this.selectedTowerId) ?? null;
   }
 
+  getSelectedBarracks(): Barracks | null {
+    return this.barracks.find((b) => b.id === this.selectedBarracksId) ?? null;
+  }
+
   upgradeSelected(): boolean {
     const t = this.getSelectedTower();
-    if (!t || t.level >= 3) return false;
-    const cost = t.upgradeCost();
+    if (t) {
+      if (t.level >= 3 || t.spec) return false;
+      const cost = t.upgradeCost();
+      if (this.gold < cost) return false;
+      this.gold -= cost;
+      t.level += 1;
+      this.floats.push({
+        x: t.x,
+        y: t.y - 24,
+        text: `Lv${t.level}`,
+        color: '#57cc99',
+        life: 0.9,
+      });
+      audio.play('upgrade');
+      this.onHud?.();
+      return true;
+    }
+
+    const b = this.getSelectedBarracks();
+    if (!b || b.level >= 3) return false;
+    const cost = b.upgradeCost();
     if (this.gold < cost) return false;
     this.gold -= cost;
-    t.level += 1;
+    b.level += 1;
+    // Buff living units from this barracks
+    for (const u of this.friendlies) {
+      if (u.barracksId !== b.id || !u.alive) continue;
+      const ratio = u.hp / u.maxHp;
+      u.maxHp = b.unitHp();
+      u.hp = Math.max(1, Math.round(u.maxHp * ratio));
+      u.damage = b.unitDamage();
+      u.attackRate = b.unitAttackRate();
+    }
     this.floats.push({
-      x: t.x,
-      y: t.y - 24,
-      text: `Lv${t.level}`,
+      x: b.x,
+      y: b.y - 24,
+      text: `Lv${b.level}`,
       color: '#57cc99',
       life: 0.9,
     });
@@ -290,25 +373,110 @@ export class Game {
     return true;
   }
 
+  applySpec(specId: TowerSpecId): boolean {
+    const t = this.getSelectedTower();
+    if (!t || !t.needsSpec()) return false;
+    const match = TOWER_SPECS[t.kind].find((s) => s.id === specId);
+    if (!match) return false;
+    const cost = t.specCost();
+    if (this.gold < cost) return false;
+    this.gold -= cost;
+    t.spec = specId;
+    t.specGoldSpent = cost;
+    this.floats.push({
+      x: t.x,
+      y: t.y - 28,
+      text: match.name,
+      color: '#f0c94d',
+      life: 1.1,
+    });
+    audio.play('upgrade');
+    this.onHud?.();
+    return true;
+  }
+
   sellSelected(): boolean {
     const t = this.getSelectedTower();
-    if (!t) return false;
-    this.gold += t.sellValue();
-    this.occupied.delete(`${t.col},${t.row}`);
-    this.towers = this.towers.filter((x) => x.id !== t.id);
-    this.selectedTowerId = null;
+    if (t) {
+      this.gold += t.sellValue();
+      this.occupied.delete(`${t.col},${t.row}`);
+      this.towers = this.towers.filter((x) => x.id !== t.id);
+      this.selectedTowerId = null;
+      audio.play('ui');
+      this.onHud?.();
+      return true;
+    }
+    const b = this.getSelectedBarracks();
+    if (!b) return false;
+    this.gold += b.sellValue();
+    this.occupied.delete(`${b.col},${b.row}`);
+    this.barracks = this.barracks.filter((x) => x.id !== b.id);
+    this.friendlies = this.friendlies.filter((u) => u.barracksId !== b.id);
+    this.selectedBarracksId = null;
+    if (this.rallyModeBarracksId === b.id) this.rallyModeBarracksId = null;
     audio.play('ui');
     this.onHud?.();
     return true;
   }
 
+  beginRallyMode(): boolean {
+    const b = this.getSelectedBarracks();
+    if (!b) return false;
+    this.rallyModeBarracksId = b.id;
+    this.selectedKind = null;
+    audio.play('ui');
+    this.onToast?.('Tap the path within the circle to plant the rally flag.');
+    this.onHud?.();
+    return true;
+  }
+
+  cancelRallyMode(): void {
+    this.rallyModeBarracksId = null;
+    this.onHud?.();
+  }
+
+  trySetRally(clientX: number, clientY: number): boolean {
+    if (this.rallyModeBarracksId == null) return false;
+    const b = this.barracks.find((x) => x.id === this.rallyModeBarracksId);
+    if (!b) {
+      this.rallyModeBarracksId = null;
+      return false;
+    }
+    const { x, y } = this.clientToWorld(clientX, clientY);
+    if (dist({ x, y }, { x: b.x, y: b.y }) > b.rallyRadius) {
+      this.floats.push({ x, y, text: 'Too far', color: '#ef476f', life: 0.7 });
+      this.onToast?.('Rally flag must stay inside the barracks circle.');
+      return false;
+    }
+    const snap = nearestPathSample(this.waypoints, x, y);
+    b.rallyX = snap.pos.x;
+    b.rallyY = snap.pos.y;
+    b.rallyProgress = snap.progress;
+    for (const u of this.friendlies) {
+      if (u.barracksId === b.id) {
+        u.rallyProgress = snap.progress + (u.slot - 1) * 0.01;
+      }
+    }
+    this.rallyModeBarracksId = null;
+    this.floats.push({ x: snap.pos.x, y: snap.pos.y - 16, text: 'Flag set', color: '#57cc99', life: 0.85 });
+    audio.play('flag');
+    this.onHud?.();
+    return true;
+  }
+
   canvasToCell(clientX: number, clientY: number): { c: number; r: number } {
+    const { x, y } = this.clientToWorld(clientX, clientY);
+    return { c: Math.floor(x / TILE), r: Math.floor(y / TILE) };
+  }
+
+  clientToWorld(clientX: number, clientY: number): { x: number; y: number } {
     const rect = this.canvas.getBoundingClientRect();
     const scaleX = this.canvas.width / rect.width;
     const scaleY = this.canvas.height / rect.height;
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
-    return { c: Math.floor(x / TILE), r: Math.floor(y / TILE) };
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
   }
 
   private rewardKill(e: Enemy): void {
@@ -343,6 +511,11 @@ export class Game {
       }
     }
 
+    for (const e of this.enemies) e.blocked = false;
+
+    this.updateBarracks(dt);
+    this.updateFriendlies(dt);
+
     for (const e of this.enemies) {
       e.update(dt, this.waypoints);
       if (e.reachedEnd) {
@@ -361,7 +534,6 @@ export class Game {
     this.enemies = this.enemies.filter((e) => e.alive);
     this.pruneSelection();
 
-    // Leak loss before more combat so a fatal leak can't still shoot/earn that frame
     if (this.lives <= 0) {
       this.failLevel();
       return;
@@ -427,6 +599,152 @@ export class Game {
     }
   }
 
+  private updateBarracks(dt: number): void {
+    for (const b of this.barracks) {
+      const living = this.friendlies.filter((u) => u.barracksId === b.id && u.alive).length;
+      if (living >= b.def.unitCap) {
+        b.spawnTimer = b.def.respawnTime;
+        continue;
+      }
+      b.spawnTimer -= dt;
+      if (b.spawnTimer > 0) continue;
+      this.spawnFriendly(b);
+      b.spawnTimer = b.def.respawnTime;
+    }
+  }
+
+  private spawnFriendly(b: Barracks): void {
+    const used = new Set(
+      this.friendlies.filter((u) => u.barracksId === b.id && u.alive).map((u) => u.slot),
+    );
+    let slot = 0;
+    for (let i = 0; i < b.def.unitCap; i++) {
+      if (!used.has(i)) {
+        slot = i;
+        break;
+      }
+    }
+    const door = nearestPathSample(this.waypoints, b.x, b.y + 8);
+    const unitKind = b.kind === 'warriorBarracks' ? 'warrior' : 'knight';
+    const unit = new FriendlyUnit({
+      barracksId: b.id,
+      unitKind,
+      slot,
+      hp: b.unitHp(),
+      damage: b.unitDamage(),
+      attackRate: b.unitAttackRate(),
+      speed: b.def.unit.speed,
+      engageRange: b.def.unit.engageRange,
+      radius: b.def.unit.radius,
+      color: b.def.color,
+      colorDark: b.def.colorDark,
+      progress: door.progress,
+      rallyProgress: b.rallyProgress + (slot - 1) * 0.01,
+      pos: door.pos,
+    });
+    this.friendlies.push(unit);
+    this.particles.push(...spawnKillBurst(b.x, b.y - 8, b.def.color, 6));
+    audio.play('spawn');
+  }
+
+  private updateFriendlies(dt: number): void {
+    const total = pathTotalLength(this.waypoints);
+    const claimed = new Set<number>();
+
+    for (const u of this.friendlies) {
+      if (!u.alive) continue;
+      u.attackCd = Math.max(0, u.attackCd - dt);
+      u.enemyStrikeCd = Math.max(0, u.enemyStrikeCd - dt);
+
+      // Drop dead / missing targets
+      if (u.targetEnemyId != null) {
+        const tgt = this.enemies.find((e) => e.id === u.targetEnemyId && e.alive);
+        if (!tgt || dist(u.pos, tgt.pos) > u.engageRange * 1.35) {
+          u.targetEnemyId = null;
+        }
+      }
+
+      // Acquire target
+      if (u.targetEnemyId == null) {
+        let best: Enemy | null = null;
+        let bestD = u.engageRange;
+        for (const e of this.enemies) {
+          if (!e.alive || claimed.has(e.id)) continue;
+          const d = dist(u.pos, e.pos);
+          if (d < bestD) {
+            bestD = d;
+            best = e;
+          }
+        }
+        if (best) {
+          u.targetEnemyId = best.id;
+          claimed.add(best.id);
+        }
+      } else {
+        claimed.add(u.targetEnemyId);
+      }
+
+      const target =
+        u.targetEnemyId != null
+          ? (this.enemies.find((e) => e.id === u.targetEnemyId && e.alive) ?? null)
+          : null;
+
+      if (target) {
+        target.blocked = true;
+        u.facing = target.pos.x >= u.pos.x ? 1 : -1;
+        // Nudge slightly toward foe for visual clash
+        const ang = Math.atan2(target.pos.y - u.pos.y, target.pos.x - u.pos.x);
+        u.pos = {
+          x: u.pos.x + Math.cos(ang) * 8 * dt,
+          y: u.pos.y + Math.sin(ang) * 8 * dt,
+        };
+
+        if (u.attackCd <= 0) {
+          target.takeDamage(u.damage, false);
+          u.attackCd = 1 / u.attackRate;
+          audio.play('hit', 0.85);
+          this.particles.push({
+            x: (u.pos.x + target.pos.x) / 2,
+            y: (u.pos.y + target.pos.y) / 2,
+            vx: 0,
+            vy: -30,
+            life: 0.2,
+            maxLife: 0.2,
+            color: '#f4d35e',
+            size: 3,
+          });
+        }
+        if (u.enemyStrikeCd <= 0) {
+          u.takeDamage(enemyMeleeDamage(target.kind));
+          u.enemyStrikeCd = 0.85;
+        }
+        if (!target.alive && !target.reachedEnd) {
+          this.rewardKill(target);
+        }
+        continue;
+      }
+
+      // Walk along path toward rally
+      if (total > 0) {
+        const delta = u.rallyProgress - u.progress;
+        if (Math.abs(delta) > 0.002) {
+          const step = (u.speed * dt) / total;
+          u.progress += Math.sign(delta) * Math.min(step, Math.abs(delta));
+          u.facing = Math.sign(delta) || u.facing;
+        }
+        u.pos = lengthAlongPath(this.waypoints, u.progress);
+      }
+    }
+
+    const died = this.friendlies.filter((u) => !u.alive);
+    for (const u of died) {
+      this.particles.push(...spawnKillBurst(u.pos.x, u.pos.y, u.color, 8));
+      audio.play('unitDown');
+    }
+    this.friendlies = this.friendlies.filter((u) => u.alive);
+    this.enemies = this.enemies.filter((e) => e.alive);
+  }
+
   private pickTarget(t: Tower): Enemy | null {
     const inRange = this.enemies.filter((e) => dist({ x: t.x, y: t.y }, e.pos) <= t.range);
     if (!inRange.length) return null;
@@ -438,13 +756,13 @@ export class Game {
     const def = t.def;
     const status = t.statusScale();
     audio.shootFor(t.kind);
-    if (def.chain > 0) {
+    if (t.chain > 0) {
       const hit = new Set<number>();
       let current: Enemy | null = target;
       let fromX = t.x;
       let fromY = t.y;
       let dmg = t.damage;
-      for (let i = 0; i < def.chain && current; i++) {
+      for (let i = 0; i < t.chain && current; i++) {
         hit.add(current.id);
         this.beams.push({
           x1: fromX,
@@ -456,9 +774,9 @@ export class Game {
         });
         current.takeDamage(dmg, def.pierceArmor);
         audio.play('hit', 1.2);
-        if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
-        if (def.burnDps > 0) current.applyBurn(def.burnDps * status, def.burnDuration);
-        if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status, def.poisonDuration);
+        if (t.slow > 0) current.applySlow(t.slow, t.slowDuration);
+        if (t.burnDps > 0) current.applyBurn(t.burnDps * status, t.burnDuration);
+        if (t.poisonDps > 0) current.applyPoison(t.poisonDps * status, t.poisonDuration);
         fromX = current.pos.x;
         fromY = current.pos.y;
         dmg *= 0.7;
@@ -481,19 +799,20 @@ export class Game {
         y: t.y - 12,
         tx: target.pos.x,
         ty: target.pos.y,
-        speed: def.splash > 0 ? 280 : 420,
+        speed: t.splash > 0 ? 280 : 420,
         damage: t.damage,
-        splash: def.splash,
+        splash: t.splash,
         pierceArmor: def.pierceArmor,
-        slow: def.slow,
-        slowDuration: def.slowDuration,
-        burnDps: def.burnDps * status,
-        burnDuration: def.burnDuration,
-        poisonDps: def.poisonDps * status,
-        poisonDuration: def.poisonDuration,
+        slow: t.slow,
+        slowDuration: t.slowDuration,
+        burnDps: t.burnDps * status,
+        burnDuration: t.burnDuration,
+        poisonDps: t.poisonDps * status,
+        poisonDuration: t.poisonDuration,
         chain: 0,
         color: def.color,
         towerKind: t.kind,
+        spec: t.spec,
         targetId: target.id,
         trail: t.kind === 'arrow' || t.kind === 'fire',
       }),
@@ -544,6 +863,7 @@ export class Game {
     this.projectiles = [];
     this.waveActive = false;
     this.selectedEnemyId = null;
+    this.rallyModeBarracksId = null;
     if (this.phase === 'wave' || this.phase === 'prepare') {
       this.phase = 'lost';
       audio.play('lose');
@@ -560,7 +880,7 @@ export class Game {
       !!this.selectedKind &&
       canPlaceOnCell(this.grid, this.hover.c, this.hover.r) &&
       !this.occupied.has(`${this.hover.c},${this.hover.r}`) &&
-      this.gold >= TOWERS[this.selectedKind].cost;
+      this.gold >= placeableCost(this.selectedKind);
 
     this.renderer.drawGrid(
       this.grid,
@@ -570,8 +890,19 @@ export class Game {
       !!this.selectedKind,
     );
     this.renderer.drawSpawnExit(this.waypoints);
+
+    for (const b of this.barracks) {
+      this.renderer.drawBarracks(
+        b,
+        b.id === this.selectedBarracksId,
+        this.rallyModeBarracksId === b.id,
+      );
+    }
     for (const t of this.towers) {
       this.renderer.drawTower(t, t.id === this.selectedTowerId);
+    }
+    for (const u of this.friendlies) {
+      this.renderer.drawFriendly(u);
     }
     for (const e of this.enemies) {
       this.renderer.drawEnemy(e, e.id === this.selectedEnemyId);

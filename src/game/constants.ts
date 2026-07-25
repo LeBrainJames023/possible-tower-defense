@@ -24,6 +24,25 @@ export type BiomeTheme =
 
 export type TowerKind = 'arrow' | 'cannon' | 'ice' | 'lightning' | 'fire' | 'poison';
 
+export type BarracksKind = 'warriorBarracks' | 'knightBarracks';
+
+/** Anything the shop can place on grass. */
+export type PlaceableKind = TowerKind | BarracksKind;
+
+export type TowerSpecId =
+  | 'rapidFire'
+  | 'heavyBolt'
+  | 'cluster'
+  | 'siege'
+  | 'deepFreeze'
+  | 'frostNova'
+  | 'stormChain'
+  | 'thunderstrike'
+  | 'inferno'
+  | 'meteor'
+  | 'contagion'
+  | 'venomSpike';
+
 export type EnemyKind =
   | 'gnome'
   | 'orc'
@@ -71,6 +90,52 @@ export interface EnemyDef {
   radius: number;
   color: string;
   colorDark: string;
+}
+
+/** Multipliers / additives applied after L3 base stats. */
+export interface TowerSpecDef {
+  id: TowerSpecId;
+  kind: TowerKind;
+  name: string;
+  description: string;
+  damageMul?: number;
+  fireRateMul?: number;
+  rangeMul?: number;
+  splashMul?: number;
+  splashAdd?: number;
+  slowMul?: number;
+  slowDurationMul?: number;
+  chainAdd?: number;
+  chainSet?: number;
+  burnDpsMul?: number;
+  burnDurationMul?: number;
+  poisonDpsMul?: number;
+  poisonDurationMul?: number;
+}
+
+export interface FriendlyUnitDef {
+  name: string;
+  hp: number;
+  damage: number;
+  attackRate: number;
+  speed: number;
+  engageRange: number;
+  radius: number;
+}
+
+export interface BarracksDef {
+  kind: BarracksKind;
+  name: string;
+  description: string;
+  role: string;
+  color: string;
+  colorDark: string;
+  cost: number;
+  rallyRadius: number;
+  unitCap: number;
+  respawnTime: number;
+  upgradeCost: number;
+  unit: FriendlyUnitDef;
 }
 
 /** Classic TD niches — always shown in the bottom dock. */
@@ -338,6 +403,171 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   },
 };
 
+/** L3 permanent dual paths — pick one after reaching level 3. */
+export const TOWER_SPECS: Record<TowerKind, [TowerSpecDef, TowerSpecDef]> = {
+  arrow: [
+    {
+      id: 'rapidFire',
+      kind: 'arrow',
+      name: 'Rapid Fire',
+      description: 'Much faster bolts, slightly less punch',
+      fireRateMul: 1.55,
+      damageMul: 0.88,
+    },
+    {
+      id: 'heavyBolt',
+      kind: 'arrow',
+      name: 'Heavy Bolt',
+      description: 'Slower shots that hit like a truck',
+      fireRateMul: 0.72,
+      damageMul: 1.75,
+    },
+  ],
+  cannon: [
+    {
+      id: 'cluster',
+      kind: 'cannon',
+      name: 'Cluster',
+      description: 'Wider blast, snappier reload',
+      splashMul: 1.35,
+      fireRateMul: 1.18,
+    },
+    {
+      id: 'siege',
+      kind: 'cannon',
+      name: 'Siege',
+      description: 'Slow siege shells — massive pierce damage',
+      fireRateMul: 0.7,
+      damageMul: 1.85,
+      splashMul: 1.1,
+    },
+  ],
+  ice: [
+    {
+      id: 'deepFreeze',
+      kind: 'ice',
+      name: 'Deep Freeze',
+      description: 'Harder, longer chill',
+      slowMul: 1.25,
+      slowDurationMul: 1.45,
+      damageMul: 1.15,
+    },
+    {
+      id: 'frostNova',
+      kind: 'ice',
+      name: 'Frost Nova',
+      description: 'Bigger freeze splash',
+      splashMul: 1.45,
+      splashAdd: 10,
+    },
+  ],
+  lightning: [
+    {
+      id: 'stormChain',
+      kind: 'lightning',
+      name: 'Storm Chain',
+      description: 'Extra hops across the pack',
+      chainAdd: 2,
+      damageMul: 0.95,
+    },
+    {
+      id: 'thunderstrike',
+      kind: 'lightning',
+      name: 'Thunderstrike',
+      description: 'Fewer hops, crushing bolt',
+      chainSet: 1,
+      damageMul: 1.9,
+    },
+  ],
+  fire: [
+    {
+      id: 'inferno',
+      kind: 'fire',
+      name: 'Inferno',
+      description: 'Hotter, longer burn',
+      burnDpsMul: 1.5,
+      burnDurationMul: 1.35,
+      damageMul: 1.1,
+    },
+    {
+      id: 'meteor',
+      kind: 'fire',
+      name: 'Meteor',
+      description: 'Bigger splash, punchier impact',
+      splashMul: 1.4,
+      splashAdd: 12,
+      damageMul: 1.35,
+    },
+  ],
+  poison: [
+    {
+      id: 'contagion',
+      kind: 'poison',
+      name: 'Contagion',
+      description: 'Stronger venom with light splash',
+      poisonDpsMul: 1.45,
+      splashAdd: 22,
+      splashMul: 1.15,
+    },
+    {
+      id: 'venomSpike',
+      kind: 'poison',
+      name: 'Venom Spike',
+      description: 'Faster shots, snappier poison',
+      fireRateMul: 1.45,
+      poisonDurationMul: 0.75,
+      damageMul: 1.2,
+    },
+  ],
+};
+
+export const BARRACKS: Record<BarracksKind, BarracksDef> = {
+  warriorBarracks: {
+    kind: 'warriorBarracks',
+    name: 'Warriors',
+    description: 'Deploys three warriors that block and duel on the path',
+    role: 'Block',
+    color: '#c4a574',
+    colorDark: '#5a3d22',
+    cost: 90,
+    rallyRadius: 150,
+    unitCap: 3,
+    respawnTime: 5,
+    upgradeCost: 70,
+    unit: {
+      name: 'Warrior',
+      hp: 85,
+      damage: 9,
+      attackRate: 1.15,
+      speed: 72,
+      engageRange: 36,
+      radius: 11,
+    },
+  },
+  knightBarracks: {
+    kind: 'knightBarracks',
+    name: 'Knights',
+    description: 'Deploys three armored knights — tankier, harder hits',
+    role: 'Tank',
+    color: '#9aa8c0',
+    colorDark: '#2a3548',
+    cost: 130,
+    rallyRadius: 145,
+    unitCap: 3,
+    respawnTime: 5.5,
+    upgradeCost: 95,
+    unit: {
+      name: 'Knight',
+      hp: 140,
+      damage: 14,
+      attackRate: 0.85,
+      speed: 58,
+      engageRange: 38,
+      radius: 13,
+    },
+  },
+};
+
 export const TOWER_ORDER: TowerKind[] = [
   'arrow',
   'cannon',
@@ -346,3 +576,40 @@ export const TOWER_ORDER: TowerKind[] = [
   'fire',
   'poison',
 ];
+
+export const BARRACKS_ORDER: BarracksKind[] = ['warriorBarracks', 'knightBarracks'];
+
+export const SHOP_ORDER: PlaceableKind[] = [...TOWER_ORDER, ...BARRACKS_ORDER];
+
+export function isTowerKind(kind: PlaceableKind): kind is TowerKind {
+  return (TOWER_ORDER as string[]).includes(kind);
+}
+
+export function isBarracksKind(kind: PlaceableKind): kind is BarracksKind {
+  return (BARRACKS_ORDER as string[]).includes(kind);
+}
+
+export function placeableCost(kind: PlaceableKind): number {
+  return isTowerKind(kind) ? TOWERS[kind].cost : BARRACKS[kind].cost;
+}
+
+export function placeableName(kind: PlaceableKind): string {
+  return isTowerKind(kind) ? TOWERS[kind].name : BARRACKS[kind].name;
+}
+
+export function placeableColor(kind: PlaceableKind): { color: string; colorDark: string } {
+  if (isTowerKind(kind)) {
+    return { color: TOWERS[kind].color, colorDark: TOWERS[kind].colorDark };
+  }
+  return { color: BARRACKS[kind].color, colorDark: BARRACKS[kind].colorDark };
+}
+
+export function specsFor(kind: TowerKind): [TowerSpecDef, TowerSpecDef] {
+  return TOWER_SPECS[kind];
+}
+
+/** Contact damage enemies deal while dueling friendlies (per hit). */
+export function enemyMeleeDamage(kind: EnemyKind): number {
+  const def = ENEMIES[kind];
+  return Math.round(8 + def.hp * 0.035 + def.armor * 18);
+}

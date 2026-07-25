@@ -552,9 +552,9 @@ h3 {
 }
 
 .tower-icon {
-  min-width: 72px;
+  min-width: 64px;
   min-height: 56px;
-  padding: 6px 8px;
+  padding: 6px 6px;
   border-radius: 14px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.04);
@@ -645,6 +645,39 @@ h3 {
   border-radius: 50%;
   background: #9dffb0;
   box-shadow: 0 -4px 0 0 rgba(180, 255, 200, 0.5);
+}
+
+.tower-swatch[data-kind='warriorBarracks']::after {
+  inset: 8px 32% 6px 32%;
+  border-radius: 2px;
+  background: #c45c4a;
+  box-shadow: 0 -6px 0 -2px rgba(90, 61, 34, 0.7);
+}
+
+.tower-swatch[data-kind='knightBarracks']::after {
+  inset: 6px 34% 8px 34%;
+  border-radius: 2px 2px 40% 40%;
+  background: #c0c8d8;
+  box-shadow: 0 -7px 0 -2px #6b8cae;
+}
+
+.spec-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.spec-actions.hidden {
+  display: none !important;
+}
+
+#btn-set-flag.hidden {
+  display: none !important;
+}
+
+#btn-upgrade.hidden {
+  display: none !important;
 }
 
 /* Pop-out tower detail above the slim dock */

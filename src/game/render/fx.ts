@@ -6,21 +6,25 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
 
   switch (p.towerKind) {
     case 'arrow': {
+      const heavy = p.spec === 'heavyBolt';
+      const rapid = p.spec === 'rapidFire';
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(angle);
+      const thick = heavy ? 5 : 4;
+      const len = heavy ? 22 : rapid ? 14 : 18;
       ctx.fillStyle = '#8b6914';
-      ctx.fillRect(-12, -2, 18, 4);
-      ctx.fillStyle = '#c9a66b';
-      ctx.fillRect(-11, -1.2, 16, 2.4);
+      ctx.fillRect(-12, -thick / 2, len, thick);
+      ctx.fillStyle = heavy ? '#e8dcc0' : '#c9a66b';
+      ctx.fillRect(-11, -thick / 2 + 0.8, len - 2, thick - 1.6);
       ctx.fillStyle = '#eef4ff';
       ctx.beginPath();
-      ctx.moveTo(10, 0);
-      ctx.lineTo(2, -5);
-      ctx.lineTo(2, 5);
+      ctx.moveTo(heavy ? 14 : 10, 0);
+      ctx.lineTo(2, heavy ? -7 : -5);
+      ctx.lineTo(2, heavy ? 7 : 5);
       ctx.closePath();
       ctx.fill();
-      ctx.fillStyle = '#5b9fd4';
+      ctx.fillStyle = rapid ? '#7ec8e3' : '#5b9fd4';
       ctx.beginPath();
       ctx.moveTo(-12, 0);
       ctx.lineTo(-17, -4);

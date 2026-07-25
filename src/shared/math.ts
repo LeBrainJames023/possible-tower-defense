@@ -53,3 +53,30 @@ export function pathTotalLength(waypoints: Vec2[]): number {
   }
   return total;
 }
+
+/** Nearest point on the polyline path to a world position. */
+export function nearestPathSample(
+  waypoints: Vec2[],
+  x: number,
+  y: number,
+  samples = 220,
+): { pos: Vec2; progress: number } {
+  if (waypoints.length === 0) return { pos: { x, y }, progress: 0 };
+  if (waypoints.length === 1) return { pos: { ...waypoints[0] }, progress: 0 };
+
+  let bestD = Infinity;
+  let bestProgress = 0;
+  let bestPos = { ...waypoints[0] };
+  const target = { x, y };
+  for (let i = 0; i <= samples; i++) {
+    const progress = i / samples;
+    const pos = lengthAlongPath(waypoints, progress);
+    const d = dist(pos, target);
+    if (d < bestD) {
+      bestD = d;
+      bestProgress = progress;
+      bestPos = pos;
+    }
+  }
+  return { pos: bestPos, progress: bestProgress };
+}

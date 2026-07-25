@@ -1,13 +1,15 @@
 import {
+  BARRACKS,
   COLS,
   MAP_H,
   MAP_W,
   ROWS,
   TILE,
+  TOWERS,
+  isTowerKind,
   type BiomeTheme,
   type CellKind,
-  type TowerKind,
-  TOWERS,
+  type PlaceableKind,
 } from '../constants';
 import { hash2, roundRect } from './shapes';
 import type { Vec2 } from '../../shared/math';
@@ -506,7 +508,7 @@ export function drawGrid(
   theme: BiomeTheme,
   hover: { c: number; r: number } | null,
   canPlace: boolean,
-  selectedKind: TowerKind | null,
+  selectedKind: PlaceableKind | null,
   showBuildHints: boolean,
   time: number,
 ): void {
@@ -543,10 +545,15 @@ export function drawGrid(
     ctx.lineWidth = 2.5;
     ctx.strokeRect(x + 2, y + 2, TILE - 4, TILE - 4);
     if (canPlace) {
-      const def = TOWERS[selectedKind];
+      const range = isTowerKind(selectedKind)
+        ? TOWERS[selectedKind].range
+        : BARRACKS[selectedKind].rallyRadius;
+      const color = isTowerKind(selectedKind)
+        ? TOWERS[selectedKind].color
+        : BARRACKS[selectedKind].color;
       ctx.beginPath();
-      ctx.arc(x + TILE / 2, y + TILE / 2, def.range, 0, Math.PI * 2);
-      ctx.strokeStyle = `${def.color}66`;
+      ctx.arc(x + TILE / 2, y + TILE / 2, range, 0, Math.PI * 2);
+      ctx.strokeStyle = `${color}66`;
       ctx.lineWidth = 2;
       ctx.stroke();
     }
