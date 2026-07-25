@@ -2,20 +2,78 @@ import type { Tower } from '../entities';
 import { roundRect } from './shapes';
 
 function stoneBase(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.beginPath();
-  ctx.ellipse(x, y + 15, r + 3, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 16, r + 4, 9, 0, 0, Math.PI * 2);
   ctx.fill();
-  const g = ctx.createRadialGradient(x - 4, y + 4, 2, x, y + 8, r);
-  g.addColorStop(0, '#3a4555');
-  g.addColorStop(1, '#1a222c');
-  ctx.fillStyle = g;
+
+  const rim = ctx.createRadialGradient(x - 3, y + 4, 2, x, y + 9, r + 1);
+  rim.addColorStop(0, '#4a5568');
+  rim.addColorStop(0.55, '#2a3340');
+  rim.addColorStop(1, '#151b24');
+  ctx.fillStyle = rim;
   ctx.beginPath();
-  ctx.arc(x, y + 8, r, 0, Math.PI * 2);
+  ctx.arc(x, y + 9, r, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.14)';
   ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(x, y + 9, r - 1, 0, Math.PI * 2);
   ctx.stroke();
+
+  // paving cracks
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x - r * 0.5, y + 9);
+  ctx.lineTo(x - 2, y + 14);
+  ctx.moveTo(x + 4, y + 6);
+  ctx.lineTo(x + r * 0.55, y + 12);
+  ctx.stroke();
+}
+
+function brickFill(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  light: string,
+  dark: string,
+): void {
+  const g = ctx.createLinearGradient(x, y, x + w, y + h);
+  g.addColorStop(0, light);
+  g.addColorStop(1, dark);
+  ctx.fillStyle = g;
+  roundRect(ctx, x, y, w, h, 3);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, x, y, w, h, 3);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+  ctx.lineWidth = 1;
+  const rows = Math.max(2, Math.floor(h / 7));
+  for (let i = 1; i < rows; i++) {
+    const yy = y + (h * i) / rows;
+    ctx.beginPath();
+    ctx.moveTo(x + 2, yy);
+    ctx.lineTo(x + w - 2, yy);
+    ctx.stroke();
+  }
+}
+
+function levelBadge(ctx: CanvasRenderingContext2D, x: number, y: number, level: number): void {
+  if (level <= 1) return;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  roundRect(ctx, x - 12, y + 22, 24, 14, 4);
+  ctx.fill();
+  ctx.fillStyle = '#f4d35e';
+  ctx.font = 'bold 11px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`L${level}`, x, y + 33);
 }
 
 function drawArrowTower(
@@ -25,56 +83,81 @@ function drawArrowTower(
   level: number,
   aim: number,
 ): void {
-  const h = 26 + level * 5;
-  stoneBase(ctx, x, y, 16);
-  const g = ctx.createLinearGradient(x - 14, y - h, x + 14, y + 10);
-  g.addColorStop(0, '#7eb6e0');
-  g.addColorStop(0.5, '#3d7eb0');
-  g.addColorStop(1, '#1a4060');
-  ctx.fillStyle = g;
-  roundRect(ctx, x - 12, y - h + 10, 24, h, 4);
+  const h = 30 + level * 6;
+  stoneBase(ctx, x, y, 17);
+
+  // Keep shaft
+  brickFill(ctx, x - 13, y - h + 12, 26, h - 2, '#8ec0e8', '#1a4060');
+
+  // Door
+  ctx.fillStyle = '#2a1a12';
+  roundRect(ctx, x - 5, y - 2, 10, 12, 2);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-  ctx.lineWidth = 1.5;
-  roundRect(ctx, x - 12, y - h + 10, 24, h, 4);
-  ctx.stroke();
-  // Window slits
-  ctx.fillStyle = 'rgba(10, 20, 30, 0.55)';
-  ctx.fillRect(x - 6, y - h + 22, 4, 7);
-  ctx.fillRect(x + 2, y - h + 22, 4, 7);
+
+  // Window slits with glow
+  ctx.fillStyle = 'rgba(8, 16, 24, 0.7)';
+  ctx.fillRect(x - 7, y - h + 24, 5, 8);
+  ctx.fillRect(x + 2, y - h + 24, 5, 8);
+  ctx.fillStyle = 'rgba(244, 211, 94, 0.35)';
+  ctx.fillRect(x - 6, y - h + 26, 3, 4);
+  ctx.fillRect(x + 3, y - h + 26, 3, 4);
+
+  // Wooden platform ring
+  ctx.fillStyle = '#5c3d2e';
+  roundRect(ctx, x - 16, y - h + 10, 32, 7, 2);
+  ctx.fill();
+
   // Battlements
   ctx.fillStyle = '#2a4a62';
   for (let i = -2; i <= 2; i++) {
-    ctx.fillRect(x + i * 5.5 - 2.5, y - h + 4, 5, 8);
+    ctx.fillRect(x + i * 6 - 2.5, y - h + 2, 5, 10);
   }
-  // Crossbow turret (rotates)
+  ctx.fillStyle = '#3d6a88';
+  ctx.fillRect(x - 14, y - h + 8, 28, 3);
+
+  // Big crossbow on roof
   const cx = x;
-  const cy = y - h + 8;
+  const cy = y - h + 6;
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(aim);
-  ctx.fillStyle = '#4a3220';
-  roundRect(ctx, -3, -4, 18, 8, 2);
+
+  // Stock
+  ctx.fillStyle = '#3d2918';
+  roundRect(ctx, -6, -5, 14, 10, 2);
   ctx.fill();
+  ctx.fillStyle = '#6b4423';
+  roundRect(ctx, 4, -3.5, 20 + level * 2, 7, 2);
+  ctx.fill();
+
+  // Prod (bow arms)
   ctx.strokeStyle = '#c9a66b';
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(4, 0, 11, -Math.PI * 0.75, Math.PI * 0.75);
+  ctx.arc(8, 0, 13, -Math.PI * 0.8, Math.PI * 0.8);
   ctx.stroke();
-  ctx.fillStyle = '#e8f0ff';
-  ctx.fillRect(2, -1.5, 16, 3);
+  ctx.strokeStyle = '#e8d5a8';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(20, 0);
-  ctx.lineTo(14, -4);
-  ctx.lineTo(14, 4);
+  ctx.moveTo(8, -12);
+  ctx.lineTo(8, 12);
+  ctx.stroke();
+
+  // Bolt
+  ctx.fillStyle = '#eef4ff';
+  ctx.fillRect(10, -1.5, 18 + level, 3);
+  ctx.beginPath();
+  ctx.moveTo(30 + level, 0);
+  ctx.lineTo(24 + level, -4);
+  ctx.lineTo(24 + level, 4);
   ctx.closePath();
   ctx.fill();
   ctx.fillStyle = '#5b9fd4';
   ctx.beginPath();
-  ctx.moveTo(-2, 0);
-  ctx.lineTo(-7, -4);
-  ctx.lineTo(-5, 0);
-  ctx.lineTo(-7, 4);
+  ctx.moveTo(10, 0);
+  ctx.lineTo(5, -4);
+  ctx.lineTo(7, 0);
+  ctx.lineTo(5, 4);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
@@ -87,82 +170,150 @@ function drawCannonTower(
   level: number,
   aim: number,
 ): void {
-  stoneBase(ctx, x, y, 18);
-  const g = ctx.createLinearGradient(x - 18, y - 16, x + 18, y + 14);
-  g.addColorStop(0, '#e89a5a');
-  g.addColorStop(1, '#6a2a08');
-  ctx.fillStyle = g;
-  roundRect(ctx, x - 16, y - 8, 32, 24, 7);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,220,160,0.3)';
-  ctx.lineWidth = 1.5;
-  roundRect(ctx, x - 16, y - 8, 32, 24, 7);
-  ctx.stroke();
-  // Swivel mount
-  ctx.fillStyle = '#3a3028';
-  ctx.beginPath();
-  ctx.arc(x, y - 6, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.save();
-  ctx.translate(x, y - 8);
-  ctx.rotate(aim);
-  const barrelLen = 22 + level * 3;
+  stoneBase(ctx, x, y, 19);
+
+  // Bastion body
+  brickFill(ctx, x - 18, y - 10, 36, 26, '#e8a060', '#6a2a08');
+
+  // Iron bands
   ctx.fillStyle = '#2a2220';
-  roundRect(ctx, 0, -5, barrelLen, 10, 3);
+  ctx.fillRect(x - 18, y - 2, 36, 3);
+  ctx.fillRect(x - 18, y + 8, 36, 3);
+
+  // Side buttresses
+  ctx.fillStyle = '#7a3410';
+  ctx.beginPath();
+  ctx.moveTo(x - 18, y + 14);
+  ctx.lineTo(x - 24, y + 16);
+  ctx.lineTo(x - 18, y - 4);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x + 18, y + 14);
+  ctx.lineTo(x + 24, y + 16);
+  ctx.lineTo(x + 18, y - 4);
+  ctx.fill();
+
+  // Carriage
+  ctx.fillStyle = '#3a2820';
+  roundRect(ctx, x - 10, y - 12, 20, 12, 3);
   ctx.fill();
   ctx.fillStyle = '#1a1514';
   ctx.beginPath();
-  ctx.arc(barrelLen, 0, 6, 0, Math.PI * 2);
+  ctx.arc(x - 10, y + 2, 5, 0, Math.PI * 2);
+  ctx.arc(x + 10, y + 2, 5, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#4a4038';
+
+  // Barrel
+  ctx.save();
+  ctx.translate(x, y - 10);
+  ctx.rotate(aim);
+  const barrelLen = 26 + level * 4;
+  const barrel = ctx.createLinearGradient(0, -6, 0, 6);
+  barrel.addColorStop(0, '#4a4440');
+  barrel.addColorStop(0.5, '#1a1514');
+  barrel.addColorStop(1, '#3a3430');
+  ctx.fillStyle = barrel;
+  roundRect(ctx, -4, -6, barrelLen, 12, 3);
+  ctx.fill();
+  // Rings on barrel
+  ctx.strokeStyle = '#6a6058';
+  ctx.lineWidth = 2;
+  for (const ox of [6, 14, barrelLen - 8]) {
+    ctx.beginPath();
+    ctx.ellipse(ox, 0, 2, 7, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#0a0808';
   ctx.beginPath();
-  ctx.arc(barrelLen, 0, 3, 0, Math.PI * 2);
+  ctx.arc(barrelLen, 0, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2a2420';
+  ctx.beginPath();
+  ctx.arc(barrelLen, 0, 3.5, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+
+  // Rivets
   ctx.fillStyle = '#f0c94d';
-  ctx.beginPath();
-  ctx.arc(x - 11, y + 2, 2.2, 0, Math.PI * 2);
-  ctx.arc(x + 11, y + 2, 2.2, 0, Math.PI * 2);
-  ctx.fill();
+  for (const [ox, oy] of [
+    [-14, 0],
+    [14, 0],
+    [-14, 10],
+    [14, 10],
+  ]) {
+    ctx.beginPath();
+    ctx.arc(x + ox, y + oy, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
-function drawIceTower(ctx: CanvasRenderingContext2D, x: number, y: number, level: number): void {
+function drawIceTower(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  level: number,
+  time: number,
+): void {
   stoneBase(ctx, x, y, 15);
-  const tip = y - 32 - level * 5;
-  const g = ctx.createLinearGradient(x, tip, x, y + 8);
+  const tip = y - 36 - level * 5;
+  const pulse = 0.85 + Math.sin(time * 3) * 0.1;
+
+  // Pedestal
+  ctx.fillStyle = '#3a5a6a';
+  roundRect(ctx, x - 12, y - 2, 24, 12, 3);
+  ctx.fill();
+
+  // Main crystal
+  const g = ctx.createLinearGradient(x, tip, x, y + 6);
   g.addColorStop(0, '#ffffff');
-  g.addColorStop(0.35, '#a8e4f8');
+  g.addColorStop(0.3, `rgba(180, 235, 255, ${pulse})`);
   g.addColorStop(1, '#1f5f78');
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.moveTo(x, tip);
-  ctx.lineTo(x + 14 + level, y + 8);
-  ctx.lineTo(x - 14 - level, y + 8);
+  ctx.lineTo(x + 13 + level, y + 4);
+  ctx.lineTo(x + 6, y + 10);
+  ctx.lineTo(x - 6, y + 10);
+  ctx.lineTo(x - 13 - level, y + 4);
   ctx.closePath();
   ctx.fill();
+
   ctx.strokeStyle = 'rgba(255,255,255,0.85)';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(x, tip);
-  ctx.lineTo(x, y + 6);
+  ctx.lineTo(x - 2, y + 8);
+  ctx.moveTo(x, tip);
+  ctx.lineTo(x + 3, y + 6);
   ctx.stroke();
-  ctx.fillStyle = 'rgba(200, 240, 255, 0.9)';
+
+  // Side shards
+  ctx.fillStyle = 'rgba(200, 240, 255, 0.92)';
   ctx.beginPath();
-  ctx.moveTo(x - 16, y - 2);
-  ctx.lineTo(x - 9, y - 20);
-  ctx.lineTo(x - 4, y);
+  ctx.moveTo(x - 18, y);
+  ctx.lineTo(x - 10, y - 22);
+  ctx.lineTo(x - 5, y + 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(x + 16, y - 2);
-  ctx.lineTo(x + 9, y - 20);
-  ctx.lineTo(x + 4, y);
+  ctx.moveTo(x + 18, y);
+  ctx.lineTo(x + 10, y - 22);
+  ctx.lineTo(x + 5, y + 2);
   ctx.fill();
   if (level > 1) {
-    ctx.strokeStyle = 'rgba(180, 230, 255, 0.7)';
     ctx.beginPath();
-    ctx.arc(x, y - 8, 10 + level * 2, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.moveTo(x - 8, y - 8);
+    ctx.lineTo(x - 2, y - 28);
+    ctx.lineTo(x + 2, y - 6);
+    ctx.fill();
   }
+
+  ctx.shadowColor = '#7ec8e3';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath();
+  ctx.arc(x, tip + 10, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
 }
 
 function drawLightningTower(
@@ -170,112 +321,218 @@ function drawLightningTower(
   x: number,
   y: number,
   level: number,
+  time: number,
 ): void {
-  stoneBase(ctx, x, y, 15);
-  ctx.fillStyle = '#3a3420';
-  roundRect(ctx, x - 11, y - 6, 22, 18, 4);
+  stoneBase(ctx, x, y, 16);
+
+  // Stone hut
+  brickFill(ctx, x - 12, y - 8, 24, 20, '#5a5040', '#2a2418');
+  ctx.fillStyle = '#1a1810';
+  ctx.beginPath();
+  ctx.moveTo(x - 14, y - 8);
+  ctx.lineTo(x, y - 18);
+  ctx.lineTo(x + 14, y - 8);
+  ctx.closePath();
   ctx.fill();
-  for (let i = 0; i < 3 + level; i++) {
-    const yy = y - 12 - i * 8;
-    const coil = ctx.createLinearGradient(x - 12, yy, x + 12, yy);
-    coil.addColorStop(0, '#8a6b00');
-    coil.addColorStop(0.5, '#f0c94d');
-    coil.addColorStop(1, '#8a6b00');
+
+  // Support poles
+  ctx.strokeStyle = '#6a5a30';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x - 10, y + 8);
+  ctx.lineTo(x - 8, y - 20);
+  ctx.moveTo(x + 10, y + 8);
+  ctx.lineTo(x + 8, y - 20);
+  ctx.stroke();
+
+  // Coil stack
+  const coils = 3 + level;
+  for (let i = 0; i < coils; i++) {
+    const yy = y - 16 - i * 8;
+    const coil = ctx.createLinearGradient(x - 13, yy, x + 13, yy);
+    coil.addColorStop(0, '#6a5200');
+    coil.addColorStop(0.5, '#f5d76e');
+    coil.addColorStop(1, '#6a5200');
     ctx.fillStyle = coil;
     ctx.beginPath();
-    ctx.ellipse(x, yy, 12 - i * 0.5, 4.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(x, yy, 13 - i * 0.4, 4.8, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,200,0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
-  const tipY = y - 12 - (2 + level) * 8 - 2;
-  ctx.fillStyle = '#f4d35e';
-  ctx.fillRect(x - 2.5, tipY, 5, 12);
+
+  const tipY = y - 16 - (coils - 1) * 8 - 6;
+  // Rod
+  ctx.fillStyle = '#d0d0d0';
+  ctx.fillRect(x - 2, tipY, 4, 14);
+
+  const spark = 0.7 + Math.sin(time * 14) * 0.3;
   ctx.shadowColor = '#f0c94d';
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 14 * spark;
+  ctx.fillStyle = `rgba(255, 240, 150, ${spark})`;
   ctx.beginPath();
-  ctx.arc(x, tipY - 2, 6, 0, Math.PI * 2);
+  ctx.arc(x, tipY - 2, 7, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = 'rgba(255, 250, 180, 0.9)';
+
+  ctx.strokeStyle = 'rgba(255, 250, 200, 0.95)';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(x - 9, tipY + 6);
-  ctx.lineTo(x, tipY - 8);
-  ctx.lineTo(x + 9, tipY + 6);
+  ctx.moveTo(x - 10, tipY + 4);
+  ctx.lineTo(x - 2, tipY - 10);
+  ctx.lineTo(x + 4, tipY);
+  ctx.lineTo(x + 10, tipY - 8);
   ctx.stroke();
 }
 
-function drawFireTower(ctx: CanvasRenderingContext2D, x: number, y: number, level: number): void {
-  stoneBase(ctx, x, y, 16);
-  const g = ctx.createLinearGradient(x - 14, y - 18, x + 14, y + 12);
-  g.addColorStop(0, '#ff7a5c');
-  g.addColorStop(1, '#5a1008');
-  ctx.fillStyle = g;
-  roundRect(ctx, x - 13, y - 4, 26, 18, 5);
-  ctx.fill();
+function drawFireTower(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  level: number,
+  time: number,
+): void {
+  stoneBase(ctx, x, y, 17);
+
+  brickFill(ctx, x - 14, y - 6, 28, 20, '#ff7a5c', '#5a1008');
+
+  // Chimney
   ctx.fillStyle = '#3a2018';
-  roundRect(ctx, x - 8, y - 24 - level * 3, 16, 22 + level * 3, 3);
+  roundRect(ctx, x - 9, y - 28 - level * 3, 18, 26 + level * 3, 3);
   ctx.fill();
   ctx.fillStyle = '#2a1810';
+  ctx.fillRect(x - 6, y - 20, 4, 10);
+  ctx.fillRect(x + 2, y - 18, 4, 8);
+
+  // Brazier bowl
+  const bowlY = y - 28 - level * 3;
+  ctx.fillStyle = '#1a100c';
   ctx.beginPath();
-  ctx.ellipse(x, y - 24 - level * 3, 14, 6, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, bowlY, 16, 7, 0, 0, Math.PI * 2);
   ctx.fill();
-  const fy = y - 30 - level * 3;
-  ctx.fillStyle = '#ff8c42';
+  ctx.fillStyle = '#4a2818';
   ctx.beginPath();
-  ctx.moveTo(x, fy - 16);
-  ctx.quadraticCurveTo(x + 12, fy - 2, x + 3, fy + 8);
-  ctx.quadraticCurveTo(x, fy + 2, x - 3, fy + 8);
-  ctx.quadraticCurveTo(x - 12, fy - 2, x, fy - 16);
+  ctx.ellipse(x, bowlY, 14, 5, 0, Math.PI, 0);
+  ctx.fill();
+
+  // Flames (flicker)
+  const flicker = Math.sin(time * 12) * 3;
+  const fy = bowlY - 4;
+  ctx.fillStyle = '#ff6b35';
+  ctx.beginPath();
+  ctx.moveTo(x, fy - 18 + flicker);
+  ctx.quadraticCurveTo(x + 14, fy - 2, x + 4, fy + 8);
+  ctx.quadraticCurveTo(x, fy + 2, x - 4, fy + 8);
+  ctx.quadraticCurveTo(x - 14, fy - 2, x, fy - 18 + flicker);
+  ctx.fill();
+  ctx.fillStyle = '#ffb347';
+  ctx.beginPath();
+  ctx.moveTo(x, fy - 12 + flicker * 0.5);
+  ctx.quadraticCurveTo(x + 8, fy, x + 2, fy + 6);
+  ctx.quadraticCurveTo(x, fy + 1, x - 2, fy + 6);
+  ctx.quadraticCurveTo(x - 8, fy, x, fy - 12 + flicker * 0.5);
   ctx.fill();
   ctx.fillStyle = '#fff3a0';
   ctx.beginPath();
-  ctx.moveTo(x, fy - 10);
-  ctx.quadraticCurveTo(x + 5, fy, x, fy + 5);
-  ctx.quadraticCurveTo(x - 5, fy, x, fy - 10);
+  ctx.moveTo(x, fy - 7);
+  ctx.quadraticCurveTo(x + 4, fy, x, fy + 4);
+  ctx.quadraticCurveTo(x - 4, fy, x, fy - 7);
   ctx.fill();
+
+  ctx.shadowColor = '#e85d4c';
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = 'rgba(255, 140, 60, 0.35)';
+  ctx.beginPath();
+  ctx.arc(x, fy - 4, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
 }
 
-function drawPoisonTower(ctx: CanvasRenderingContext2D, x: number, y: number, level: number): void {
-  stoneBase(ctx, x, y, 15);
-  const g = ctx.createLinearGradient(x - 12, y - 14, x + 12, y + 12);
-  g.addColorStop(0, '#8adf90');
-  g.addColorStop(1, '#1a5a30');
-  ctx.fillStyle = g;
-  roundRect(ctx, x - 12, y - 6, 24, 20, 5);
-  ctx.fill();
-  ctx.strokeStyle = '#2a3a30';
-  ctx.lineWidth = 3;
+function drawPoisonTower(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  level: number,
+  time: number,
+): void {
+  stoneBase(ctx, x, y, 16);
+
+  // Alchemist hut
+  brickFill(ctx, x - 13, y - 8, 26, 22, '#8adf90', '#1a5a30');
+  ctx.fillStyle = '#2a3a28';
   ctx.beginPath();
-  ctx.moveTo(x - 11, y - 6);
-  ctx.lineTo(x - 15, y + 8);
-  ctx.moveTo(x + 11, y - 6);
-  ctx.lineTo(x + 15, y + 8);
+  ctx.moveTo(x - 15, y - 8);
+  ctx.lineTo(x, y - 20);
+  ctx.lineTo(x + 15, y - 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Window
+  ctx.fillStyle = 'rgba(180, 255, 160, 0.35)';
+  roundRect(ctx, x - 4, y - 2, 8, 8, 2);
+  ctx.fill();
+
+  // Tripod legs
+  ctx.strokeStyle = '#2a3a30';
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x - 8, y - 10);
+  ctx.lineTo(x - 16, y + 10);
+  ctx.moveTo(x + 8, y - 10);
+  ctx.lineTo(x + 16, y + 10);
+  ctx.moveTo(x, y - 12);
+  ctx.lineTo(x, y + 10);
   ctx.stroke();
+
+  // Cauldron
+  const cy = y - 16 - level * 2;
   ctx.fillStyle = '#1a2a20';
   ctx.beginPath();
-  ctx.ellipse(x, y - 14 - level * 2, 14, 10, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, cy, 15, 11, 0, 0, Math.PI * 2);
   ctx.fill();
-  const brew = ctx.createRadialGradient(x - 2, y - 16 - level * 2, 1, x, y - 14 - level * 2, 10);
-  brew.addColorStop(0, '#b8ff90');
-  brew.addColorStop(1, '#2dff7a');
+  ctx.strokeStyle = '#3a5a40';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(x, cy - 2, 15, 6, 0, Math.PI, 0);
+  ctx.stroke();
+
+  const brew = ctx.createRadialGradient(x - 3, cy - 4, 1, x, cy - 2, 12);
+  brew.addColorStop(0, '#d4ff90');
+  brew.addColorStop(0.5, '#3dff8a');
+  brew.addColorStop(1, '#1a6b3a');
   ctx.fillStyle = brew;
   ctx.beginPath();
-  ctx.ellipse(x, y - 16 - level * 2, 11, 6, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, cy - 3, 12, 6, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = 'rgba(200, 255, 210, 0.95)';
+
+  // Bubbles
+  const t = time * 4;
+  ctx.fillStyle = 'rgba(220, 255, 230, 0.95)';
   ctx.beginPath();
-  ctx.arc(x - 5, y - 24 - level * 2, 3.5, 0, Math.PI * 2);
-  ctx.arc(x + 4, y - 28 - level * 2, 2.8, 0, Math.PI * 2);
-  ctx.arc(x + 1, y - 33 - level * 2, 2.2, 0, Math.PI * 2);
+  ctx.arc(x - 5 + Math.sin(t) * 2, cy - 14 - (t % 3), 3.5, 0, Math.PI * 2);
+  ctx.arc(x + 4 + Math.cos(t * 1.3) * 2, cy - 20 - ((t * 1.2) % 4), 2.8, 0, Math.PI * 2);
+  ctx.arc(x + Math.sin(t * 0.7) * 3, cy - 26 - ((t * 0.8) % 3), 2.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pipe spout
+  ctx.fillStyle = '#4a6a50';
+  roundRect(ctx, x + 10, cy - 6, 10, 4, 2);
   ctx.fill();
 }
 
-export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, selected: boolean): void {
+export function drawTower(
+  ctx: CanvasRenderingContext2D,
+  t: Tower,
+  selected: boolean,
+  time = 0,
+): void {
   const { x, y } = t;
   if (selected) {
     ctx.beginPath();
     ctx.arc(x, y, t.range, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 6]);
     ctx.stroke();
@@ -290,23 +547,18 @@ export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, selected: boo
       drawCannonTower(ctx, x, y, t.level, t.aimAngle);
       break;
     case 'ice':
-      drawIceTower(ctx, x, y, t.level);
+      drawIceTower(ctx, x, y, t.level, time);
       break;
     case 'lightning':
-      drawLightningTower(ctx, x, y, t.level);
+      drawLightningTower(ctx, x, y, t.level, time);
       break;
     case 'fire':
-      drawFireTower(ctx, x, y, t.level);
+      drawFireTower(ctx, x, y, t.level, time);
       break;
     case 'poison':
-      drawPoisonTower(ctx, x, y, t.level);
+      drawPoisonTower(ctx, x, y, t.level, time);
       break;
   }
 
-  if (t.level > 1) {
-    ctx.fillStyle = '#f4d35e';
-    ctx.font = 'bold 11px DM Sans, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`L${t.level}`, x, y + 30);
-  }
+  levelBadge(ctx, x, y, t.level);
 }

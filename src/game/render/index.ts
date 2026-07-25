@@ -54,7 +54,7 @@ export class Renderer {
   }
 
   drawTower(t: Tower, selected: boolean): void {
-    drawTower(this.ctx, t, selected);
+    drawTower(this.ctx, t, selected, this.time);
   }
 
   drawEnemy(e: Enemy, selected: boolean): void {
