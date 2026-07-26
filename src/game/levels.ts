@@ -1,6 +1,7 @@
 import type { BiomeTheme, CellKind, EnemyKind } from './constants';
 import { COLS, ROWS, TILE, WAVES_PER_LEVEL } from './constants';
 import type { Vec2 } from '../shared/math';
+import { biasWaveForTheme } from './biomeEnemies';
 
 export interface LevelDef {
   id: number;
@@ -415,9 +416,9 @@ export const LEVELS: LevelDef[] = [
       { c: 13, r: 9 },
       { c: 19, r: 9 },
     ],
-    2.4,
-    290,
-    14,
+    2.15,
+    340,
+    15,
     [
       { c: 3, r: 3 },
       { c: 4, r: 4 },
@@ -461,8 +462,8 @@ export const LEVELS: LevelDef[] = [
       { c: 15, r: 8 },
       { c: 19, r: 8 },
     ],
-    2.7,
-    275,
+    2.95,
+    300,
     12,
     [
       { c: 2, r: 2 },
@@ -577,9 +578,15 @@ export function buildWave(levelId: number, wave: number): WaveSpawn[] {
     if (Lvl >= 3) {
       groups.push({ kind: 'wisp', count: Math.round(8 * pressure), interval: 0.3, delay: 2 });
     }
+    // Final map climax — denser flyers + second lich beat
+    if (Lvl >= 10) {
+      groups.push({ kind: 'gargoyle', count: 4, interval: 0.75, delay: 2.5 });
+      groups.push({ kind: 'wyrm', count: 1, interval: 2, delay: 7 });
+    }
   }
 
-  return groups;
+  const level = LEVELS.find((l) => l.id === Lvl);
+  return biasWaveForTheme(groups, level?.theme ?? 'meadow');
 }
 
 export function canPlaceOnCell(grid: CellKind[][], c: number, r: number): boolean {

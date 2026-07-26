@@ -80,7 +80,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
       ctx.beginPath();
       ctx.arc(x, y + 3, r * 0.9, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#e85d4c';
+      ctx.fillStyle = e.accent;
       ctx.beginPath();
       ctx.moveTo(x, y - r - 6);
       ctx.lineTo(x + r * 0.85, y + 2);
@@ -125,7 +125,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
       ctx.arc(x - 5, y - 1, 2.4, 0, Math.PI * 2);
       ctx.arc(x + 5, y - 1, 2.4, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#ef476f';
+      ctx.fillStyle = e.accent;
       ctx.beginPath();
       ctx.arc(x - 5, y - 1, 1, 0, Math.PI * 2);
       ctx.arc(x + 5, y - 1, 1, 0, Math.PI * 2);

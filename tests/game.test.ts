@@ -10,6 +10,16 @@ describe('Game integration', () => {
   let game: Game;
 
   beforeEach(() => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        store.set(k, v);
+      },
+      removeItem: (k: string) => {
+        store.delete(k);
+      },
+    });
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
       return setTimeout(() => cb(performance.now()), 16) as unknown as number;
     });
@@ -30,6 +40,13 @@ describe('Game integration', () => {
     expect(game.gold).toBe(LEVELS[0].startingGold);
     expect(game.lives).toBe(LEVELS[0].lives);
     expect(game.renderer.theme).toBe('meadow');
+  });
+
+  it('blocks towers that unlock later', () => {
+    game.gold = 500;
+    game.selectedKind = 'light';
+    expect(game.tryPlace(5, 4)).toBe(false);
+    expect(game.towers).toHaveLength(0);
   });
 
   it('places arrow on grass, spends gold, and blocks path/water/occupied', () => {
@@ -124,6 +141,8 @@ describe('Game integration', () => {
   });
 
   it('respawns a friendly after one dies', () => {
+    game.startLevel(4);
+    game.stopLoop();
     game.gold = 2000;
     game.selectedKind = 'knightBarracks';
     game.tryPlace(5, 4);
@@ -220,6 +239,8 @@ describe('Game integration', () => {
   });
 
   it('places while paused and cannon cannot target flyers', () => {
+    game.startLevel(6);
+    game.stopLoop();
     game.gold = 2000;
     game.togglePause();
     expect(game.phase).toBe('paused');
@@ -256,6 +277,8 @@ describe('Game integration', () => {
   });
 
   it('paladin barracks reaches L3 and applies a skill path', () => {
+    game.startLevel(6);
+    game.stopLoop();
     game.gold = 5000;
     game.selectedKind = 'paladinBarracks';
     expect(game.tryPlace(5, 4)).toBe(true);

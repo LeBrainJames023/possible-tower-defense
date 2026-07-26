@@ -7,6 +7,7 @@ import {
   type BarracksKind,
   type BarracksSpecDef,
   type BarracksSpecId,
+  type BiomeTheme,
   type EnemyKind,
   type FriendlyUnitKind,
   type TargetingMode,
@@ -14,6 +15,7 @@ import {
   type TowerSpecDef,
   type TowerSpecId,
 } from './constants';
+import { biomeSkinFor } from './biomeEnemies';
 import type { Vec2 } from '../shared/math';
 import { dist, lengthAlongPath, pathTotalLength } from '../shared/math';
 
@@ -33,6 +35,9 @@ export class Enemy {
   radius: number;
   color: string;
   colorDark: string;
+  /** Biome accent (hats, crystals, eyes) */
+  accent: string;
+  biome: BiomeTheme;
   flying: boolean;
   undead: boolean;
   progress = 0;
@@ -52,7 +57,7 @@ export class Enemy {
   blocked = false;
   pos: Vec2 = { x: 0, y: 0 };
 
-  constructor(kind: EnemyKind, hpScale: number, waypoints: Vec2[]) {
+  constructor(kind: EnemyKind, hpScale: number, waypoints: Vec2[], biome: BiomeTheme = 'meadow') {
     const def = ENEMIES[kind];
     this.kind = kind;
     this.maxHp = Math.round(def.hp * hpScale);
@@ -61,8 +66,11 @@ export class Enemy {
     this.reward = def.reward;
     this.baseArmor = def.armor;
     this.radius = def.radius;
-    this.color = def.color;
-    this.colorDark = def.colorDark;
+    const skin = biomeSkinFor(kind, biome, def.color, def.colorDark);
+    this.color = skin.color;
+    this.colorDark = skin.colorDark;
+    this.accent = skin.accent;
+    this.biome = biome;
     this.flying = !!def.flying;
     this.undead = !!def.undead;
     this.pos = { ...waypoints[0] };

@@ -355,16 +355,26 @@ h3 {
   box-shadow: inset 0 0 0 1px rgba(87, 204, 153, 0.22);
 }
 
-.level-card.cleared::after {
-  content: 'Cleared';
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 0.65rem;
+.level-card.locked {
+  border-style: dashed;
+}
+
+.level-card .level-status {
+  margin-top: 6px;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  color: var(--accent-2);
+  -webkit-line-clamp: 1;
+}
+
+.level-card.cleared .level-status {
   color: var(--ok);
+}
+
+.level-card.locked .level-status {
+  color: var(--muted);
 }
 
 .game-shell {
@@ -425,6 +435,19 @@ h3 {
 
 .hud-block.lives-low .hud-value {
   color: var(--danger);
+}
+
+.hud-wave-block {
+  min-width: 7.5rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(61, 139, 253, 0.16);
+  border: 1px solid rgba(61, 139, 253, 0.35);
+}
+
+.hud-wave-block .hud-value {
+  font-size: 1.35rem;
+  color: var(--accent);
 }
 
 .hud {
@@ -750,7 +773,13 @@ h3 {
 
 .targeting-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+}
+
+.targeting-row .btn {
+  flex: 1 1 auto;
+  min-width: 72px;
 }
 
 .targeting-row .btn.selected {

@@ -1,10 +1,8 @@
 import './style.css';
 import {
   BARRACKS,
-  BARRACKS_ORDER,
   BARRACKS_SPECS,
   ENEMIES,
-  TOWER_ORDER,
   TOWER_SPECS,
   TOWERS,
   WAVES_PER_LEVEL,
@@ -19,8 +17,17 @@ import {
   type TowerSpecId,
 } from './game/constants';
 import { LEVELS } from './game/levels';
-import { Game, loadProgress, saveProgress } from './game/Game';
+import { Game } from './game/Game';
 import { audio } from './game/audio';
+import {
+  clearRunSave,
+  hasContinueProgress,
+  loadProgress,
+  loadSave,
+  resetCampaign,
+  saveRunSnapshot,
+} from './game/save';
+import { unlockToastText, unlockedBarracks, unlockedTowers } from './game/unlocks';
 
 const screens = {
   title: document.getElementById('screen-title')!,
@@ -99,20 +106,88 @@ function showScreen(name: keyof typeof screens): void {
 }
 
 function ensureProgress(): void {
-  if (!localStorage.getItem('ptd-progress-v1')) saveProgress(1);
+  loadSave(); // migrates / seeds if needed
+}
+
+function syncTitleButtons(): void {
+  const btnContinue = document.getElementById('btn-continue') as HTMLButtonElement | null;
+  const btnNew = document.getElementById('btn-new-game') as HTMLButtonElement | null;
+  if (!btnContinue || !btnNew) return;
+  const canContinue = hasContinueProgress();
+  btnContinue.classList.toggle('hidden', !canContinue);
+  btnContinue.disabled = !canContinue;
+  btnNew.classList.toggle('btn-primary', !canContinue);
+  btnNew.classList.toggle('btn-ghost', canContinue);
+  btnContinue.classList.toggle('btn-primary', canContinue);
+  btnContinue.classList.toggle('btn-ghost', !canContinue);
+}
+
+function persistRun(): void {
+  const snap = game.exportRunSnapshot();
+  if (snap) saveRunSnapshot(snap);
+}
+
+function startNewGame(): void {
+  if (hasContinueProgress()) {
+    const ok = window.confirm(
+      'Start a new campaign? This locks levels again until you re-clear them from Level 1.',
+    );
+    if (!ok) return;
+  }
+  resetCampaign();
+  audio.play('ui');
+  renderLevels();
+  showScreen('levels');
+  game.stopLoop();
+  showToast('New campaign — clear Level 1 to unlock the next map.');
+  syncTitleButtons();
+}
+
+function continueCampaign(): void {
+  audio.play('ui');
+  const save = loadSave();
+  game.stopLoop();
+  // Mid-run: jump straight back into that map
+  if (save.run) {
+    startLevel(save.run.levelId, true);
+    showToast(`Resumed Level ${save.run.levelId} — wave ${save.run.waveIndex}/10 saved.`);
+    return;
+  }
+  renderLevels();
+  showScreen('levels');
+  const unlocked = save.unlocked;
+  showToast(
+    unlocked > LEVELS.length
+      ? 'Campaign cleared — replay any map.'
+      : `Continue — Level ${unlocked} is your frontier.`,
+  );
 }
 
 function renderLevels(): void {
   const unlocked = loadProgress();
+  const blurb = document.getElementById('levels-blurb');
+  if (blurb) {
+    blurb.textContent =
+      unlocked <= 1
+        ? 'Start with Level 1. Beat it to unlock Level 2, and so on.'
+        : `Unlocked through Level ${Math.min(unlocked, LEVELS.length)}. Beat each map to open the next.`;
+  }
   levelGrid.innerHTML = '';
   for (const level of LEVELS) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'level-card';
-    if (level.id < unlocked) btn.classList.add('cleared');
-    btn.disabled = level.id > unlocked;
-    btn.innerHTML = `<span class="biome-chip">${level.theme}</span><strong>Level ${level.id} · ${level.name}</strong><span>${level.blurb}</span>`;
-    btn.addEventListener('click', () => startLevel(level.id));
+    const locked = level.id > unlocked;
+    const cleared = level.id < unlocked || unlocked > LEVELS.length;
+    if (cleared && !locked) btn.classList.add('cleared');
+    if (locked) btn.classList.add('locked');
+    btn.disabled = locked;
+    const status = locked ? 'Locked' : cleared ? 'Cleared' : 'Open';
+    btn.innerHTML = `<span class="biome-chip">${level.theme}</span><strong>Level ${level.id} · ${level.name}</strong><span>${level.blurb}</span><span class="level-status">${status}</span>`;
+    btn.addEventListener('click', () => {
+      if (locked) return;
+      startLevel(level.id);
+    });
     levelGrid.appendChild(btn);
   }
 }
@@ -168,8 +243,9 @@ function makeShopButton(kind: PlaceableKind): HTMLButtonElement {
 function renderShop(): void {
   towerShop.innerHTML = '';
   barracksShop.innerHTML = '';
-  for (const kind of TOWER_ORDER) towerShop.appendChild(makeShopButton(kind));
-  for (const kind of BARRACKS_ORDER) barracksShop.appendChild(makeShopButton(kind));
+  const levelId = game.level?.id ?? activeLevelId;
+  for (const kind of unlockedTowers(levelId)) towerShop.appendChild(makeShopButton(kind));
+  for (const kind of unlockedBarracks(levelId)) barracksShop.appendChild(makeShopButton(kind));
   syncShopSelection();
 }
 
@@ -384,20 +460,29 @@ function updateHud(): void {
   btnMute.textContent = audio.muted ? 'Muted' : 'Sound on';
 }
 
-function startLevel(id: number): void {
+function startLevel(id: number, resume = false): void {
   activeLevelId = id;
   showScreen('game');
   overlayResult.classList.add('hidden');
   leaveStrip.classList.add('hidden');
-  game.startLevel(id);
+  const save = loadSave();
+  const snap = resume && save.run?.levelId === id ? save.run : null;
+  if (!resume) clearRunSave();
+  game.startLevel(id, snap);
+  renderShop();
+  btnSpeed.textContent = `Speed ${game.timeScale}x`;
   updateHud();
-  showToast(`Level ${id}: ${LEVELS.find((l) => l.id === id)?.name ?? ''}`);
+  const unlockMsg = unlockToastText(id);
+  const name = LEVELS.find((l) => l.id === id)?.name ?? '';
+  showToast(unlockMsg ? `Level ${id}: ${name}. ${unlockMsg}` : `Level ${id}: ${name}`);
 }
 
 game.onHud = updateHud;
 game.onToast = showToast;
+game.onAutosave = persistRun;
 game.onResult = (won) => {
   resultWon = won;
+  clearRunSave();
   const panel = document.getElementById('result-panel')!;
   const eyebrow = document.getElementById('result-eyebrow')!;
   panel.classList.toggle('won', won);
@@ -405,11 +490,14 @@ game.onResult = (won) => {
   eyebrow.textContent = won ? 'Victory' : 'Defeat';
   overlayResult.classList.remove('hidden');
   if (won) {
+    const nextUnlocks = unlockToastText(activeLevelId + 1);
     resultTitle.textContent = activeLevelId >= LEVELS.length ? 'Campaign clear!' : 'Level cleared';
     resultBody.textContent =
       activeLevelId >= LEVELS.length
         ? 'You held the last bastion. Indie victory — nicely done.'
-        : `Level ${activeLevelId} survived. Next map unlocked.`;
+        : nextUnlocks
+          ? `Level ${activeLevelId} survived. ${nextUnlocks} on the next map.`
+          : `Level ${activeLevelId} survived. Next map unlocked. Progress saved.`;
     btnResultPrimary.textContent =
       activeLevelId >= LEVELS.length ? 'Back to levels' : 'Next level';
   } else {
@@ -417,6 +505,7 @@ game.onResult = (won) => {
     resultBody.textContent = 'Enemies leaked through. Rebuild with a wider tower mix.';
     btnResultPrimary.textContent = 'Retry';
   }
+  syncTitleButtons();
 };
 
 btnSpeed.addEventListener('click', () => {
@@ -434,13 +523,13 @@ btnMute.addEventListener('click', () => {
 document.querySelectorAll('[data-action]').forEach((el) => {
   el.addEventListener('click', () => {
     const action = (el as HTMLElement).dataset.action;
-    if (action === 'title') showScreen('title');
-    if (action === 'how') showScreen('how');
-    if (action === 'levels') {
-      renderLevels();
-      showScreen('levels');
-      game.stopLoop();
+    if (action === 'title') {
+      syncTitleButtons();
+      showScreen('title');
     }
+    if (action === 'how') showScreen('how');
+    if (action === 'levels' || action === 'continue') continueCampaign();
+    if (action === 'new-game') startNewGame();
   });
 });
 
@@ -466,10 +555,17 @@ document.getElementById('btn-leave-cancel')!.addEventListener('click', () => {
   leaveStrip.classList.add('hidden');
 });
 document.getElementById('btn-leave-confirm')!.addEventListener('click', () => {
+  persistRun();
   leaveStrip.classList.add('hidden');
   renderLevels();
   showScreen('levels');
   game.stopLoop();
+  syncTitleButtons();
+  showToast('Progress saved — Continue picks up this run.');
+});
+
+window.addEventListener('beforeunload', () => {
+  if (screens.game.classList.contains('active')) persistRun();
 });
 
 btnUpgrade.addEventListener('click', () => game.upgradeSelected());
@@ -539,6 +635,7 @@ canvas.addEventListener('click', (e) => {
 ensureProgress();
 renderShop();
 renderLevels();
+syncTitleButtons();
 showScreen('title');
 updateHud();
 

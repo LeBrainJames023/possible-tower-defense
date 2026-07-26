@@ -32,7 +32,12 @@
             path — never on it — and hold the line.
           </p>
           <div class="btn-row">
-            <button type="button" class="btn btn-primary" data-action="levels">Play</button>
+            <button type="button" class="btn btn-primary" id="btn-continue" data-action="continue">
+              Continue
+            </button>
+            <button type="button" class="btn btn-ghost" id="btn-new-game" data-action="new-game">
+              New Game
+            </button>
             <button type="button" class="btn btn-ghost" data-action="how">How to play</button>
           </div>
         </div>
@@ -43,8 +48,17 @@
           <h2>How to play</h2>
           <ul class="howto">
             <li>
-              <strong>Two-row build bar</strong> — towers on top, Warrior / Knight / Paladin barracks
-              below. Tap an icon for full stats, tap again to cancel.
+              <strong>Unlocks as you go</strong> — Levels 1–3: Arrow, Cannon, Fire, Ice + Warrior
+              barracks. Level 4 adds Lightning, Poison + Knight. Level 6 adds Radiant, Void +
+              Paladin.
+            </li>
+            <li>
+              <strong>Two-row build bar</strong> — only unlocked towers/barracks show. Tap an icon
+              for full stats, tap again to cancel.
+            </li>
+            <li>
+              <strong>Autosave</strong> — progress saves after each wave and when you Save &amp;
+              exit. Title screen Continue resumes your run; New Game starts fresh.
             </li>
             <li><strong>Pick a building</strong>, then click open grass beside the path.</li>
             <li>
@@ -84,7 +98,9 @@
       <div id="screen-levels" class="screen">
         <div class="panel wide">
           <h2>Select level</h2>
-          <p class="lede subtle">Levels unlock in order. Difficulty climbs every stage.</p>
+          <p class="lede subtle" id="levels-blurb">
+            Beat each map to unlock the next. Cleared stages stay playable anytime.
+          </p>
           <div id="level-grid" class="level-grid"></div>
           <div class="btn-row">
             <button type="button" class="btn btn-ghost" data-action="title">Back</button>
@@ -99,7 +115,7 @@
               <span class="hud-label">Level</span>
               <span id="hud-level" class="hud-value">1</span>
             </div>
-            <div class="hud-block">
+            <div class="hud-block hud-wave-block">
               <span class="hud-label">Wave</span>
               <span id="hud-wave" class="hud-value">0 / 10</span>
             </div>
@@ -126,10 +142,10 @@
           </div>
 
           <div id="leave-strip" class="leave-strip hidden">
-            <span>Leave this level?</span>
+            <span>Save &amp; exit to levels?</span>
             <button type="button" class="btn btn-ghost btn-hud" id="btn-leave-cancel">Stay</button>
             <button type="button" class="btn btn-danger btn-hud" id="btn-leave-confirm">
-              Levels
+              Save &amp; exit
             </button>
           </div>
 

@@ -34,25 +34,12 @@ import {
 import { Renderer } from './render';
 import { audio } from './audio';
 import { dist, lengthAlongPath, nearestPathSample, pathTotalLength } from '../shared/math';
+import { isPlaceableUnlocked } from './unlocks';
+import { bumpUnlockAfterWin, type RunSnapshot } from './save';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
 
-const SAVE_KEY = 'ptd-progress-v1';
-
-export function loadProgress(): number {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return 1;
-    const n = JSON.parse(raw).unlocked as number;
-    return Math.max(1, Math.min(LEVELS.length, n || 1));
-  } catch {
-    return 1;
-  }
-}
-
-export function saveProgress(unlocked: number): void {
-  localStorage.setItem(SAVE_KEY, JSON.stringify({ unlocked }));
-}
+export { loadProgress, saveProgress } from './save';
 
 export class Game {
   canvas: HTMLCanvasElement;
@@ -96,6 +83,8 @@ export class Game {
   onHud?: () => void;
   onResult?: (won: boolean) => void;
   onToast?: (message: string) => void;
+  /** Fired after a wave clears so the UI can persist a mid-run save. */
+  onAutosave?: () => void;
 
   timeScale = 1;
 
@@ -107,7 +96,7 @@ export class Game {
     this.renderer = new Renderer(ctx);
   }
 
-  startLevel(levelId: number): void {
+  startLevel(levelId: number, resume?: RunSnapshot | null): void {
     const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
     this.level = level;
     this.grid = buildGrid(level);
@@ -133,8 +122,89 @@ export class Game {
     this.selectedBarracksId = null;
     this.selectedEnemyId = null;
     this.rallyModeBarracksId = null;
+    if (resume && resume.levelId === levelId) this.applyRunSnapshot(resume);
     this.onHud?.();
     this.ensureLoop();
+  }
+
+  exportRunSnapshot(): RunSnapshot | null {
+    if (!this.level) return null;
+    if (this.phase === 'won' || this.phase === 'lost') return null;
+    return {
+      levelId: this.level.id,
+      waveIndex: this.waveIndex,
+      gold: this.gold,
+      lives: this.lives,
+      timeScale: this.timeScale,
+      selectedKind: this.selectedKind,
+      towers: this.towers.map((t) => ({
+        kind: t.kind,
+        col: t.col,
+        row: t.row,
+        level: t.level,
+        spec: t.spec,
+        specGoldSpent: t.specGoldSpent,
+        targeting: t.targeting,
+      })),
+      barracks: this.barracks.map((b) => ({
+        kind: b.kind,
+        col: b.col,
+        row: b.row,
+        level: b.level,
+        spec: b.spec,
+        specGoldSpent: b.specGoldSpent,
+        rallyX: b.rallyX,
+        rallyY: b.rallyY,
+        rallyProgress: b.rallyProgress,
+      })),
+    };
+  }
+
+  applyRunSnapshot(run: RunSnapshot): void {
+    this.gold = run.gold;
+    this.lives = run.lives;
+    this.waveIndex = run.waveIndex;
+    this.timeScale = run.timeScale === 2 ? 2 : 1;
+    this.phase = 'prepare';
+    this.waveActive = false;
+    this.spawnQueue = [];
+    this.enemies = [];
+    this.projectiles = [];
+    this.beams = [];
+    this.friendlies = [];
+    this.towers = [];
+    this.barracks = [];
+    this.occupied.clear();
+
+    for (const s of run.towers) {
+      if (!isPlaceableUnlocked(s.kind, this.level.id)) continue;
+      const x = s.col * TILE + TILE / 2;
+      const y = s.row * TILE + TILE / 2;
+      const t = new Tower(s.kind, s.col, s.row, x, y);
+      t.level = Math.max(1, Math.min(3, s.level));
+      t.spec = s.spec;
+      t.specGoldSpent = s.specGoldSpent;
+      t.targeting = s.targeting;
+      this.towers.push(t);
+      this.occupied.add(`${s.col},${s.row}`);
+    }
+    for (const s of run.barracks) {
+      if (!isPlaceableUnlocked(s.kind, this.level.id)) continue;
+      const x = s.col * TILE + TILE / 2;
+      const y = s.row * TILE + TILE / 2;
+      const b = new Barracks(s.kind, s.col, s.row, x, y, s.rallyX, s.rallyY, s.rallyProgress);
+      b.level = Math.max(1, Math.min(3, s.level));
+      b.spec = s.spec;
+      b.specGoldSpent = s.specGoldSpent;
+      this.barracks.push(b);
+      this.occupied.add(`${s.col},${s.row}`);
+    }
+
+    if (run.selectedKind && isPlaceableUnlocked(run.selectedKind, this.level.id)) {
+      this.selectedKind = run.selectedKind;
+    } else {
+      this.selectedKind = 'arrow';
+    }
   }
 
   ensureLoop(): void {
@@ -216,6 +286,10 @@ export class Game {
   tryPlace(c: number, r: number): boolean {
     if (this.phase !== 'prepare' && this.phase !== 'wave' && this.phase !== 'paused') return false;
     if (!this.selectedKind) return false;
+    if (!isPlaceableUnlocked(this.selectedKind, this.level.id)) {
+      this.onToast?.('That building unlocks on a later map.');
+      return false;
+    }
     const x = c * TILE + TILE / 2;
     const y = r * TILE + TILE / 2;
     if (!canPlaceOnCell(this.grid, c, r)) {
@@ -551,7 +625,7 @@ export class Game {
       this.waveTime += dt;
       while (this.spawnQueue.length && this.spawnQueue[0].at <= this.waveTime) {
         const s = this.spawnQueue.shift()!;
-        this.enemies.push(new Enemy(s.kind, this.level.hpScale, this.waypoints));
+        this.enemies.push(new Enemy(s.kind, this.level.hpScale, this.waypoints, this.level.theme));
       }
     }
 
@@ -630,14 +704,13 @@ export class Game {
       this.gold += 25 + this.waveIndex * 3;
       if (this.waveIndex >= WAVES_PER_LEVEL) {
         this.phase = 'won';
-        const unlocked = loadProgress();
-        const nextUnlock = Math.min(LEVELS.length, this.level.id + 1);
-        if (nextUnlock > unlocked) saveProgress(nextUnlock);
+        bumpUnlockAfterWin(this.level.id);
         audio.play('win');
         this.onResult?.(true);
       } else {
         this.phase = 'prepare';
         this.onToast?.(`Wave ${this.waveIndex} cleared! +${25 + this.waveIndex * 3}g bonus`);
+        this.onAutosave?.();
       }
       this.onHud?.();
     }

@@ -872,12 +872,13 @@ export const BARRACKS_SPECS: Record<BarracksKind, [BarracksSpecDef, BarracksSpec
   ],
 };
 
+/** Shop order matches unlock pacing: starters → mid → late. */
 export const TOWER_ORDER: TowerKind[] = [
   'arrow',
   'cannon',
+  'fire',
   'ice',
   'lightning',
-  'fire',
   'poison',
   'light',
   'dark',
