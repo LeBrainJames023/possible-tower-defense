@@ -110,6 +110,47 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
       ctx.fill();
       break;
     }
+    case 'light': {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(angle);
+      ctx.shadowColor = '#fff3a0';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#fff8d0';
+      ctx.beginPath();
+      ctx.moveTo(12, 0);
+      ctx.lineTo(-4, -4);
+      ctx.lineTo(-2, 0);
+      ctx.lineTo(-4, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#f7e7a0';
+      ctx.fillRect(-10, -1.5, 14, 3);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      break;
+    }
+    case 'dark': {
+      ctx.strokeStyle = 'rgba(155, 93, 229, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(p.px, p.py);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      const g = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, 8);
+      g.addColorStop(0, '#e0b0ff');
+      g.addColorStop(0.5, '#9b5de5');
+      g.addColorStop(1, 'rgba(42, 10, 64, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1a0a28';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
     default: {
       ctx.fillStyle = p.color;
       ctx.beginPath();

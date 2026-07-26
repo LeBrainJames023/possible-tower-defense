@@ -28,7 +28,7 @@
           <p class="eyebrow">Indie experiment</p>
           <h1>Possible<br />Tower Defense</h1>
           <p class="lede">
-            Six towers with skill paths, warrior & knight barracks, ten biomes. Build beside the
+            Eight towers with skill paths, three barracks, flyers, ten biomes. Build beside the
             path — never on it — and hold the line.
           </p>
           <div class="btn-row">
@@ -43,18 +43,25 @@
           <h2>How to play</h2>
           <ul class="howto">
             <li>
-              <strong>Slim build bar</strong> under the map — towers plus Warrior / Knight barracks.
-              Tap an icon for details, tap again to cancel.
+              <strong>Two-row build bar</strong> — towers on top, Warrior / Knight / Paladin barracks
+              below. Tap an icon for full stats, tap again to cancel.
             </li>
             <li><strong>Pick a building</strong>, then click open grass beside the path.</li>
             <li>
-              <strong>Skill paths</strong> — upgrade towers to level 3, then choose one of two
-              specializations (permanent).
+              <strong>Skill paths</strong> — upgrade towers or barracks to level 3, then choose one
+              of two specializations (permanent).
             </li>
             <li>
-              <strong>Barracks</strong> — deploy up to three troops. Select the barracks, tap Set
-              Flag, then tap the path inside the circle for their rally point. Dead troops respawn
-              one at a time.
+              <strong>Barracks</strong> — deploy up to three troops. Set Flag for their rally.
+              Troops block ground enemies only — flyers need anti-air towers.
+            </li>
+            <li>
+              <strong>Flyers</strong> — Wisps and Gargoyles. Cannon and barracks cannot hit them;
+              Arrow, elementals, Radiant, and Void can.
+            </li>
+            <li>
+              <strong>Pause</strong> freezes combat but you can still place, upgrade, sell, and set
+              flags. Use First / Strong / Close targeting on selected towers.
             </li>
             <li>
               <strong>Blocked tiles</strong> — path, water, trees, and rocks. Later levels steal more
@@ -65,7 +72,6 @@
               and more.
             </li>
             <li><strong>Click enemies or towers</strong> anytime (even paused) to inspect them.</li>
-            <li><strong>Pause</strong> freezes combat but leaves the map visible so you can plan.</li>
             <li><strong>Mute</strong> toggles procedural sound effects.</li>
           </ul>
           <div class="btn-row">
@@ -142,12 +148,27 @@
                   Close
                 </button>
                 <h3 id="selection-title">Inspector</h3>
+                <p id="selection-role" class="selection-role"></p>
                 <p id="selection-stats" class="selection-stats"></p>
+                <div id="targeting-actions" class="targeting-actions hidden">
+                  <span class="inspect-label">Target</span>
+                  <div class="targeting-row">
+                    <button type="button" class="btn btn-ghost btn-hud" id="btn-target-first" data-target="first">
+                      First
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-hud" id="btn-target-strong" data-target="strong">
+                      Strong
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-hud" id="btn-target-close" data-target="close">
+                      Close
+                    </button>
+                  </div>
+                </div>
                 <div id="tower-actions" class="btn-col hidden">
                   <button type="button" class="btn btn-primary" id="btn-upgrade">Upgrade</button>
                   <div id="spec-actions" class="spec-actions hidden">
-                    <button type="button" class="btn btn-primary" id="btn-spec-a">Path A</button>
-                    <button type="button" class="btn btn-primary" id="btn-spec-b">Path B</button>
+                    <button type="button" class="btn btn-primary btn-spec" id="btn-spec-a">Path A</button>
+                    <button type="button" class="btn btn-primary btn-spec" id="btn-spec-b">Path B</button>
                   </div>
                   <button type="button" class="btn btn-ghost" id="btn-set-flag">Set Flag</button>
                   <button type="button" class="btn btn-danger" id="btn-sell">Sell</button>
@@ -159,9 +180,12 @@
           <footer class="dock-slim">
             <div class="dock-slim-row">
               <span class="dock-slim-label" id="hint">Pick a tower</span>
-              <div id="tower-shop" class="tower-icons" role="toolbar" aria-label="Tower types"></div>
             </div>
-            <div id="shop-pop" class="shop-pop hidden" role="dialog" aria-label="Tower details">
+            <div class="dock-shop-rows">
+              <div id="tower-shop" class="tower-icons" role="toolbar" aria-label="Towers"></div>
+              <div id="barracks-shop" class="tower-icons" role="toolbar" aria-label="Barracks"></div>
+            </div>
+            <div id="shop-pop" class="shop-pop hidden" role="dialog" aria-label="Build details">
               <div class="shop-pop-inner">
                 <span id="shop-pop-swatch" class="tower-swatch"></span>
                 <div class="shop-pop-text">

@@ -1,11 +1,14 @@
 import {
+  BARRACKS_SPECS,
   TILE,
   TOWER_SPECS,
   WAVES_PER_LEVEL,
   enemyMeleeDamage,
   isBarracksKind,
   placeableCost,
+  type BarracksSpecId,
   type PlaceableKind,
+  type TargetingMode,
   type TowerSpecId,
 } from './constants';
 import {
@@ -211,7 +214,7 @@ export class Game {
   }
 
   tryPlace(c: number, r: number): boolean {
-    if (this.phase !== 'prepare' && this.phase !== 'wave') return false;
+    if (this.phase !== 'prepare' && this.phase !== 'wave' && this.phase !== 'paused') return false;
     if (!this.selectedKind) return false;
     const x = c * TILE + TILE / 2;
     const y = r * TILE + TILE / 2;
@@ -297,7 +300,8 @@ export class Game {
     let best: Enemy | null = null;
     let bestD = 28;
     for (const e of this.enemies) {
-      const d = dist({ x, y }, e.pos);
+      const ey = e.flying ? e.pos.y - 14 : e.pos.y;
+      const d = dist({ x, y }, { x: e.pos.x, y: ey });
       if (d < bestD) {
         bestD = d;
         best = e;
@@ -347,20 +351,12 @@ export class Game {
     }
 
     const b = this.getSelectedBarracks();
-    if (!b || b.level >= 3) return false;
+    if (!b || b.level >= 3 || b.spec) return false;
     const cost = b.upgradeCost();
     if (this.gold < cost) return false;
     this.gold -= cost;
     b.level += 1;
-    // Buff living units from this barracks
-    for (const u of this.friendlies) {
-      if (u.barracksId !== b.id || !u.alive) continue;
-      const ratio = u.hp / u.maxHp;
-      u.maxHp = b.unitHp();
-      u.hp = Math.max(1, Math.round(u.maxHp * ratio));
-      u.damage = b.unitDamage();
-      u.attackRate = b.unitAttackRate();
-    }
+    this.refreshBarracksUnits(b);
     this.floats.push({
       x: b.x,
       y: b.y - 24,
@@ -393,6 +389,54 @@ export class Game {
     audio.play('upgrade');
     this.onHud?.();
     return true;
+  }
+
+  applyBarracksSpec(specId: BarracksSpecId): boolean {
+    const b = this.getSelectedBarracks();
+    if (!b || !b.needsSpec()) return false;
+    const match = BARRACKS_SPECS[b.kind].find((s) => s.id === specId);
+    if (!match) return false;
+    const cost = b.specCost();
+    if (this.gold < cost) return false;
+    this.gold -= cost;
+    b.spec = specId;
+    b.specGoldSpent = cost;
+    this.refreshBarracksUnits(b);
+    this.floats.push({
+      x: b.x,
+      y: b.y - 28,
+      text: match.name,
+      color: '#f0c94d',
+      life: 1.1,
+    });
+    audio.play('upgrade');
+    this.onHud?.();
+    return true;
+  }
+
+  setTargeting(mode: TargetingMode): boolean {
+    const t = this.getSelectedTower();
+    if (!t) return false;
+    t.targeting = mode;
+    audio.play('ui');
+    this.onHud?.();
+    return true;
+  }
+
+  private refreshBarracksUnits(b: Barracks): void {
+    for (const u of this.friendlies) {
+      if (u.barracksId !== b.id || !u.alive) continue;
+      const ratio = u.hp / u.maxHp;
+      u.maxHp = b.unitHp();
+      u.hp = Math.max(1, Math.round(u.maxHp * ratio));
+      u.damage = b.unitDamage();
+      u.attackRate = b.unitAttackRate();
+      u.engageRange = b.unitEngage();
+      u.smiteMul = b.smiteMul();
+      u.slowOnHit = b.slowOnHit();
+      u.slowOnHitDuration = b.slowOnHitDuration();
+      u.damageTakenMul = b.damageTakenMul();
+    }
   }
 
   sellSelected(): boolean {
@@ -555,7 +599,7 @@ export class Game {
         const tgt = this.enemies.find((e) => e.id === p.targetId);
         if (tgt) {
           p.tx = tgt.pos.x;
-          p.ty = tgt.pos.y;
+          p.ty = tgt.pos.y - (tgt.flying ? 14 : 0);
         }
       }
       const hit = p.update(dt);
@@ -625,22 +669,25 @@ export class Game {
       }
     }
     const door = nearestPathSample(this.waypoints, b.x, b.y + 8);
-    const unitKind = b.kind === 'warriorBarracks' ? 'warrior' : 'knight';
     const unit = new FriendlyUnit({
       barracksId: b.id,
-      unitKind,
+      unitKind: b.def.unitKind,
       slot,
       hp: b.unitHp(),
       damage: b.unitDamage(),
       attackRate: b.unitAttackRate(),
       speed: b.def.unit.speed,
-      engageRange: b.def.unit.engageRange,
+      engageRange: b.unitEngage(),
       radius: b.def.unit.radius,
       color: b.def.color,
       colorDark: b.def.colorDark,
       progress: door.progress,
       rallyProgress: b.rallyProgress + (slot - 1) * 0.01,
       pos: door.pos,
+      smiteMul: b.smiteMul(),
+      slowOnHit: b.slowOnHit(),
+      slowOnHitDuration: b.slowOnHitDuration(),
+      damageTakenMul: b.damageTakenMul(),
     });
     this.friendlies.push(unit);
     this.particles.push(...spawnKillBurst(b.x, b.y - 8, b.def.color, 6));
@@ -664,12 +711,12 @@ export class Game {
         }
       }
 
-      // Acquire target
+      // Acquire target — ground only (flyers ignore barracks)
       if (u.targetEnemyId == null) {
         let best: Enemy | null = null;
         let bestD = u.engageRange;
         for (const e of this.enemies) {
-          if (!e.alive || claimed.has(e.id)) continue;
+          if (!e.alive || e.flying || claimed.has(e.id)) continue;
           const d = dist(u.pos, e.pos);
           if (d < bestD) {
             bestD = d;
@@ -686,13 +733,12 @@ export class Game {
 
       const target =
         u.targetEnemyId != null
-          ? (this.enemies.find((e) => e.id === u.targetEnemyId && e.alive) ?? null)
+          ? (this.enemies.find((e) => e.id === u.targetEnemyId && e.alive && !e.flying) ?? null)
           : null;
 
       if (target) {
         target.blocked = true;
         u.facing = target.pos.x >= u.pos.x ? 1 : -1;
-        // Nudge slightly toward foe for visual clash
         const ang = Math.atan2(target.pos.y - u.pos.y, target.pos.x - u.pos.x);
         u.pos = {
           x: u.pos.x + Math.cos(ang) * 8 * dt,
@@ -700,7 +746,10 @@ export class Game {
         };
 
         if (u.attackCd <= 0) {
-          target.takeDamage(u.damage, false);
+          let dmg = u.damage;
+          if (u.unitKind === 'paladin' && target.undead) dmg *= u.smiteMul;
+          target.takeDamage(dmg, false);
+          if (u.slowOnHit > 0) target.applySlow(u.slowOnHit, u.slowOnHitDuration);
           u.attackCd = 1 / u.attackRate;
           audio.play('hit', 0.85);
           this.particles.push({
@@ -710,7 +759,7 @@ export class Game {
             vy: -30,
             life: 0.2,
             maxLife: 0.2,
-            color: '#f4d35e',
+            color: u.unitKind === 'paladin' ? '#f7e7a0' : '#f4d35e',
             size: 3,
           });
         }
@@ -746,9 +795,24 @@ export class Game {
   }
 
   private pickTarget(t: Tower): Enemy | null {
-    const inRange = this.enemies.filter((e) => dist({ x: t.x, y: t.y }, e.pos) <= t.range);
+    const inRange = this.enemies.filter((e) => {
+      if (dist({ x: t.x, y: t.y }, e.pos) > t.range) return false;
+      if (e.flying && !t.hitsAir) return false;
+      if (!e.flying && !t.hitsGround) return false;
+      return true;
+    });
     if (!inRange.length) return null;
-    inRange.sort((a, b) => b.progress - a.progress);
+    if (t.targeting === 'strong') {
+      inRange.sort((a, b) => b.maxHp - a.maxHp || b.progress - a.progress);
+    } else if (t.targeting === 'close') {
+      inRange.sort(
+        (a, b) =>
+          dist({ x: t.x, y: t.y }, a.pos) - dist({ x: t.x, y: t.y }, b.pos) ||
+          b.progress - a.progress,
+      );
+    } else {
+      inRange.sort((a, b) => b.progress - a.progress);
+    }
     return inRange[0];
   }
 
@@ -777,11 +841,28 @@ export class Game {
         if (t.slow > 0) current.applySlow(t.slow, t.slowDuration);
         if (t.burnDps > 0) current.applyBurn(t.burnDps * status, t.burnDuration);
         if (t.poisonDps > 0) current.applyPoison(t.poisonDps * status, t.poisonDuration);
+        if (t.curseDps > 0) current.applyCurse(t.curseDps * status, t.curseDuration);
+        if (t.armorShred > 0) current.applyArmorShred(t.armorShred, t.armorShredDuration);
+        if (t.goldOnHit > 0) {
+          this.gold += t.goldOnHit;
+          this.floats.push({
+            x: current.pos.x,
+            y: current.pos.y - 8,
+            text: `+${t.goldOnHit}`,
+            color: '#c77dff',
+            life: 0.5,
+          });
+        }
         fromX = current.pos.x;
         fromY = current.pos.y;
         dmg *= 0.7;
         const next = this.enemies
-          .filter((e) => !hit.has(e.id) && dist(current!.pos, e.pos) < 90)
+          .filter((e) => {
+            if (hit.has(e.id) || dist(current!.pos, e.pos) >= 90) return false;
+            if (e.flying && !t.hitsAir) return false;
+            if (!e.flying && !t.hitsGround) return false;
+            return true;
+          })
           .sort((a, b) => dist(current!.pos, a.pos) - dist(current!.pos, b.pos))[0];
         current = next ?? null;
       }
@@ -793,13 +874,14 @@ export class Game {
       return;
     }
 
+    const flyerLift = target.flying ? 14 : 0;
     this.projectiles.push(
       new Projectile({
         x: t.x,
         y: t.y - 12,
         tx: target.pos.x,
-        ty: target.pos.y,
-        speed: t.splash > 0 ? 280 : 420,
+        ty: target.pos.y - flyerLift,
+        speed: t.kind === 'dark' ? 260 : t.splash > 0 ? 280 : 420,
         damage: t.damage,
         splash: t.splash,
         pierceArmor: def.pierceArmor,
@@ -809,12 +891,17 @@ export class Game {
         burnDuration: t.burnDuration,
         poisonDps: t.poisonDps * status,
         poisonDuration: t.poisonDuration,
+        curseDps: t.curseDps * status,
+        curseDuration: t.curseDuration,
+        armorShred: t.armorShred,
+        armorShredDuration: t.armorShredDuration,
+        goldOnHit: t.goldOnHit,
         chain: 0,
         color: def.color,
         towerKind: t.kind,
         spec: t.spec,
         targetId: target.id,
-        trail: t.kind === 'arrow' || t.kind === 'fire',
+        trail: t.kind === 'arrow' || t.kind === 'fire' || t.kind === 'light' || t.kind === 'dark',
       }),
     );
   }
@@ -826,6 +913,21 @@ export class Game {
       if (p.slow > 0) e.applySlow(p.slow, p.slowDuration);
       if (p.burnDps > 0) e.applyBurn(p.burnDps * mul, p.burnDuration);
       if (p.poisonDps > 0) e.applyPoison(p.poisonDps * mul, p.poisonDuration);
+      if (p.curseDps > 0) e.applyCurse(p.curseDps * mul, p.curseDuration);
+      if (p.armorShred > 0) e.applyArmorShred(p.armorShred, p.armorShredDuration);
+      if (p.goldOnHit > 0) {
+        const gain = Math.round(p.goldOnHit * mul);
+        if (gain > 0) {
+          this.gold += gain;
+          this.floats.push({
+            x: e.pos.x,
+            y: e.pos.y - 8,
+            text: `+${gain}`,
+            color: '#c77dff',
+            life: 0.5,
+          });
+        }
+      }
     };
 
     if (p.splash > 0) {

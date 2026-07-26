@@ -155,7 +155,11 @@ class GameAudio {
               ? 0.85
               : towerKind === 'poison'
                 ? 0.9
-                : 1;
+                : towerKind === 'light'
+                  ? 1.35
+                  : towerKind === 'dark'
+                    ? 0.65
+                    : 1;
     this.play('shoot', pitch);
   }
 }

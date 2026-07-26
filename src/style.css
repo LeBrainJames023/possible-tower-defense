@@ -544,10 +544,17 @@ h3 {
   min-width: 88px;
 }
 
+.dock-shop-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
 .tower-icons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
 }
 
@@ -661,11 +668,99 @@ h3 {
   box-shadow: 0 -7px 0 -2px #6b8cae;
 }
 
+.tower-swatch[data-kind='paladinBarracks']::after {
+  inset: 6px 36% 8px 36%;
+  border-radius: 2px;
+  background: #f7e7a0;
+  box-shadow: 0 -6px 0 -2px #c45c4a;
+}
+
+.tower-swatch[data-kind='light']::after {
+  inset: 8px 38% 8px 38%;
+  border-radius: 50%;
+  background: #fff8d0;
+  box-shadow: 0 0 10px #f7e7a0;
+}
+
+.tower-swatch[data-kind='dark']::after {
+  inset: 6px 42% 6px 42%;
+  border-radius: 50%;
+  background: #c77dff;
+  box-shadow: 0 0 10px #9b5de5;
+}
+
 .spec-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
+}
+
+.btn-spec {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  min-height: 64px;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.btn-spec strong {
+  font-size: 0.95rem;
+}
+
+.btn-spec span {
+  font-size: 0.78rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.btn-spec em {
+  font-style: normal;
+  color: var(--warn);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.selection-role {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.targeting-actions {
+  margin: 8px 0;
+}
+
+.targeting-actions.hidden {
+  display: none !important;
+}
+
+.inspect-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.targeting-row {
+  display: flex;
+  gap: 6px;
+}
+
+.targeting-row .btn.selected {
+  border-color: var(--accent);
+  background: rgba(61, 139, 253, 0.25);
+}
+
+.inspect-float {
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
 }
 
 .spec-actions.hidden {

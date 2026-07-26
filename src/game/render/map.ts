@@ -227,6 +227,21 @@ export function clearBackdrop(ctx: CanvasRenderingContext2D, theme: BiomeTheme, 
   }
 }
 
+function meadowFlowerColor(theme: BiomeTheme, seed: number): string {
+  if (theme === 'forest') {
+    return seed < 0.5 ? 'rgba(220, 90, 120, 0.55)' : 'rgba(240, 200, 80, 0.5)';
+  }
+  if (theme === 'river') {
+    return seed < 0.5 ? 'rgba(100, 180, 255, 0.5)' : 'rgba(240, 220, 120, 0.48)';
+  }
+  // meadow
+  return seed < 0.33
+    ? 'rgba(255, 120, 160, 0.55)'
+    : seed < 0.66
+      ? 'rgba(255, 220, 90, 0.52)'
+      : 'rgba(180, 140, 255, 0.48)';
+}
+
 function drawGrassTile(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -235,39 +250,84 @@ function drawGrassTile(
   r: number,
   theme: BiomeTheme,
   showBuildHints: boolean,
+  time: number,
 ): void {
   const p = PALETTES[theme];
   const h = hash2(c, r);
   ctx.fillStyle = (c + r) % 2 === 0 ? p.grassA : p.grassB;
   ctx.fillRect(x, y, TILE, TILE);
 
+  // Soft ground mottling (stays under scenery; never on path)
   ctx.fillStyle = p.grassSpeck;
-  for (let i = 0; i < 5; i++) {
-    const ox = 6 + ((h * (i + 3) * 97) % 36);
-    const oy = 6 + ((h * (i + 7) * 53) % 36);
-    const s = 1.2 + (h * (i + 1)) % 2.2;
+  for (let i = 0; i < 6; i++) {
+    const ox = 5 + ((h * (i + 3) * 97) % 38);
+    const oy = 5 + ((h * (i + 7) * 53) % 38);
+    const s = 1.1 + (h * (i + 1) * 17) % 2.4;
     ctx.beginPath();
     ctx.arc(x + ox, y + oy, s, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // Tiny grass blades
+  // Textured grass blades with wind sway
   if (!isSnow(theme) && !isLavaWater(theme)) {
-    ctx.strokeStyle = 'rgba(160, 220, 140, 0.22)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 4; i++) {
-      const bx = x + 8 + ((h * (i + 11) * 37) % 32);
-      const by = y + 14 + ((h * (i + 19) * 29) % 26);
+    const bladeN = theme === 'forest' ? 8 : theme === 'meadow' || theme === 'river' ? 7 : 5;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < bladeN; i++) {
+      const bx = x + 6 + ((h * (i + 11) * 37) % 36);
+      const by = y + 16 + ((h * (i + 19) * 29) % 28);
+      const tall = 4.5 + ((h * (i + 5) * 13) % 5);
+      const lean = ((h * (i + 23) * 11) % 3) - 1;
+      const sway = Math.sin(time * 2.4 + c * 0.55 + r * 0.4 + i * 0.85) * 2.2;
+      const tipX = bx + lean + sway;
+      const tipY = by - tall;
+      const midX = bx + lean * 0.4 + sway * 0.55;
+      const midY = by - tall * 0.55;
+      ctx.strokeStyle =
+        i % 3 === 0 ? 'rgba(170, 230, 150, 0.28)' : 'rgba(120, 190, 120, 0.2)';
+      ctx.lineWidth = 1 + ((h * (i + 2)) % 1.15);
       ctx.beginPath();
       ctx.moveTo(bx, by);
-      ctx.lineTo(bx + 1.5, by - 5);
+      ctx.quadraticCurveTo(midX, midY, tipX, tipY);
       ctx.stroke();
+    }
+  }
+
+  // Scattered meadow flowers (grass tiles only — path stays clear)
+  if (theme === 'meadow' || theme === 'forest' || theme === 'river') {
+    const flowerChance = theme === 'meadow' ? 0.42 : theme === 'river' ? 0.28 : 0.22;
+    if (h > 1 - flowerChance) {
+      const n = 1 + Math.floor((h * 7) % 2);
+      for (let i = 0; i < n; i++) {
+        const fx = x + 8 + ((h * (i + 31) * 43) % 32);
+        const fy = y + 10 + ((h * (i + 41) * 31) % 28);
+        const bob = Math.sin(time * 1.8 + fx * 0.08 + i) * 0.8;
+        ctx.fillStyle = meadowFlowerColor(theme, (h * (i + 9) * 3) % 1);
+        ctx.beginPath();
+        ctx.arc(fx, fy + bob, 1.6 + (h * (i + 1)) % 1.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255, 240, 180, 0.65)';
+        ctx.beginPath();
+        ctx.arc(fx, fy + bob, 0.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
 
   if (isSnow(theme)) {
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
     ctx.fillRect(x + 4, y + 4, TILE - 8, 3);
+    // Soft snow glitter
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    for (let i = 0; i < 3; i++) {
+      const ox = 8 + ((h * (i + 4) * 61) % 32);
+      const oy = 10 + ((h * (i + 8) * 47) % 28);
+      const twinkle = 0.5 + 0.5 * Math.sin(time * 3 + h * 20 + i);
+      ctx.globalAlpha = 0.15 + twinkle * 0.25;
+      ctx.beginPath();
+      ctx.arc(x + ox, y + oy, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 
   if (showBuildHints) {
@@ -324,18 +384,25 @@ function drawWaterTile(
   time: number,
 ): void {
   const p = PALETTES[theme];
+  const hot = isLavaWater(theme);
+  const icy = isSnow(theme);
   const g = ctx.createLinearGradient(x, y, x + TILE, y + TILE);
   g.addColorStop(0, p.waterA);
-  g.addColorStop(1, p.waterB);
+  g.addColorStop(0.55, p.waterB);
+  g.addColorStop(1, hot ? '#ff8040' : icy ? '#a8d8f0' : p.waterA);
   ctx.fillStyle = g;
   ctx.fillRect(x, y, TILE, TILE);
 
-  ctx.strokeStyle = isLavaWater(theme)
-    ? 'rgba(255, 200, 80, 0.35)'
-    : 'rgba(180, 230, 255, 0.28)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
   const phase = time * 2 + c * 0.7 + r * 0.4;
+  const waveColor = hot
+    ? 'rgba(255, 200, 80, 0.38)'
+    : icy
+      ? 'rgba(220, 245, 255, 0.4)'
+      : 'rgba(180, 230, 255, 0.3)';
+  ctx.strokeStyle = waveColor;
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
   ctx.moveTo(x + 4, y + 16 + Math.sin(phase) * 3);
   ctx.quadraticCurveTo(x + 24, y + 12 + Math.cos(phase) * 4, x + 44, y + 18 + Math.sin(phase + 1) * 3);
   ctx.stroke();
@@ -343,6 +410,50 @@ function drawWaterTile(
   ctx.moveTo(x + 6, y + 30 + Math.cos(phase) * 2);
   ctx.quadraticCurveTo(x + 28, y + 34 + Math.sin(phase) * 3, x + 42, y + 28);
   ctx.stroke();
+  // Third shimmer ridge
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.moveTo(x + 8, y + 22 + Math.sin(phase * 1.3 + 0.8) * 2.5);
+  ctx.quadraticCurveTo(
+    x + 26,
+    y + 20 + Math.cos(phase * 1.1) * 3,
+    x + 40,
+    y + 24 + Math.sin(phase + 2) * 2,
+  );
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Moving highlight glint
+  const glintX = x + 12 + ((Math.sin(phase * 0.7) + 1) * 0.5) * 22;
+  const glintY = y + 14 + ((Math.cos(phase * 0.9) + 1) * 0.5) * 18;
+  ctx.fillStyle = hot
+    ? 'rgba(255, 220, 120, 0.22)'
+    : icy
+      ? 'rgba(255, 255, 255, 0.28)'
+      : 'rgba(200, 240, 255, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(glintX, glintY, hot ? 7 : 6, 3, phase * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (hot) {
+    // Soft lava pulse
+    const pulse = 0.12 + 0.1 * Math.sin(time * 3.5 + c + r);
+    ctx.fillStyle = `rgba(255, 80, 20, ${pulse})`;
+    ctx.beginPath();
+    ctx.arc(x + TILE * 0.45, y + TILE * 0.55, 10, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (icy) {
+    // Ice sparkle flecks
+    const h = hash2(c + 3, r + 5);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    for (let i = 0; i < 2; i++) {
+      const ox = 10 + ((h * (i + 2) * 51) % 28);
+      const oy = 10 + ((h * (i + 6) * 37) % 28);
+      ctx.globalAlpha = 0.2 + 0.35 * Math.max(0, Math.sin(time * 4 + h * 30 + i * 2));
+      ctx.fillRect(x + ox, y + oy, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }
 }
 
 function drawRock(ctx: CanvasRenderingContext2D, cx: number, cy: number, theme: BiomeTheme): void {
@@ -366,6 +477,45 @@ function drawRock(ctx: CanvasRenderingContext2D, cx: number, cy: number, theme: 
   ctx.fill();
 }
 
+function drawTaperedTrunk(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  color: string,
+  lean: number,
+  baseW: number,
+  height: number,
+): void {
+  const topY = cy - height;
+  const topW = baseW * 0.45;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx - baseW + lean * 0.15, cy + 12);
+  ctx.lineTo(cx + baseW + lean * 0.15, cy + 12);
+  ctx.lineTo(cx + topW + lean, topY);
+  ctx.lineTo(cx - topW + lean, topY);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawCanopyCluster(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  color0: string,
+  color1: string,
+): void {
+  const g = ctx.createRadialGradient(cx - rx * 0.25, cy - ry * 0.3, 1, cx, cy, Math.max(rx, ry));
+  g.addColorStop(0, color0);
+  g.addColorStop(1, color1);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function drawTree(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -379,78 +529,108 @@ function drawTree(
     return;
   }
 
+  const lean = (variant - 0.5) * 6;
+  const scale = 0.88 + variant * 0.28;
+
   if (theme === 'haunted' || theme === 'swamp') {
-    ctx.strokeStyle = '#3a2a20';
-    ctx.lineWidth = 3;
+    // Gnarled: twisted trunk + sparse mossy / purple clusters
+    const trunk = theme === 'haunted' ? '#2a1a28' : '#3a3220';
+    drawTaperedTrunk(ctx, cx, cy, trunk, lean * 1.4, 3.2 * scale, 16 * scale);
+    ctx.strokeStyle = trunk;
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(cx, cy + 14);
-    ctx.lineTo(cx - 2, cy - 6);
-    ctx.lineTo(cx - 12, cy - 14);
-    ctx.moveTo(cx - 2, cy - 2);
-    ctx.lineTo(cx + 10, cy - 12);
+    ctx.moveTo(cx + lean * 0.3, cy - 2);
+    ctx.quadraticCurveTo(cx - 10 + lean, cy - 10, cx - 14 + lean, cy - 18);
+    ctx.moveTo(cx + lean * 0.2, cy + 2);
+    ctx.quadraticCurveTo(cx + 12 + lean, cy - 6, cx + 15 + lean, cy - 14);
     ctx.stroke();
-    ctx.fillStyle = theme === 'haunted' ? 'rgba(120, 60, 140, 0.4)' : 'rgba(80, 100, 40, 0.45)';
-    ctx.beginPath();
-    ctx.arc(cx - 8, cy - 10, 7, 0, Math.PI * 2);
-    ctx.arc(cx + 6, cy - 8, 6, 0, Math.PI * 2);
-    ctx.fill();
+    const leaf0 = theme === 'haunted' ? 'rgba(140, 70, 170, 0.55)' : 'rgba(100, 130, 50, 0.55)';
+    const leaf1 = theme === 'haunted' ? 'rgba(60, 30, 80, 0.65)' : 'rgba(40, 60, 28, 0.65)';
+    drawCanopyCluster(ctx, cx - 8 + lean, cy - 12, 7 * scale, 6 * scale, leaf0, leaf1);
+    drawCanopyCluster(ctx, cx + 7 + lean, cy - 10, 6.5 * scale, 5.5 * scale, leaf0, leaf1);
+    if (variant > 0.4) {
+      drawCanopyCluster(ctx, cx + lean * 0.5, cy - 16, 5 * scale, 4.5 * scale, leaf0, leaf1);
+    }
     return;
   }
 
   if (isSnow(theme)) {
-    ctx.fillStyle = '#5c4030';
-    ctx.fillRect(cx - 3, cy + 2, 6, 12);
-    ctx.fillStyle = '#eef6ff';
+    // Pine: tapered trunk + layered triangular canopy
+    drawTaperedTrunk(ctx, cx, cy, '#4a3428', lean * 0.6, 3.4 * scale, 14 * scale);
+    const layers = [
+      { y: -4, w: 15 * scale, c0: '#eef6ff', c1: '#b8d0e4' },
+      { y: -12, w: 12 * scale, c0: '#e4f0fa', c1: '#a8c4d8' },
+      { y: -19, w: 8.5 * scale, c0: '#f4faff', c1: '#c0d8ea' },
+    ];
+    for (const layer of layers) {
+      const tipY = cy + layer.y - 10 * scale;
+      const baseY = cy + layer.y + 8 * scale;
+      const g = ctx.createLinearGradient(cx, tipY, cx, baseY);
+      g.addColorStop(0, layer.c0);
+      g.addColorStop(1, layer.c1);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(cx + lean * 0.4, tipY);
+      ctx.lineTo(cx + layer.w + lean * 0.2, baseY);
+      ctx.lineTo(cx - layer.w + lean * 0.2, baseY);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // Soft snow cap fleck
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 20);
-    ctx.lineTo(cx + 15, cy + 6);
-    ctx.lineTo(cx - 15, cy + 6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#c8dff0';
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - 12);
-    ctx.lineTo(cx + 12, cy + 8);
-    ctx.lineTo(cx - 12, cy + 8);
-    ctx.closePath();
+    ctx.arc(cx + lean * 0.4, cy - 22 * scale, 2.2 * scale, 0, Math.PI * 2);
     ctx.fill();
     return;
   }
 
   if (isLavaWater(theme)) {
-    ctx.fillStyle = '#2a2420';
+    // Charred stump / slag with ember glow
+    drawTaperedTrunk(ctx, cx, cy, '#2a2420', lean * 0.4, 4 * scale, 10 * scale);
+    ctx.fillStyle = '#1a1412';
     ctx.beginPath();
-    ctx.moveTo(cx - 11, cy + 12);
-    ctx.lineTo(cx - 5, cy - 6);
-    ctx.lineTo(cx + 2, cy + 8);
-    ctx.lineTo(cx + 8, cy - 4);
-    ctx.lineTo(cx + 13, cy + 12);
+    ctx.moveTo(cx - 11 * scale, cy + 12);
+    ctx.lineTo(cx - 5 * scale + lean, cy - 4);
+    ctx.lineTo(cx + 2 * scale, cy + 6);
+    ctx.lineTo(cx + 8 * scale + lean, cy - 2);
+    ctx.lineTo(cx + 13 * scale, cy + 12);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = 'rgba(255, 100, 40, 0.55)';
+    const ember = ctx.createRadialGradient(cx, cy + 2, 1, cx, cy + 2, 8);
+    ember.addColorStop(0, 'rgba(255, 160, 60, 0.75)');
+    ember.addColorStop(1, 'rgba(255, 60, 20, 0)');
+    ctx.fillStyle = ember;
     ctx.beginPath();
-    ctx.arc(cx, cy + 2, 5, 0, Math.PI * 2);
+    ctx.arc(cx, cy + 2, 7, 0, Math.PI * 2);
     ctx.fill();
     return;
   }
 
-  ctx.fillStyle = '#5c3d2e';
-  ctx.fillRect(cx - 3.5, cy + 2, 7, 12);
-  const canopy = ctx.createRadialGradient(cx - 3, cy - 8, 2, cx, cy - 2, 18);
-  canopy.addColorStop(0, theme === 'forest' ? '#3a9a55' : '#4aaf68');
-  canopy.addColorStop(1, '#1a4a2c');
-  ctx.fillStyle = canopy;
+  // Lush deciduous (meadow / forest / river / mist / default)
+  const trunkTint = theme === 'forest' ? '#4a3224' : '#5c3d2e';
+  drawTaperedTrunk(ctx, cx, cy, trunkTint, lean, 3.6 * scale, 13 * scale);
+  const bright = theme === 'forest' ? '#3a9a55' : theme === 'mist' ? '#5a9a78' : '#4aaf68';
+  const deep = theme === 'forest' ? '#143824' : theme === 'mist' ? '#1a4034' : '#1a4a2c';
+  const ox = lean * 0.35;
+  drawCanopyCluster(ctx, cx + ox, cy - 8 * scale, 13 * scale, 11 * scale, bright, deep);
+  drawCanopyCluster(ctx, cx - 9 * scale + ox, cy + 1 * scale, 9 * scale, 8 * scale, bright, deep);
+  drawCanopyCluster(ctx, cx + 9 * scale + ox, cy + 1 * scale, 9 * scale, 8 * scale, bright, deep);
+  if (variant > 0.35) {
+    drawCanopyCluster(
+      ctx,
+      cx + 2 * scale + ox,
+      cy - 14 * scale,
+      7 * scale,
+      6 * scale,
+      bright,
+      deep,
+    );
+  }
+  // Highlight leaf cluster
+  ctx.fillStyle = 'rgba(180, 255, 180, 0.22)';
   ctx.beginPath();
-  ctx.arc(cx, cy - 6, 14, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx - 9, cy + 1, 9, 0, Math.PI * 2);
-  ctx.arc(cx + 9, cy + 1, 9, 0, Math.PI * 2);
-  ctx.fill();
-  // Highlight leaf
-  ctx.fillStyle = 'rgba(180, 255, 180, 0.2)';
-  ctx.beginPath();
-  ctx.arc(cx - 4, cy - 10, 5, 0, Math.PI * 2);
+  ctx.ellipse(cx - 4 * scale + ox, cy - 11 * scale, 5 * scale, 4 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -518,15 +698,15 @@ export function drawGrid(
       const y = r * TILE;
       const kind = grid[r][c];
       if (kind === 'grass') {
-        drawGrassTile(ctx, x, y, c, r, theme, showBuildHints);
+        drawGrassTile(ctx, x, y, c, r, theme, showBuildHints, time);
       } else if (kind === 'path') {
         drawPathTile(ctx, x, y, c, r, theme);
       } else if (kind === 'water') {
-        drawGrassTile(ctx, x, y, c, r, theme, false);
+        drawGrassTile(ctx, x, y, c, r, theme, false, time);
         drawWaterTile(ctx, x, y, c, r, theme, time);
         if (showBuildHints) drawBlockedMark(ctx, x, y);
       } else {
-        drawGrassTile(ctx, x, y, c, r, theme, false);
+        drawGrassTile(ctx, x, y, c, r, theme, false, time);
         drawTree(ctx, x + TILE / 2, y + TILE / 2 + 2, theme, hash2(c, r));
         if (showBuildHints) drawBlockedMark(ctx, x, y);
       }

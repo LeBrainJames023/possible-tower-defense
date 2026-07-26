@@ -2,14 +2,13 @@
 
 Captured for later — not in this build:
 
-- More targeting modes (closest, strongest)
 - Endless mode after campaign
 - Mobile layout polish beyond basic stacking
 - Tower preview ghosts with DPS estimate
 - Cloud save / multiple profiles
 - Background music track (SFX + mute already ship)
-- Barracks dual skill paths (warrior/knight specializations)
-- Respec / refund tower specializations
+- Respec / refund specializations
+- 3x / 0.5x speed options
 
 Done previously / in overhaul:
 
@@ -18,4 +17,9 @@ Done previously / in overhaul:
 - Particle burst on kills
 - Biome-themed maps and richer tower/enemy art
 - Tower L3 dual specializations
-- Warrior & Knight barracks with rally flags and blocking troops
+- Warrior, Knight, Paladin barracks with rally flags, blocking troops, and L3 skill paths
+- Radiant (light) + Void (dark) towers
+- Flying enemies (Wisp, Gargoyle) with air/ground targeting rules
+- First / Strong / Close targeting
+- Place-while-paused planning
+- Rich inspect/shop stat sheets

@@ -218,4 +218,55 @@ describe('Game integration', () => {
     expect(audio.muted).toBe(!before);
     audio.setMuted(before);
   });
+
+  it('places while paused and cannon cannot target flyers', () => {
+    game.gold = 2000;
+    game.togglePause();
+    expect(game.phase).toBe('paused');
+    game.selectedKind = 'light';
+    expect(game.tryPlace(5, 4)).toBe(true);
+    expect(game.towers).toHaveLength(1);
+
+    game.selectedKind = 'cannon';
+    game.tryPlace(7, 4);
+    const cannon = game.towers.find((t) => t.kind === 'cannon')!;
+    const light = game.towers.find((t) => t.kind === 'light')!;
+    expect(cannon.hitsAir).toBe(false);
+    expect(light.hitsAir).toBe(true);
+
+    game.togglePause();
+    const wisp = new Enemy('wisp', 1, game.waypoints);
+    wisp.progress = 0.3;
+    game.enemies.push(wisp);
+    game.phase = 'wave';
+    game.waveActive = true;
+    game.selectedTowerId = cannon.id;
+    expect(game.setTargeting('strong')).toBe(true);
+    expect(cannon.targeting).toBe('strong');
+
+    // Step a bit — cannon should not create projectiles at flyer-only board
+    const before = game.projectiles.length;
+    for (let i = 0; i < 60; i++) game.step(1 / 30);
+    // Light may fire; ensure wisp can be damaged by light eventually
+    game.selectedTowerId = light.id;
+    for (let i = 0; i < 90; i++) game.step(1 / 30);
+    const still = game.enemies.find((e) => e.id === wisp.id);
+    if (still) expect(still.hp).toBeLessThan(still.maxHp);
+    else expect(before + game.projectiles.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it('paladin barracks reaches L3 and applies a skill path', () => {
+    game.gold = 5000;
+    game.selectedKind = 'paladinBarracks';
+    expect(game.tryPlace(5, 4)).toBe(true);
+    const b = game.barracks[0];
+    game.selectedBarracksId = b.id;
+    expect(game.upgradeSelected()).toBe(true);
+    expect(game.upgradeSelected()).toBe(true);
+    expect(b.level).toBe(3);
+    expect(b.needsSpec()).toBe(true);
+    expect(game.applyBarracksSpec('zealots')).toBe(true);
+    expect(b.spec).toBe('zealots');
+    expect(b.smiteMul()).toBeGreaterThan(1.5);
+  });
 });

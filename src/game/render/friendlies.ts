@@ -15,7 +15,53 @@ export function drawFriendly(ctx: CanvasRenderingContext2D, u: FriendlyUnit): vo
   ctx.ellipse(0, 8, knight ? 12 : 10, 4, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  if (knight) {
+  if (u.unitKind === 'paladin') {
+    const plate = ctx.createLinearGradient(-8, -16, 8, 10);
+    plate.addColorStop(0, '#fff6d0');
+    plate.addColorStop(1, '#8a6b20');
+    ctx.fillStyle = plate;
+    ctx.beginPath();
+    ctx.moveTo(-8, -4);
+    ctx.lineTo(-6, -16);
+    ctx.lineTo(6, -16);
+    ctx.lineTo(8, -4);
+    ctx.lineTo(5, 8);
+    ctx.lineTo(-5, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#c45c4a';
+    ctx.fillRect(-5, -10, 10, 12);
+    ctx.fillStyle = '#f4d35e';
+    ctx.beginPath();
+    ctx.moveTo(0, -8);
+    ctx.lineTo(3, -2);
+    ctx.lineTo(0, 4);
+    ctx.lineTo(-3, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#e8c4a0';
+    ctx.beginPath();
+    ctx.arc(0, -18, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#f7e7a0';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#fff3a0';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(0, -24, 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#f0e6c0';
+    ctx.fillRect(8, -16, 3, 20);
+    ctx.fillStyle = '#f4d35e';
+    ctx.beginPath();
+    ctx.moveTo(9.5, -20);
+    ctx.lineTo(14, -14);
+    ctx.lineTo(9.5, -10);
+    ctx.lineTo(5, -14);
+    ctx.closePath();
+    ctx.fill();
+  } else if (knight) {
     // Body / plate
     const plate = ctx.createLinearGradient(-8, -16, 8, 10);
     plate.addColorStop(0, '#d0d8e8');

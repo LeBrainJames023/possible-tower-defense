@@ -42,6 +42,20 @@ function statusRings(ctx: CanvasRenderingContext2D, e: Enemy, x: number, y: numb
     ctx.arc(x, y, e.radius + 7, 0, Math.PI * 2);
     ctx.stroke();
   }
+  if (e.curseTimer > 0) {
+    ctx.strokeStyle = 'rgba(155, 93, 229, 0.95)';
+    ctx.beginPath();
+    ctx.arc(x, y, e.radius + 9, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (e.armorShred > 0) {
+    ctx.strokeStyle = 'rgba(247, 231, 160, 0.9)';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(x, y, e.radius + 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
 }
 
 function bodyFill(ctx: CanvasRenderingContext2D, e: Enemy, x: number, y: number): void {
@@ -52,9 +66,12 @@ function bodyFill(ctx: CanvasRenderingContext2D, e: Enemy, x: number, y: number)
 }
 
 export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boolean): void {
-  const { x, y } = e.pos;
+  const drawY = e.flying ? e.pos.y - 14 : e.pos.y;
+  const { x } = e.pos;
+  const y = drawY;
   const r = e.radius;
-  shadow(ctx, x, y, r);
+  // Ground shadow (flyers cast a lower shadow)
+  shadow(ctx, e.pos.x, e.pos.y, e.flying ? r * 0.7 : r);
   bodyFill(ctx, e, x, y);
 
   switch (e.kind) {
@@ -319,6 +336,58 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
       ctx.arc(x, y + 8, 10, 0, Math.PI * 2);
       ctx.stroke();
       ctx.shadowBlur = 0;
+      break;
+    }
+    case 'wisp': {
+      ctx.shadowColor = '#e0f7ff';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(x - 2, y - 2, r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(224, 247, 255, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x - r - 4, y);
+      ctx.quadraticCurveTo(x, y - r - 6, x + r + 4, y);
+      ctx.quadraticCurveTo(x, y + r + 4, x - r - 4, y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      break;
+    }
+    case 'gargoyle': {
+      // Stone flyer
+      ctx.beginPath();
+      ctx.ellipse(x, y, r * 1.1, r * 0.85, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = e.colorDark;
+      ctx.beginPath();
+      ctx.moveTo(x - 4, y - 2);
+      ctx.lineTo(x - 20, y - 12);
+      ctx.lineTo(x - 6, y + 6);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + 4, y - 2);
+      ctx.lineTo(x + 20, y - 12);
+      ctx.lineTo(x + 6, y + 6);
+      ctx.fill();
+      ctx.fillStyle = '#f4d35e';
+      ctx.beginPath();
+      ctx.arc(x - 3, y - 2, 2, 0, Math.PI * 2);
+      ctx.arc(x + 3, y - 2, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1f2937';
+      ctx.beginPath();
+      ctx.moveTo(x - 4, y - r);
+      ctx.lineTo(x - 2, y - r - 6);
+      ctx.lineTo(x, y - r);
+      ctx.moveTo(x + 4, y - r);
+      ctx.lineTo(x + 2, y - r - 6);
+      ctx.lineTo(x, y - r);
+      ctx.fill();
       break;
     }
   }

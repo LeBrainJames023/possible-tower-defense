@@ -22,12 +22,22 @@ export type BiomeTheme =
   | 'volcanic'
   | 'bastion';
 
-export type TowerKind = 'arrow' | 'cannon' | 'ice' | 'lightning' | 'fire' | 'poison';
+export type TowerKind =
+  | 'arrow'
+  | 'cannon'
+  | 'ice'
+  | 'lightning'
+  | 'fire'
+  | 'poison'
+  | 'light'
+  | 'dark';
 
-export type BarracksKind = 'warriorBarracks' | 'knightBarracks';
+export type BarracksKind = 'warriorBarracks' | 'knightBarracks' | 'paladinBarracks';
 
 /** Anything the shop can place on grass. */
 export type PlaceableKind = TowerKind | BarracksKind;
+
+export type TargetingMode = 'first' | 'strong' | 'close';
 
 export type TowerSpecId =
   | 'rapidFire'
@@ -41,7 +51,19 @@ export type TowerSpecId =
   | 'inferno'
   | 'meteor'
   | 'contagion'
-  | 'venomSpike';
+  | 'venomSpike'
+  | 'solarLance'
+  | 'dawnNova'
+  | 'soulSiphon'
+  | 'nightGrasp';
+
+export type BarracksSpecId =
+  | 'berserkers'
+  | 'vanguard'
+  | 'bulwark'
+  | 'crusade'
+  | 'zealots'
+  | 'guardians';
 
 export type EnemyKind =
   | 'gnome'
@@ -53,7 +75,11 @@ export type EnemyKind =
   | 'ghost'
   | 'necromancer'
   | 'wyrm'
-  | 'lich';
+  | 'lich'
+  | 'wisp'
+  | 'gargoyle';
+
+export type FriendlyUnitKind = 'warrior' | 'knight' | 'paladin';
 
 export interface TowerDef {
   kind: TowerKind;
@@ -75,6 +101,13 @@ export interface TowerDef {
   burnDuration: number;
   poisonDps: number;
   poisonDuration: number;
+  armorShred: number;
+  armorShredDuration: number;
+  curseDps: number;
+  curseDuration: number;
+  goldOnHit: number;
+  hitsAir: boolean;
+  hitsGround: boolean;
   upgradeCost: number;
   upgradeMul: number;
 }
@@ -90,6 +123,8 @@ export interface EnemyDef {
   radius: number;
   color: string;
   colorDark: string;
+  flying?: boolean;
+  undead?: boolean;
 }
 
 /** Multipliers / additives applied after L3 base stats. */
@@ -111,6 +146,11 @@ export interface TowerSpecDef {
   burnDurationMul?: number;
   poisonDpsMul?: number;
   poisonDurationMul?: number;
+  armorShredMul?: number;
+  armorShredDurationMul?: number;
+  curseDpsMul?: number;
+  curseDurationMul?: number;
+  goldOnHitAdd?: number;
 }
 
 export interface FriendlyUnitDef {
@@ -135,16 +175,68 @@ export interface BarracksDef {
   unitCap: number;
   respawnTime: number;
   upgradeCost: number;
+  unitKind: FriendlyUnitKind;
   unit: FriendlyUnitDef;
+}
+
+export interface BarracksSpecDef {
+  id: BarracksSpecId;
+  kind: BarracksKind;
+  name: string;
+  description: string;
+  hpMul?: number;
+  damageMul?: number;
+  attackRateMul?: number;
+  engageMul?: number;
+  smiteMul?: number;
+  slowOnHit?: number;
+  slowOnHitDuration?: number;
+  damageTakenMul?: number;
+}
+
+function baseTower(
+  partial: Omit<
+    TowerDef,
+    | 'armorShred'
+    | 'armorShredDuration'
+    | 'curseDps'
+    | 'curseDuration'
+    | 'goldOnHit'
+    | 'hitsAir'
+    | 'hitsGround'
+  > &
+    Partial<
+      Pick<
+        TowerDef,
+        | 'armorShred'
+        | 'armorShredDuration'
+        | 'curseDps'
+        | 'curseDuration'
+        | 'goldOnHit'
+        | 'hitsAir'
+        | 'hitsGround'
+      >
+    >,
+): TowerDef {
+  return {
+    armorShred: 0,
+    armorShredDuration: 0,
+    curseDps: 0,
+    curseDuration: 0,
+    goldOnHit: 0,
+    hitsAir: true,
+    hitsGround: true,
+    ...partial,
+  };
 }
 
 /** Classic TD niches — always shown in the bottom dock. */
 export const TOWERS: Record<TowerKind, TowerDef> = {
-  arrow: {
+  arrow: baseTower({
     kind: 'arrow',
     name: 'Arrow',
     cost: 55,
-    description: 'Tall keep with a crossbow — fast single shots',
+    description: 'Tall keep with a crossbow — fast single shots that hit air and ground',
     role: 'DPS',
     color: '#5b9fd4',
     colorDark: '#1e4d73',
@@ -162,12 +254,12 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     poisonDuration: 0,
     upgradeCost: 50,
     upgradeMul: 1.4,
-  },
-  cannon: {
+  }),
+  cannon: baseTower({
     kind: 'cannon',
     name: 'Cannon',
     cost: 115,
-    description: 'Heavy bastion — splash that shreds armor',
+    description: 'Heavy bastion — ground splash that shreds armor (cannot hit flyers)',
     role: 'AoE',
     color: '#d9773a',
     colorDark: '#7a3410',
@@ -183,14 +275,16 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     burnDuration: 0,
     poisonDps: 0,
     poisonDuration: 0,
+    hitsAir: false,
+    hitsGround: true,
     upgradeCost: 90,
     upgradeMul: 1.38,
-  },
-  ice: {
+  }),
+  ice: baseTower({
     kind: 'ice',
     name: 'Ice',
     cost: 90,
-    description: 'Crystal spire — chills packs hard',
+    description: 'Crystal spire — chills packs on the ground and in the air',
     role: 'Control',
     color: '#7ec8e3',
     colorDark: '#1f5f78',
@@ -208,12 +302,12 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     poisonDuration: 0,
     upgradeCost: 70,
     upgradeMul: 1.32,
-  },
-  lightning: {
+  }),
+  lightning: baseTower({
     kind: 'lightning',
     name: 'Lightning',
     cost: 145,
-    description: 'Coil tower — bolts chain across foes',
+    description: 'Coil tower — bolts chain across foes, including flyers',
     role: 'Chain',
     color: '#f0c94d',
     colorDark: '#8a6b00',
@@ -231,12 +325,12 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     poisonDuration: 0,
     upgradeCost: 115,
     upgradeMul: 1.38,
-  },
-  fire: {
+  }),
+  fire: baseTower({
     kind: 'fire',
     name: 'Fire',
     cost: 105,
-    description: 'Brazier tower — fireballs and burn',
+    description: 'Brazier tower — fireballs and burn vs air and ground',
     role: 'Burn',
     color: '#e85d4c',
     colorDark: '#8b1e14',
@@ -254,12 +348,12 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     poisonDuration: 0,
     upgradeCost: 82,
     upgradeMul: 1.35,
-  },
-  poison: {
+  }),
+  poison: baseTower({
     kind: 'poison',
     name: 'Poison',
     cost: 95,
-    description: 'Cauldron tower — venom DoT + light slow',
+    description: 'Cauldron tower — venom DoT + light slow, hits flyers',
     role: 'DoT',
     color: '#6bcb77',
     colorDark: '#1f6b3a',
@@ -277,7 +371,58 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     poisonDuration: 3.1,
     upgradeCost: 78,
     upgradeMul: 1.33,
-  },
+  }),
+  light: baseTower({
+    kind: 'light',
+    name: 'Radiant',
+    cost: 120,
+    description: 'Pale spire with a sun-orb crown — holy lances shred armor',
+    role: 'Holy',
+    color: '#f7e7a0',
+    colorDark: '#b8860b',
+    range: 145,
+    damage: 16,
+    fireRate: 1.05,
+    splash: 28,
+    slow: 0,
+    slowDuration: 0,
+    pierceArmor: false,
+    chain: 0,
+    burnDps: 0,
+    burnDuration: 0,
+    poisonDps: 0,
+    poisonDuration: 0,
+    armorShred: 0.22,
+    armorShredDuration: 1.5,
+    upgradeCost: 95,
+    upgradeMul: 1.36,
+  }),
+  dark: baseTower({
+    kind: 'dark',
+    name: 'Void',
+    cost: 125,
+    description: 'Twisted obelisk — shadow orbs curse foes and sap their will',
+    role: 'Curse',
+    color: '#9b5de5',
+    colorDark: '#2a0a40',
+    range: 140,
+    damage: 8,
+    fireRate: 0.95,
+    splash: 0,
+    slow: 0.28,
+    slowDuration: 1.4,
+    pierceArmor: false,
+    chain: 0,
+    burnDps: 0,
+    burnDuration: 0,
+    poisonDps: 0,
+    poisonDuration: 0,
+    curseDps: 10,
+    curseDuration: 2.8,
+    goldOnHit: 0,
+    upgradeCost: 98,
+    upgradeMul: 1.36,
+  }),
 };
 
 export const ENEMIES: Record<EnemyKind, EnemyDef> = {
@@ -316,6 +461,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     radius: 15,
     color: '#8fa37a',
     colorDark: '#3d4a32',
+    undead: true,
   },
   ghoul: {
     kind: 'ghoul',
@@ -328,6 +474,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     radius: 10,
     color: '#c4b5fd',
     colorDark: '#5b21b6',
+    undead: true,
   },
   skeletonSnake: {
     kind: 'skeletonSnake',
@@ -340,6 +487,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     radius: 13,
     color: '#e8e0d0',
     colorDark: '#6b6358',
+    undead: true,
   },
   troll: {
     kind: 'troll',
@@ -364,6 +512,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     radius: 13,
     color: '#a8d8ea',
     colorDark: '#3d6b80',
+    undead: true,
   },
   necromancer: {
     kind: 'necromancer',
@@ -376,6 +525,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     radius: 16,
     color: '#9b5de5',
     colorDark: '#4a1c6b',
+    undead: true,
   },
   wyrm: {
     kind: 'wyrm',
@@ -400,6 +550,33 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     radius: 26,
     color: '#c77dff',
     colorDark: '#3c096c',
+    undead: true,
+  },
+  wisp: {
+    kind: 'wisp',
+    name: 'Wisp',
+    blurb: 'Flying spark — Cannon and barracks cannot touch it. Use Arrow or elementals.',
+    hp: 28,
+    speed: 92,
+    reward: 11,
+    armor: 0,
+    radius: 10,
+    color: '#e0f7ff',
+    colorDark: '#5b9fd4',
+    flying: true,
+  },
+  gargoyle: {
+    kind: 'gargoyle',
+    name: 'Gargoyle',
+    blurb: 'Armored flyer — tanky air unit. Needs anti-air DPS.',
+    hp: 130,
+    speed: 48,
+    reward: 22,
+    armor: 0.2,
+    radius: 15,
+    color: '#6b7280',
+    colorDark: '#1f2937',
+    flying: true,
   },
 };
 
@@ -519,13 +696,57 @@ export const TOWER_SPECS: Record<TowerKind, [TowerSpecDef, TowerSpecDef]> = {
       damageMul: 1.2,
     },
   ],
+  light: [
+    {
+      id: 'solarLance',
+      kind: 'light',
+      name: 'Solar Lance',
+      description: 'Crushing single-target holy lance, longer shred',
+      damageMul: 1.7,
+      splashMul: 0.35,
+      armorShredDurationMul: 1.6,
+      armorShredMul: 1.25,
+    },
+    {
+      id: 'dawnNova',
+      kind: 'light',
+      name: 'Dawn Nova',
+      description: 'Wider holy splash, softer shred',
+      splashMul: 1.7,
+      splashAdd: 16,
+      damageMul: 0.9,
+      armorShredMul: 0.75,
+    },
+  ],
+  dark: [
+    {
+      id: 'soulSiphon',
+      kind: 'dark',
+      name: 'Soul Siphon',
+      description: 'Faster curses that grant a trickle of gold',
+      fireRateMul: 1.35,
+      goldOnHitAdd: 2,
+      curseDpsMul: 1.15,
+    },
+    {
+      id: 'nightGrasp',
+      kind: 'dark',
+      name: 'Night Grasp',
+      description: 'Heavier slow and longer curse',
+      slowMul: 1.45,
+      slowDurationMul: 1.35,
+      curseDpsMul: 1.4,
+      curseDurationMul: 1.4,
+      fireRateMul: 0.85,
+    },
+  ],
 };
 
 export const BARRACKS: Record<BarracksKind, BarracksDef> = {
   warriorBarracks: {
     kind: 'warriorBarracks',
     name: 'Warriors',
-    description: 'Deploys three warriors that block and duel on the path',
+    description: 'Deploys three warriors that block and duel on the path (ground only)',
     role: 'Block',
     color: '#c4a574',
     colorDark: '#5a3d22',
@@ -534,6 +755,7 @@ export const BARRACKS: Record<BarracksKind, BarracksDef> = {
     unitCap: 3,
     respawnTime: 5,
     upgradeCost: 70,
+    unitKind: 'warrior',
     unit: {
       name: 'Warrior',
       hp: 85,
@@ -547,7 +769,7 @@ export const BARRACKS: Record<BarracksKind, BarracksDef> = {
   knightBarracks: {
     kind: 'knightBarracks',
     name: 'Knights',
-    description: 'Deploys three armored knights — tankier, harder hits',
+    description: 'Deploys three armored knights — tankier, harder hits (ground only)',
     role: 'Tank',
     color: '#9aa8c0',
     colorDark: '#2a3548',
@@ -556,6 +778,7 @@ export const BARRACKS: Record<BarracksKind, BarracksDef> = {
     unitCap: 3,
     respawnTime: 5.5,
     upgradeCost: 95,
+    unitKind: 'knight',
     unit: {
       name: 'Knight',
       hp: 140,
@@ -566,6 +789,87 @@ export const BARRACKS: Record<BarracksKind, BarracksDef> = {
       radius: 13,
     },
   },
+  paladinBarracks: {
+    kind: 'paladinBarracks',
+    name: 'Paladins',
+    description: 'Holy blockers that smite the undead — still ground-only vs flyers',
+    role: 'Holy',
+    color: '#f0e6c0',
+    colorDark: '#8a6b20',
+    cost: 150,
+    rallyRadius: 148,
+    unitCap: 3,
+    respawnTime: 5.2,
+    upgradeCost: 110,
+    unitKind: 'paladin',
+    unit: {
+      name: 'Paladin',
+      hp: 115,
+      damage: 12,
+      attackRate: 1.0,
+      speed: 64,
+      engageRange: 37,
+      radius: 12,
+    },
+  },
+};
+
+export const BARRACKS_SPECS: Record<BarracksKind, [BarracksSpecDef, BarracksSpecDef]> = {
+  warriorBarracks: [
+    {
+      id: 'berserkers',
+      kind: 'warriorBarracks',
+      name: 'Berserkers',
+      description: 'Faster attacks, less HP',
+      attackRateMul: 1.4,
+      hpMul: 0.82,
+    },
+    {
+      id: 'vanguard',
+      kind: 'warriorBarracks',
+      name: 'Vanguard',
+      description: 'Tougher troops, slightly longer engage',
+      hpMul: 1.35,
+      engageMul: 1.15,
+    },
+  ],
+  knightBarracks: [
+    {
+      id: 'bulwark',
+      kind: 'knightBarracks',
+      name: 'Bulwark',
+      description: 'Extra HP and take less melee damage',
+      hpMul: 1.45,
+      damageTakenMul: 0.75,
+    },
+    {
+      id: 'crusade',
+      kind: 'knightBarracks',
+      name: 'Crusade',
+      description: 'Harder hits, slower swings',
+      damageMul: 1.55,
+      attackRateMul: 0.78,
+    },
+  ],
+  paladinBarracks: [
+    {
+      id: 'zealots',
+      kind: 'paladinBarracks',
+      name: 'Zealots',
+      description: 'Much stronger smite vs undead',
+      smiteMul: 2.1,
+      damageMul: 1.1,
+    },
+    {
+      id: 'guardians',
+      kind: 'paladinBarracks',
+      name: 'Guardians',
+      description: 'More HP; hits briefly slow foes',
+      hpMul: 1.4,
+      slowOnHit: 0.35,
+      slowOnHitDuration: 0.9,
+    },
+  ],
 };
 
 export const TOWER_ORDER: TowerKind[] = [
@@ -575,9 +879,15 @@ export const TOWER_ORDER: TowerKind[] = [
   'lightning',
   'fire',
   'poison',
+  'light',
+  'dark',
 ];
 
-export const BARRACKS_ORDER: BarracksKind[] = ['warriorBarracks', 'knightBarracks'];
+export const BARRACKS_ORDER: BarracksKind[] = [
+  'warriorBarracks',
+  'knightBarracks',
+  'paladinBarracks',
+];
 
 export const SHOP_ORDER: PlaceableKind[] = [...TOWER_ORDER, ...BARRACKS_ORDER];
 
@@ -608,8 +918,26 @@ export function specsFor(kind: TowerKind): [TowerSpecDef, TowerSpecDef] {
   return TOWER_SPECS[kind];
 }
 
+export function barracksSpecsFor(kind: BarracksKind): [BarracksSpecDef, BarracksSpecDef] {
+  return BARRACKS_SPECS[kind];
+}
+
+export function isUndead(kind: EnemyKind): boolean {
+  return !!ENEMIES[kind].undead;
+}
+
+export function isFlying(kind: EnemyKind): boolean {
+  return !!ENEMIES[kind].flying;
+}
+
 /** Contact damage enemies deal while dueling friendlies (per hit). */
 export function enemyMeleeDamage(kind: EnemyKind): number {
   const def = ENEMIES[kind];
   return Math.round(8 + def.hp * 0.035 + def.armor * 18);
+}
+
+export function airGroundLabel(def: Pick<TowerDef, 'hitsAir' | 'hitsGround'>): string {
+  if (def.hitsAir && def.hitsGround) return 'Air + Ground';
+  if (def.hitsAir) return 'Air only';
+  return 'Ground only';
 }

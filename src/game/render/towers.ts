@@ -522,6 +522,90 @@ function drawPoisonTower(
   ctx.fill();
 }
 
+function drawLightTower(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  level: number,
+  time: number,
+): void {
+  const h = 34 + level * 5;
+  stoneBase(ctx, x, y, 16);
+  brickFill(ctx, x - 12, y - h + 14, 24, h, '#f5edd4', '#a89050');
+  ctx.fillStyle = '#d4af37';
+  for (const ox of [-12, 10]) {
+    ctx.fillRect(x + ox, y - h + 18, 4, h - 20);
+  }
+  // Sun orb
+  const orbY = y - h + 4;
+  const pulse = 0.85 + Math.sin(time * 4) * 0.15;
+  ctx.shadowColor = '#fff3a0';
+  ctx.shadowBlur = 16 * pulse;
+  const orb = ctx.createRadialGradient(x - 2, orbY - 2, 1, x, orbY, 12);
+  orb.addColorStop(0, '#ffffff');
+  orb.addColorStop(0.4, '#f7e7a0');
+  orb.addColorStop(1, '#b8860b');
+  ctx.fillStyle = orb;
+  ctx.beginPath();
+  ctx.arc(x, orbY, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = time * 2 + (i * Math.PI) / 3;
+    ctx.moveTo(x + Math.cos(a) * 6, orbY + Math.sin(a) * 6);
+    ctx.lineTo(x + Math.cos(a) * 14, orbY + Math.sin(a) * 14);
+  }
+  ctx.stroke();
+}
+
+function drawDarkTower(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  level: number,
+  time: number,
+): void {
+  stoneBase(ctx, x, y, 16);
+  const tip = y - 38 - level * 5;
+  ctx.fillStyle = '#1a0a28';
+  ctx.beginPath();
+  ctx.moveTo(x - 10, y + 8);
+  ctx.lineTo(x - 14, y - 10);
+  ctx.lineTo(x - 6, tip + 10);
+  ctx.lineTo(x, tip);
+  ctx.lineTo(x + 6, tip + 10);
+  ctx.lineTo(x + 14, y - 10);
+  ctx.lineTo(x + 10, y + 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#9b5de5';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // Rune rings
+  for (let i = 0; i < 2 + level; i++) {
+    const yy = y - 8 - i * 10;
+    ctx.strokeStyle = `rgba(155, 93, 229, ${0.4 + Math.sin(time * 3 + i) * 0.2})`;
+    ctx.beginPath();
+    ctx.ellipse(x, yy, 11 - i, 3.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  // Void eye
+  ctx.shadowColor = '#c77dff';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#c77dff';
+  ctx.beginPath();
+  ctx.ellipse(x, tip + 8, 7, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#0a0410';
+  ctx.beginPath();
+  ctx.arc(x, tip + 8, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
 function drawSpecFlourish(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -559,7 +643,17 @@ function drawSpecFlourish(
                         ? 'METEOR'
                         : spec === 'contagion'
                           ? 'PLAGUE'
-                          : 'SPIKE';
+                          : spec === 'venomSpike'
+                            ? 'SPIKE'
+                            : spec === 'solarLance'
+                              ? 'LANCE'
+                              : spec === 'dawnNova'
+                                ? 'DAWN'
+                                : spec === 'soulSiphon'
+                                  ? 'SIPHON'
+                                  : spec === 'nightGrasp'
+                                    ? 'GRASP'
+                                    : 'SPEC';
   ctx.fillText(label, x, y - 39);
 
   // Visual accents per path
@@ -664,6 +758,12 @@ export function drawTower(
       break;
     case 'poison':
       drawPoisonTower(ctx, x, y, t.level, time);
+      break;
+    case 'light':
+      drawLightTower(ctx, x, y, t.level, time);
+      break;
+    case 'dark':
+      drawDarkTower(ctx, x, y, t.level, time);
       break;
   }
 

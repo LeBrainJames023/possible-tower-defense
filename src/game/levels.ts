@@ -506,13 +506,22 @@ export function buildWave(levelId: number, wave: number): WaveSpawn[] {
   } else if (w === 3) {
     groups.push({ kind: 'orc', count: Math.round(5 * pressure), interval: 0.65 });
     groups.push({ kind: 'gnome', count: Math.round(4 * pressure), interval: 0.45, delay: 1.5 });
+    if (Lvl >= 3) {
+      groups.push({ kind: 'wisp', count: Math.round(3 * pressure), interval: 0.5, delay: 2.2 });
+    }
   } else if (w === 4) {
     groups.push({ kind: 'ghoul', count: Math.round(10 * pressure), interval: 0.28 });
     groups.push({ kind: 'orc', count: Math.round(4 * pressure), interval: 0.6, delay: 2 });
+    if (Lvl >= 3) {
+      groups.push({ kind: 'wisp', count: Math.round(4 * pressure), interval: 0.42, delay: 1.2 });
+    }
   } else if (w === 5) {
     groups.push({ kind: 'orc', count: Math.round(5 * pressure), interval: 0.55 });
     groups.push({ kind: 'zombie', count: Math.round(2 + Lvl * 0.25), interval: 1.1, delay: 1.5 });
     groups.push({ kind: 'troll', count: Math.round(1 + Lvl * 0.25), interval: 1.3, delay: 3 });
+    if (Lvl >= 3) {
+      groups.push({ kind: 'wisp', count: Math.round(5 * pressure), interval: 0.4, delay: 2 });
+    }
   } else if (w === 6) {
     groups.push({ kind: 'gnome', count: Math.round(6 * pressure), interval: 0.35 });
     groups.push({ kind: 'ghoul', count: Math.round(8 * pressure), interval: 0.25, delay: 1 });
@@ -522,10 +531,18 @@ export function buildWave(levelId: number, wave: number): WaveSpawn[] {
       interval: 0.5,
       delay: 2.5,
     });
+    if (Lvl >= 6) {
+      groups.push({ kind: 'gargoyle', count: Math.round(1 + Lvl * 0.15), interval: 1.2, delay: 3 });
+    } else if (Lvl >= 3) {
+      groups.push({ kind: 'wisp', count: Math.round(5 * pressure), interval: 0.38, delay: 2 });
+    }
   } else if (w === 7) {
     groups.push({ kind: 'troll', count: Math.round(2 + Lvl * 0.35), interval: 1.0 });
     groups.push({ kind: 'zombie', count: Math.round(3 * pressure), interval: 0.8, delay: 1 });
     groups.push({ kind: 'ghost', count: Math.round(4 * pressure), interval: 0.4, delay: 2.5 });
+    if (Lvl >= 6) {
+      groups.push({ kind: 'gargoyle', count: Math.round(2 * pressure), interval: 1.0, delay: 2 });
+    }
   } else if (w === 8) {
     groups.push({ kind: 'ghoul', count: Math.round(12 * pressure), interval: 0.22 });
     groups.push({ kind: 'ghost', count: Math.round(5 * pressure), interval: 0.38, delay: 1 });
@@ -533,11 +550,20 @@ export function buildWave(levelId: number, wave: number): WaveSpawn[] {
     if (Lvl >= 5) {
       groups.push({ kind: 'wyrm', count: 1, interval: 2, delay: 5 });
     }
+    if (Lvl >= 3) {
+      groups.push({ kind: 'wisp', count: Math.round(6 * pressure), interval: 0.35, delay: 1.5 });
+    }
+    if (Lvl >= 6) {
+      groups.push({ kind: 'gargoyle', count: 2, interval: 1.1, delay: 4 });
+    }
   } else if (w === 9) {
     groups.push({ kind: 'orc', count: Math.round(6 * pressure), interval: 0.45 });
     groups.push({ kind: 'troll', count: Math.round(3 + Lvl * 0.35), interval: 0.9, delay: 1 });
     groups.push({ kind: 'necromancer', count: Math.round(1 + Lvl * 0.15), interval: 1.2, delay: 2.5 });
     groups.push({ kind: 'wyrm', count: Math.round(1 + (Lvl >= 6 ? 1 : 0)), interval: 1.5, delay: 4 });
+    if (Lvl >= 6) {
+      groups.push({ kind: 'gargoyle', count: Math.round(2 + Lvl * 0.15), interval: 1.0, delay: 3 });
+    }
   } else {
     groups.push({ kind: 'orc', count: Math.round(5 * pressure), interval: 0.5 });
     groups.push({ kind: 'troll', count: Math.round(2 + Lvl * 0.4), interval: 0.85, delay: 1.2 });
@@ -546,6 +572,10 @@ export function buildWave(levelId: number, wave: number): WaveSpawn[] {
     groups.push({ kind: 'ghoul', count: Math.round(10 * pressure), interval: 0.25, delay: 5 });
     if (Lvl >= 6) {
       groups.push({ kind: 'wyrm', count: 1, interval: 2, delay: 6 });
+      groups.push({ kind: 'gargoyle', count: 3, interval: 0.9, delay: 3.5 });
+    }
+    if (Lvl >= 3) {
+      groups.push({ kind: 'wisp', count: Math.round(8 * pressure), interval: 0.3, delay: 2 });
     }
   }
 

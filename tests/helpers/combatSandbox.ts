@@ -90,7 +90,12 @@ export class CombatSandbox {
       t.cooldown = Math.max(0, t.cooldown - dt);
       if (t.cooldown > 0) continue;
       const target = this.enemies
-        .filter((e) => e.alive && dist({ x: t.x, y: t.y }, e.pos) <= t.range)
+        .filter((e) => {
+          if (!e.alive || dist({ x: t.x, y: t.y }, e.pos) > t.range) return false;
+          if (e.flying && !t.hitsAir) return false;
+          if (!e.flying && !t.hitsGround) return false;
+          return true;
+        })
         .sort((a, b) => b.progress - a.progress)[0];
       if (!target) continue;
       t.cooldown = 1 / t.fireRate;
@@ -106,11 +111,18 @@ export class CombatSandbox {
           if (t.slow > 0) current.applySlow(t.slow, t.slowDuration);
           if (t.burnDps > 0) current.applyBurn(t.burnDps, t.burnDuration);
           if (t.poisonDps > 0) current.applyPoison(t.poisonDps, t.poisonDuration);
+          if (t.curseDps > 0) current.applyCurse(t.curseDps, t.curseDuration);
+          if (t.armorShred > 0) current.applyArmorShred(t.armorShred, t.armorShredDuration);
           const from = current;
           dmg *= 0.7;
           current =
             this.enemies
-              .filter((e) => e.alive && !hit.has(e.id) && dist(from.pos, e.pos) < 90)
+              .filter((e) => {
+                if (!e.alive || hit.has(e.id) || dist(from.pos, e.pos) >= 90) return false;
+                if (e.flying && !t.hitsAir) return false;
+                if (!e.flying && !t.hitsGround) return false;
+                return true;
+              })
               .sort((a, b) => dist(from.pos, a.pos) - dist(from.pos, b.pos))[0] ?? null;
         }
       } else {
@@ -130,6 +142,11 @@ export class CombatSandbox {
             burnDuration: t.burnDuration,
             poisonDps: t.poisonDps,
             poisonDuration: t.poisonDuration,
+            curseDps: t.curseDps,
+            curseDuration: t.curseDuration,
+            armorShred: t.armorShred,
+            armorShredDuration: t.armorShredDuration,
+            goldOnHit: t.goldOnHit,
             chain: 0,
             color: def.color,
             towerKind: t.kind,
