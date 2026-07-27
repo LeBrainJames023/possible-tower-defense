@@ -116,7 +116,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 8 },
     ],
     1,
-    380,
+    260,
     20,
     [
       { c: 2, r: 2 },
@@ -147,7 +147,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 7 },
     ],
     1.12,
-    365,
+    250,
     20,
     [
       { c: 7, r: 5 },
@@ -187,7 +187,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 4 },
     ],
     1.28,
-    350,
+    240,
     18,
     [
       { c: 2, r: 3 },
@@ -225,7 +225,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 5 },
     ],
     1.42,
-    340,
+    230,
     18,
     [
       { c: 4, r: 4 },
@@ -259,7 +259,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 7 },
     ],
     1.58,
-    330,
+    220,
     17,
     [
       { c: 6, r: 6 },
@@ -301,7 +301,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 2 },
     ],
     1.75,
-    320,
+    215,
     16,
     [
       { c: 5, r: 5 },
@@ -338,7 +338,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 0 },
     ],
     1.95,
-    310,
+    210,
     16,
     [
       { c: 4, r: 5 },
@@ -374,7 +374,7 @@ export const LEVELS: LevelDef[] = [
       { c: 19, r: 8 },
     ],
     2.15,
-    300,
+    275,
     15,
     [
       { c: 8, r: 4 },
@@ -416,8 +416,8 @@ export const LEVELS: LevelDef[] = [
       { c: 13, r: 9 },
       { c: 19, r: 9 },
     ],
-    2.15,
-    340,
+    2.05,
+    310,
     15,
     [
       { c: 3, r: 3 },
@@ -462,7 +462,7 @@ export const LEVELS: LevelDef[] = [
       { c: 15, r: 8 },
       { c: 19, r: 8 },
     ],
-    2.95,
+    2.8,
     300,
     12,
     [

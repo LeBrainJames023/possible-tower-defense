@@ -174,7 +174,7 @@ describe('Game integration', () => {
     expect(game.phase).toBe('prepare');
     expect(game.waveIndex).toBe(1);
     expect(game.enemies).toHaveLength(0);
-    expect(game.gold).toBeGreaterThan(100);
+    expect(game.gold).toBeGreaterThan(40);
   });
 
   it('lich leak costs 5 lives', () => {

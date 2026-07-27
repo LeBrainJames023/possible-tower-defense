@@ -6,6 +6,7 @@ import {
   enemyMeleeDamage,
   isBarracksKind,
   placeableCost,
+  waveClearBonus,
   type BarracksSpecId,
   type PlaceableKind,
   type TargetingMode,
@@ -701,7 +702,8 @@ export class Game {
       this.projectiles.length === 0
     ) {
       this.waveActive = false;
-      this.gold += 25 + this.waveIndex * 3;
+      const bonus = waveClearBonus(this.waveIndex);
+      this.gold += bonus;
       if (this.waveIndex >= WAVES_PER_LEVEL) {
         this.phase = 'won';
         bumpUnlockAfterWin(this.level.id);
@@ -709,7 +711,7 @@ export class Game {
         this.onResult?.(true);
       } else {
         this.phase = 'prepare';
-        this.onToast?.(`Wave ${this.waveIndex} cleared! +${25 + this.waveIndex * 3}g bonus`);
+        this.onToast?.(`Wave ${this.waveIndex} cleared! +${bonus}g bonus`);
         this.onAutosave?.();
       }
       this.onHud?.();

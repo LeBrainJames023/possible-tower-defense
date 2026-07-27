@@ -7,6 +7,11 @@ export const MAP_H = ROWS * TILE; // 576
 export const WAVES_PER_LEVEL = 10;
 export const LEVEL_COUNT = 10;
 
+/** Flat + per-wave gold when a wave is fully cleared (keep tight — main income is kills). */
+export function waveClearBonus(waveIndex: number): number {
+  return 12 + waveIndex * 2;
+}
+
 /** grass = buildable; path = enemy lane; decor/water = blocked scenery */
 export type CellKind = 'grass' | 'path' | 'decor' | 'water';
 
@@ -432,7 +437,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Tiny and quick — Ice helps a lot.',
     hp: 34,
     speed: 78,
-    reward: 8,
+    reward: 5,
     armor: 0,
     radius: 11,
     color: '#7dcfb6',
@@ -444,7 +449,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Balanced fodder. Arrow keeps chew them up.',
     hp: 72,
     speed: 46,
-    reward: 12,
+    reward: 7,
     armor: 0.06,
     radius: 14,
     color: '#6a9a5b',
@@ -456,7 +461,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Slow and armored. Cannon pierces; Fire/Poison wear them down.',
     hp: 110,
     speed: 30,
-    reward: 16,
+    reward: 9,
     armor: 0.28,
     radius: 15,
     color: '#8fa37a',
@@ -469,7 +474,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Swarm packs. Splash and Lightning shine here.',
     hp: 24,
     speed: 82,
-    reward: 4,
+    reward: 3,
     armor: 0,
     radius: 10,
     color: '#c4b5fd',
@@ -482,7 +487,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Long bony coil — medium speed, awkward hitbox.',
     hp: 48,
     speed: 58,
-    reward: 10,
+    reward: 6,
     armor: 0.08,
     radius: 13,
     color: '#e8e0d0',
@@ -495,7 +500,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Thick hide. Focus fire and keep slows up.',
     hp: 175,
     speed: 32,
-    reward: 24,
+    reward: 14,
     armor: 0.36,
     radius: 19,
     color: '#c45c4a',
@@ -507,7 +512,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Ethereal runner — fast, fragile, hard to track.',
     hp: 40,
     speed: 88,
-    reward: 14,
+    reward: 8,
     armor: 0,
     radius: 13,
     color: '#a8d8ea',
@@ -520,7 +525,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Elite caster — tanky mid-HP, fat reward.',
     hp: 220,
     speed: 36,
-    reward: 35,
+    reward: 20,
     armor: 0.18,
     radius: 16,
     color: '#9b5de5',
@@ -533,7 +538,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Late elite — tough and surprisingly quick.',
     hp: 280,
     speed: 52,
-    reward: 40,
+    reward: 22,
     armor: 0.22,
     radius: 17,
     color: '#e63946',
@@ -545,7 +550,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Wave boss. Focus fire — leaking costs 5 lives.',
     hp: 950,
     speed: 24,
-    reward: 90,
+    reward: 50,
     armor: 0.28,
     radius: 26,
     color: '#c77dff',
@@ -558,7 +563,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Flying spark — Cannon and barracks cannot touch it. Use Arrow or elementals.',
     hp: 28,
     speed: 92,
-    reward: 11,
+    reward: 6,
     armor: 0,
     radius: 10,
     color: '#e0f7ff',
@@ -571,7 +576,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     blurb: 'Armored flyer — tanky air unit. Needs anti-air DPS.',
     hp: 130,
     speed: 48,
-    reward: 22,
+    reward: 12,
     armor: 0.2,
     radius: 15,
     color: '#6b7280',
@@ -725,7 +730,7 @@ export const TOWER_SPECS: Record<TowerKind, [TowerSpecDef, TowerSpecDef]> = {
       name: 'Soul Siphon',
       description: 'Faster curses that grant a trickle of gold',
       fireRateMul: 1.35,
-      goldOnHitAdd: 2,
+      goldOnHitAdd: 1,
       curseDpsMul: 1.15,
     },
     {
