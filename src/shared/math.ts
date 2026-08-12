@@ -19,6 +19,14 @@ export function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
+/** Shortest-path interpolation between two angles in radians. */
+export function lerpAngle(a: number, b: number, t: number): number {
+  let diff = b - a;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  return a + diff * t;
+}
+
 export function lengthAlongPath(waypoints: Vec2[], t: number): Vec2 {
   if (waypoints.length === 0) return { x: 0, y: 0 };
   if (waypoints.length === 1) return { ...waypoints[0] };

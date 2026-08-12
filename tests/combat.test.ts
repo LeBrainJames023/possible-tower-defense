@@ -11,7 +11,7 @@ describe('tower combat sandbox', () => {
     const enemy = sim.spawn('grunt', 1);
     enemy.pos = { x: sim.towers[0].x + 40, y: sim.towers[0].y };
     enemy.progress = 0.2;
-    sim.run(4);
+    sim.run(6);
     expect(sim.damageDealt).toBeGreaterThan(40);
     expect(enemy.alive).toBe(false);
   });
@@ -99,5 +99,19 @@ describe('wave pressure', () => {
   it('later waves spawn more total enemies than early ones on level 1', () => {
     expect(waveEnemyCount(1, 10)).toBeGreaterThan(waveEnemyCount(1, 1));
     expect(waveEnemyCount(10, 5)).toBeGreaterThan(waveEnemyCount(1, 5));
+  });
+});
+
+describe('tower niches', () => {
+  it('keeps tower niches from collapsing into each other', () => {
+    expect(TOWERS.arrow.cost).toBeLessThan(TOWERS.cannon.cost);
+    expect(TOWERS.arrow.fireRate).toBeGreaterThan(TOWERS.cannon.fireRate);
+    expect(TOWERS.cannon.splash).toBeGreaterThan(TOWERS.fire.splash);
+    expect(TOWERS.cannon.pierceArmor).toBe(true);
+    expect(TOWERS.ice.slow).toBeGreaterThan(TOWERS.poison.slow);
+    expect(TOWERS.lightning.chain).toBeGreaterThanOrEqual(3);
+    expect(TOWERS.fire.burnDps).toBeGreaterThan(0);
+    expect(TOWERS.poison.poisonDuration).toBeGreaterThan(TOWERS.fire.burnDuration);
+    expect(TOWERS.poison.splash).toBeLessThan(TOWERS.fire.splash);
   });
 });

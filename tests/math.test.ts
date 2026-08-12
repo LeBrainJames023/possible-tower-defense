@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dist, pathTotalLength, lengthAlongPath } from '../src/shared/math';
+import { dist, pathTotalLength, lengthAlongPath, lerpAngle } from '../src/shared/math';
 
 describe('math', () => {
   it('computes distance', () => {
@@ -16,5 +16,11 @@ describe('math', () => {
     const mid = lengthAlongPath(wp, 0.5);
     expect(mid.x).toBeCloseTo(75);
     expect(mid.y).toBeCloseTo(0);
+  });
+
+  it('lerps angles across the -PI wrap', () => {
+    const a = lerpAngle(3, -3, 0.5);
+    expect(a).toBeGreaterThan(3 - 0.2);
+    expect(a).toBeLessThan(Math.PI + 0.2);
   });
 });

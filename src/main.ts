@@ -2,6 +2,8 @@ import './style.css';
 import { ENEMIES, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
 import { LEVELS } from './game/levels';
 import { Game, loadProgress, saveProgress } from './game/Game';
+import { DIFFICULTY, scaleGold, type DifficultyId } from './game/balance';
+import { themeFor } from './game/themes';
 
 const screens = {
   title: document.getElementById('screen-title')!,
@@ -31,13 +33,35 @@ const levelGrid = document.getElementById('level-grid')!;
 const selectionTitle = document.getElementById('selection-title')!;
 const selectionStats = document.getElementById('selection-stats')!;
 const towerActions = document.getElementById('tower-actions')!;
+const gameDock = document.getElementById('game-dock')!;
+const btnMute = document.getElementById('btn-mute') as HTMLButtonElement;
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 const game = new Game(canvas);
 
-let activeLevelId = 1;
+const DIFF_KEY = 'ptd-difficulty-v1';
+const MUTE_KEY = 'ptd-mute-v1';
+
+function loadDifficulty(): DifficultyId {
+  const raw = localStorage.getItem(DIFF_KEY);
+  if (raw === 'easy' || raw === 'hard' || raw === 'normal') return raw;
+  return 'normal';
+}
+
+function applyDifficulty(id: DifficultyId): void {
+  game.difficulty = id;
+  localStorage.setItem(DIFF_KEY, id);
+  document.querySelectorAll('.diff-btn').forEach((el) => {
+    el.classList.toggle('selected', (el as HTMLElement).dataset.diff === id);
+  });
+}
+
+function syncMuteUi(): void {
+  btnMute.textContent = game.audio.muted ? 'Sound off' : 'Sound on';
+}
 let resultWon = false;
 let toastTimer = 0;
+let activeLevelId = 1;
 
 function showToast(message: string): void {
   toastEl.textContent = message;
@@ -74,6 +98,7 @@ function renderLevels(): void {
     if (level.id < unlocked) btn.classList.add('cleared');
     btn.disabled = level.id > unlocked;
     btn.innerHTML = `<strong>Level ${level.id}</strong><span>${level.name}</span><span>${level.blurb}</span>`;
+    btn.style.borderColor = themeFor(level.id).ui;
     btn.addEventListener('click', () => startLevel(level.id));
     levelGrid.appendChild(btn);
   }
@@ -94,12 +119,16 @@ function renderShop(): void {
       <small>${def.cost}g · ${def.description}</small>
     `;
     btn.addEventListener('click', () => {
-      game.selectedKind = kind;
-      game.selectedTowerId = null;
+      const same = game.selectedKind === kind;
+      game.selectedKind = same ? null : kind;
       game.selectedEnemyId = null;
       syncShopSelection();
       updateHud();
-      showToast(`Selected ${def.name} — click grass beside the path`);
+      showToast(
+        same
+          ? 'Placement off — click a tower type to build'
+          : `Selected ${def.name} — click grass to place, again to keep placing`,
+      );
     });
     towerShop.appendChild(btn);
   }
@@ -141,7 +170,7 @@ function updateHud(): void {
   if (tower) {
     towerActions.classList.remove('hidden');
     selectionTitle.textContent = `${tower.def.name} · Lv ${tower.level}`;
-    selectionStats.textContent = `${tower.def.role} tower\n${tower.def.description}\nDamage ${Math.round(tower.damage)} · Range ${Math.round(tower.range)} · Rate ${tower.fireRate.toFixed(1)}/s\nUpgrade ${tower.level >= 3 ? 'MAX' : tower.upgradeCost() + 'g'} · Sell ${tower.sellValue()}g`;
+    selectionStats.textContent = `${tower.def.role} tower\n${tower.def.description}\nDamage ${Math.round(game.shotDamage(tower))} · Range ${Math.round(tower.range)} · Rate ${tower.fireRate.toFixed(1)}/s\nUpgrade ${tower.level >= 3 ? 'MAX' : tower.upgradeCost() + 'g'} · Sell ${tower.sellValue()}g`;
     const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
     up.disabled = tower.level >= 3 || game.gold < tower.upgradeCost();
     up.textContent = tower.level >= 3 ? 'Max level' : `Upgrade (${tower.upgradeCost()}g)`;
@@ -156,7 +185,7 @@ function updateHud(): void {
       .filter(Boolean)
       .join(', ');
     selectionTitle.textContent = def.name;
-    selectionStats.textContent = `${def.blurb}\nHP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${def.speed}\nReward ${def.reward}g${effects ? `\nStatus: ${effects}` : ''}`;
+    selectionStats.textContent = `${def.blurb}\nHP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${def.speed}\nReward ${scaleGold(def.reward, game.mods.gold)}g${effects ? `\nStatus: ${effects}` : ''}`;
   } else {
     towerActions.classList.add('hidden');
     selectionTitle.textContent = 'Inspector';
@@ -165,7 +194,7 @@ function updateHud(): void {
   }
 
   if (game.selectedKind) {
-    hint.textContent = `Placing ${TOWERS[game.selectedKind].name}. Grass = buildable. Path & trees = blocked.`;
+    hint.textContent = `Placing ${TOWERS[game.selectedKind].name} — click grass to stamp more. Path & trees blocked.`;
   } else if (tower) {
     hint.textContent = 'Tower selected. Upgrade, sell, or pick another type from the dock.';
   } else if (enemy) {
@@ -173,6 +202,7 @@ function updateHud(): void {
   } else {
     hint.textContent = 'Pick a tower from the dock under the map, then click grass beside the path.';
   }
+  gameDock.classList.toggle('inspect-open', !!(tower || enemy));
   syncShopSelection();
 }
 
@@ -181,6 +211,7 @@ function startLevel(id: number): void {
   showScreen('game');
   overlayResult.classList.add('hidden');
   leaveStrip.classList.add('hidden');
+  game.audio.unlock();
   game.startLevel(id);
   updateHud();
   showToast(`Level ${id}: ${LEVELS.find((l) => l.id === id)?.name ?? ''} — pick towers below`);
@@ -209,6 +240,24 @@ game.onResult = (won) => {
 btnSpeed.addEventListener('click', () => {
   game.timeScale = game.timeScale >= 2 ? 1 : 2;
   btnSpeed.textContent = `Speed ${game.timeScale}x`;
+  game.audio.ui();
+});
+
+btnMute.addEventListener('click', () => {
+  game.audio.unlock();
+  const muted = game.audio.toggleMute();
+  localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
+  syncMuteUi();
+});
+
+document.querySelectorAll('[data-diff]').forEach((el) => {
+  el.addEventListener('click', () => {
+    const id = (el as HTMLElement).dataset.diff as DifficultyId;
+    applyDifficulty(id);
+    game.audio.unlock();
+    game.audio.ui();
+    showToast(`${DIFFICULTY[id].label} — ${DIFFICULTY[id].blurb}`);
+  });
 });
 
 document.querySelectorAll('[data-action]').forEach((el) => {
@@ -288,10 +337,23 @@ canvas.addEventListener('click', (e) => {
 });
 
 ensureProgress();
+applyDifficulty(loadDifficulty());
+if (localStorage.getItem(MUTE_KEY) === '1') {
+  game.audio.muted = true;
+}
+syncMuteUi();
 renderShop();
 renderLevels();
 showScreen('title');
 updateHud();
+
+document.addEventListener(
+  'pointerdown',
+  () => {
+    game.audio.unlock();
+  },
+  { once: true },
+);
 
 declare global {
   interface Window {

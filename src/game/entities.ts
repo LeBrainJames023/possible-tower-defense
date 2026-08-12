@@ -28,6 +28,9 @@ export class Enemy {
   poisonDps = 0;
   poisonTimer = 0;
   pos: Vec2 = { x: 0, y: 0 };
+  facing = 0;
+  hitFlash = 0;
+  bob = Math.random() * Math.PI * 2;
 
   constructor(kind: EnemyKind, hpScale: number, waypoints: Vec2[]) {
     const def = ENEMIES[kind];
@@ -61,6 +64,7 @@ export class Enemy {
   takeDamage(raw: number, pierceArmor: boolean): void {
     const reduced = pierceArmor ? raw : raw * (1 - this.armor);
     this.hp -= reduced;
+    if (raw > 1.5) this.hitFlash = 1;
     if (this.hp <= 0) {
       this.hp = 0;
       this.alive = false;
@@ -69,6 +73,9 @@ export class Enemy {
 
   update(dt: number, waypoints: Vec2[]): void {
     if (!this.alive) return;
+
+    this.hitFlash = Math.max(0, this.hitFlash - dt * 5);
+    this.bob += dt * (this.slowMul < 1 ? 4 : 9);
 
     if (this.burnTimer > 0) {
       this.burnTimer -= dt;
@@ -93,6 +100,7 @@ export class Enemy {
 
     const total = pathTotalLength(waypoints);
     if (total <= 0) return;
+    const prev = { x: this.pos.x, y: this.pos.y };
     const speed = this.speed * this.slowMul;
     this.progress += (speed * dt) / total;
     if (this.progress >= 1) {
@@ -109,6 +117,9 @@ export class Enemy {
           x: waypoints[i].x + (waypoints[i + 1].x - waypoints[i].x) * t,
           y: waypoints[i].y + (waypoints[i + 1].y - waypoints[i].y) * t,
         };
+        const dx = this.pos.x - prev.x;
+        const dy = this.pos.y - prev.y;
+        if (dx * dx + dy * dy > 0.01) this.facing = Math.atan2(dy, dx);
         return;
       }
       travel -= seg;
@@ -127,6 +138,9 @@ export class Tower {
   level = 1;
   cooldown = 0;
   targetId: number | null = null;
+  aim = -Math.PI / 2;
+  recoil = 0;
+  muzzle = 0;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;
@@ -169,11 +183,18 @@ export class Tower {
 
 export class Projectile {
   id = id();
+  kind: TowerKind;
   x: number;
   y: number;
+  ox: number;
+  oy: number;
   tx: number;
   ty: number;
+  vx = 0;
+  vy = 0;
   speed: number;
+  arc: number;
+  homing: number;
   damage: number;
   splash: number;
   pierceArmor: boolean;
@@ -188,6 +209,7 @@ export class Projectile {
   targetId: number | null;
   alive = true;
   trail: boolean;
+  age = 0;
 
   constructor(opts: {
     x: number;
@@ -208,9 +230,14 @@ export class Projectile {
     color: string;
     targetId: number | null;
     trail?: boolean;
+    kind?: TowerKind;
+    arc?: number;
+    homing?: number;
   }) {
     this.x = opts.x;
     this.y = opts.y;
+    this.ox = opts.x;
+    this.oy = opts.y;
     this.tx = opts.tx;
     this.ty = opts.ty;
     this.speed = opts.speed;
@@ -227,9 +254,25 @@ export class Projectile {
     this.color = opts.color;
     this.targetId = opts.targetId;
     this.trail = opts.trail ?? false;
+    this.kind = opts.kind ?? 'arrow';
+    this.arc = opts.arc ?? 0;
+    this.homing = opts.homing ?? 1;
+  }
+
+  /** 0 at spawn, 1 at impact — used for mortar hang. */
+  flightT(): number {
+    const total = dist({ x: this.ox, y: this.oy }, { x: this.tx, y: this.ty });
+    const left = dist({ x: this.x, y: this.y }, { x: this.tx, y: this.ty });
+    if (total <= 1) return 1;
+    return Math.max(0, Math.min(1, 1 - left / total));
+  }
+
+  visualY(): number {
+    return this.y - Math.sin(this.flightT() * Math.PI) * this.arc;
   }
 
   update(dt: number): boolean {
+    this.age += dt;
     const d = dist({ x: this.x, y: this.y }, { x: this.tx, y: this.ty });
     if (d < 8) {
       this.alive = false;
@@ -237,8 +280,10 @@ export class Projectile {
     }
     const step = this.speed * dt;
     const t = Math.min(1, step / d);
-    this.x += (this.tx - this.x) * t;
-    this.y += (this.ty - this.y) * t;
+    this.vx = this.tx - this.x;
+    this.vy = this.ty - this.y;
+    this.x += this.vx * t;
+    this.y += this.vy * t;
     return false;
   }
 }
@@ -258,4 +303,7 @@ export interface BeamFx {
   y2: number;
   color: string;
   life: number;
+  maxLife: number;
+  width: number;
+  points: Vec2[];
 }

@@ -1,7 +1,7 @@
 /**
  * Headless combat helpers — used by tests to verify towers/projectiles without a browser.
  */
-import { TILE, type TowerKind } from '../../src/game/constants';
+import { CHAIN_RANGE, PROJECTILE_FEEL, TILE, type TowerKind } from '../../src/game/constants';
 import { buildWave, LEVELS, pathWaypoints } from '../../src/game/levels';
 import { Enemy, Tower, Projectile } from '../../src/game/entities';
 import { dist } from '../../src/shared/math';
@@ -27,6 +27,13 @@ export function makeFakeCanvas(): HTMLCanvasElement {
     fill: noop,
     stroke: noop,
     fillText: noop,
+    save: noop,
+    restore: noop,
+    translate: noop,
+    rotate: noop,
+    scale: noop,
+    quadraticCurveTo: noop,
+    setLineDash: noop,
     createLinearGradient: () => ({ addColorStop: noop }),
     createRadialGradient: () => ({ addColorStop: noop }),
   };
@@ -97,10 +104,10 @@ export class CombatSandbox {
           if (def.burnDps > 0) current.applyBurn(def.burnDps, def.burnDuration);
           if (def.poisonDps > 0) current.applyPoison(def.poisonDps, def.poisonDuration);
           const from = current;
-          dmg *= 0.7;
+          dmg *= 0.72;
           current =
             this.enemies
-              .filter((e) => e.alive && !hit.has(e.id) && dist(from.pos, e.pos) < 90)
+              .filter((e) => e.alive && !hit.has(e.id) && dist(from.pos, e.pos) < CHAIN_RANGE)
               .sort((a, b) => dist(from.pos, a.pos) - dist(from.pos, b.pos))[0] ?? null;
         }
       } else {
@@ -110,7 +117,7 @@ export class CombatSandbox {
             y: t.y,
             tx: target.pos.x,
             ty: target.pos.y,
-            speed: def.splash > 0 ? 280 : 420,
+            speed: PROJECTILE_FEEL[t.kind].speed,
             damage: t.damage,
             splash: def.splash,
             pierceArmor: def.pierceArmor,
@@ -123,6 +130,7 @@ export class CombatSandbox {
             chain: 0,
             color: def.color,
             targetId: target.id,
+            kind: t.kind,
           }),
         );
       }

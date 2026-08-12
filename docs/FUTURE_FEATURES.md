@@ -1,12 +1,17 @@
 # Future features
 
-Captured for later — not in the one-shot MVP:
+Captured for later — not in this pass:
 
-- Sound effects / music toggle
-- Speed control (1x / 2x)
+- Music / richer soundscape (combat SFX + mute exist)
 - More targeting modes (closest, strongest)
 - Endless mode after campaign
 - Mobile layout polish beyond basic stacking
-- Particle burst on kills
 - Tower preview ghosts with DPS estimate
 - Cloud save / multiple profiles
+
+Done since MVP:
+
+- Speed control (1x / 2x)
+- Particle bursts on kills / impacts
+- Easy / Normal / Hard
+- Procedural combat SFX + mute

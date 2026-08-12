@@ -96,7 +96,7 @@ export const LEVELS: LevelDef[] = [
     { c: 13, r: 2 },
     { c: 13, r: 8 },
     { c: 19, r: 8 },
-  ], 1, 380, 20, [
+  ], 1, 250, 18, [
     { c: 3, r: 3 },
     { c: 4, r: 3 },
     { c: 10, r: 5 },
@@ -111,7 +111,7 @@ export const LEVELS: LevelDef[] = [
     { c: 16, r: 3 },
     { c: 16, r: 7 },
     { c: 19, r: 7 },
-  ], 1.15, 360, 20, [
+  ], 1.15, 255, 18, [
     { c: 7, r: 5 },
     { c: 8, r: 5 },
     { c: 13, r: 6 },
@@ -125,7 +125,7 @@ export const LEVELS: LevelDef[] = [
     { c: 17, r: 10 },
     { c: 17, r: 4 },
     { c: 19, r: 4 },
-  ], 1.3, 350, 18, [
+  ], 1.3, 260, 16, [
     { c: 8, r: 4 },
     { c: 14, r: 6 },
     { c: 2, r: 9 },
@@ -141,7 +141,7 @@ export const LEVELS: LevelDef[] = [
     { c: 5, r: 8 },
     { c: 5, r: 5 },
     { c: 19, r: 5 },
-  ], 1.45, 340, 18),
+  ], 1.45, 265, 16),
   L(5, 'Crossroads', 'Dense mid-map — splash shines.', [
     { c: 0, r: 4 },
     { c: 8, r: 4 },
@@ -151,7 +151,7 @@ export const LEVELS: LevelDef[] = [
     { c: 14, r: 1 },
     { c: 14, r: 7 },
     { c: 19, r: 7 },
-  ], 1.6, 330, 17, [
+  ], 1.6, 270, 15, [
     { c: 6, r: 6 },
     { c: 11, r: 4 },
     { c: 16, r: 3 },
@@ -165,7 +165,7 @@ export const LEVELS: LevelDef[] = [
     { c: 15, r: 8 },
     { c: 15, r: 2 },
     { c: 19, r: 2 },
-  ], 1.8, 320, 16),
+  ], 1.8, 280, 15),
   L(7, 'Broken Wall', 'Gaps force awkward placements.', [
     { c: 0, r: 3 },
     { c: 6, r: 3 },
@@ -175,7 +175,7 @@ export const LEVELS: LevelDef[] = [
     { c: 12, r: 11 },
     { c: 12, r: 0 },
     { c: 19, r: 0 },
-  ], 2.0, 310, 16, [
+  ], 2.0, 290, 14, [
     { c: 4, r: 5 },
     { c: 8, r: 5 },
     { c: 8, r: 9 },
@@ -194,7 +194,7 @@ export const LEVELS: LevelDef[] = [
     { c: 16, r: 10 },
     { c: 16, r: 8 },
     { c: 19, r: 8 },
-  ], 2.2, 300, 15, [
+  ], 2.2, 300, 14, [
     { c: 8, r: 4 },
     { c: 9, r: 4 },
     { c: 10, r: 8 },
@@ -208,7 +208,7 @@ export const LEVELS: LevelDef[] = [
     { c: 13, r: 2 },
     { c: 13, r: 9 },
     { c: 19, r: 9 },
-  ], 2.45, 290, 14),
+  ], 2.45, 310, 13),
   L(10, 'Last Bastion', 'Final stand — every niche matters.', [
     { c: 0, r: 5 },
     { c: 4, r: 5 },
@@ -220,7 +220,7 @@ export const LEVELS: LevelDef[] = [
     { c: 15, r: 3 },
     { c: 15, r: 8 },
     { c: 19, r: 8 },
-  ], 2.75, 280, 12, [
+  ], 2.75, 320, 12, [
     { c: 8, r: 5 },
     { c: 12, r: 6 },
     { c: 17, r: 4 },

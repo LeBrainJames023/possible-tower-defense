@@ -2,6 +2,10 @@ import {
   TILE,
   TOWERS,
   WAVES_PER_LEVEL,
+  CHAIN_RANGE,
+  PROJECTILE_FEEL,
+  MAP_W,
+  MAP_H,
   type TowerKind,
 } from './constants';
 import {
@@ -15,7 +19,17 @@ import {
 } from './levels';
 import { Enemy, Tower, Projectile, type BeamFx, type FloatingText } from './entities';
 import { Renderer } from './renderer';
-import { dist } from '../shared/math';
+import { FxWorld } from './fx';
+import { AudioBus } from './audio';
+import {
+  DIFFICULTY,
+  scaleGold,
+  scaleLives,
+  waveClearBonus,
+  type DifficultyId,
+} from './balance';
+import { dist, lerpAngle } from '../shared/math';
+import type { Vec2 } from '../shared/math';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
 
@@ -36,10 +50,30 @@ export function saveProgress(unlocked: number): void {
   localStorage.setItem(SAVE_KEY, JSON.stringify({ unlocked }));
 }
 
+function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
+  const pts: Vec2[] = [{ x: x1, y: y1 }];
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const px = -dy / len;
+  const py = dx / len;
+  const segs = 5;
+  for (let i = 1; i < segs; i++) {
+    const t = i / segs;
+    const off = (Math.random() - 0.5) * 22;
+    pts.push({ x: x1 + dx * t + px * off, y: y1 + dy * t + py * off });
+  }
+  pts.push({ x: x2, y: y2 });
+  return pts;
+}
+
 export class Game {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   renderer: Renderer;
+  fx = new FxWorld();
+  audio = new AudioBus();
+  difficulty: DifficultyId = 'normal';
 
   level!: LevelDef;
   grid = buildGrid(LEVELS[0]);
@@ -68,6 +102,7 @@ export class Game {
   private anim = 0;
   private lastTs = 0;
   private running = false;
+  private clock = 0;
 
   onHud?: () => void;
   onResult?: (won: boolean) => void;
@@ -84,13 +119,22 @@ export class Game {
     this.renderer = new Renderer(ctx);
   }
 
+  get mods() {
+    return DIFFICULTY[this.difficulty];
+  }
+
+  shotDamage(t: Tower): number {
+    return t.damage * this.mods.damage;
+  }
+
   startLevel(levelId: number): void {
     const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
     this.level = level;
     this.grid = buildGrid(level);
     this.waypoints = pathWaypoints(level);
-    this.gold = level.startingGold;
-    this.lives = level.lives;
+    this.renderer.setLevel(level.id);
+    this.gold = scaleGold(level.startingGold, this.mods.gold);
+    this.lives = scaleLives(level.lives, this.mods.lives);
     this.waveIndex = 0;
     this.phase = 'prepare';
     this.towers = [];
@@ -104,6 +148,9 @@ export class Game {
     this.selectedKind = 'arrow';
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
+    this.clock = 0;
+    this.fx.clear();
+    this.fx.seedAmbient(MAP_W, MAP_H);
     this.onHud?.();
     this.ensureLoop();
   }
@@ -157,6 +204,7 @@ export class Game {
       queue: this.spawnQueue.length,
       waveActive: this.waveActive,
       timeScale: this.timeScale,
+      difficulty: this.difficulty,
     };
   }
 
@@ -190,7 +238,7 @@ export class Game {
     const y = r * TILE + TILE / 2;
     if (!canPlaceOnCell(this.grid, c, r)) {
       this.floats.push({ x, y, text: 'Blocked', color: '#ef476f', life: 0.7 });
-      this.onToast?.('Towers cannot be placed on the path or rocks.');
+      this.onToast?.('Towers cannot be placed on the path or trees.');
       return false;
     }
     const key = `${c},${r}`;
@@ -211,7 +259,7 @@ export class Game {
     this.occupied.add(key);
     this.selectedTowerId = tower.id;
     this.selectedEnemyId = null;
-    this.selectedKind = null;
+    this.fx.burst(x, y, def.color, 10, 'spark');
     this.floats.push({ x, y: y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
     this.onHud?.();
     return true;
@@ -222,7 +270,6 @@ export class Game {
     if (!t) return false;
     this.selectedTowerId = t.id;
     this.selectedEnemyId = null;
-    this.selectedKind = null;
     this.onHud?.();
     return true;
   }
@@ -234,10 +281,11 @@ export class Game {
     const x = (clientX - rect.left) * scaleX;
     const y = (clientY - rect.top) * scaleY;
     let best: Enemy | null = null;
-    let bestD = 28;
+    let bestD = 36;
     for (const e of this.enemies) {
       const d = dist({ x, y }, e.pos);
-      if (d < bestD) {
+      const reach = Math.max(28, e.radius + 10);
+      if (d < reach && d < bestD) {
         bestD = d;
         best = e;
       }
@@ -245,7 +293,6 @@ export class Game {
     if (!best) return false;
     this.selectedEnemyId = best.id;
     this.selectedTowerId = null;
-    this.selectedKind = null;
     this.onHud?.();
     return true;
   }
@@ -265,6 +312,8 @@ export class Game {
     if (this.gold < cost) return false;
     this.gold -= cost;
     t.level += 1;
+    this.fx.burst(t.x, t.y, t.def.color, 14, 'spark');
+    this.fx.ring(t.x, t.y, t.def.color, 28, 2);
     this.floats.push({
       x: t.x,
       y: t.y - 24,
@@ -298,27 +347,30 @@ export class Game {
 
   private update(dt: number): void {
     if (this.phase === 'paused' || this.phase === 'won' || this.phase === 'lost') {
-      // still age floaters lightly
       this.floats = this.floats
         .map((f) => ({ ...f, life: f.life - dt, y: f.y - 20 * dt }))
         .filter((f) => f.life > 0);
       return;
     }
 
-    // spawning
+    this.clock += dt;
+    this.fx.update(dt, MAP_W, MAP_H);
+
     if (this.waveActive) {
       this.waveTime += dt;
       while (this.spawnQueue.length && this.spawnQueue[0].at <= this.waveTime) {
         const s = this.spawnQueue.shift()!;
-        this.enemies.push(new Enemy(s.kind, this.level.hpScale, this.waypoints));
+        this.enemies.push(new Enemy(s.kind, this.level.hpScale * this.mods.hp, this.waypoints));
       }
     }
 
-    // enemies
     for (const e of this.enemies) {
       e.update(dt, this.waypoints);
+      this.fx.statusTicks(e, dt);
       if (e.reachedEnd) {
         this.lives -= e.kind === 'boss' ? 5 : 1;
+        this.audio.leak();
+        this.fx.burst(e.pos.x, e.pos.y, '#ef476f', 10, 'spark');
         this.floats.push({
           x: e.pos.x,
           y: e.pos.y,
@@ -328,22 +380,18 @@ export class Game {
         });
       }
     }
-    const dead = this.enemies.filter((e) => !e.alive && !e.reachedEnd);
-    for (const e of dead) {
-      this.gold += e.reward;
-      this.floats.push({
-        x: e.pos.x,
-        y: e.pos.y - 10,
-        text: `+${e.reward}`,
-        color: '#f4d35e',
-        life: 0.7,
-      });
-    }
-    this.enemies = this.enemies.filter((e) => e.alive);
+    this.collectBounties();
 
-    // towers fire
     for (const t of this.towers) {
       t.cooldown = Math.max(0, t.cooldown - dt);
+      t.recoil = Math.max(0, t.recoil - dt * 6);
+      t.muzzle = Math.max(0, t.muzzle - dt * 8);
+      const tracked = t.targetId != null ? this.enemies.find((e) => e.id === t.targetId) : null;
+      const aimAt = tracked && dist({ x: t.x, y: t.y }, tracked.pos) <= t.range ? tracked : this.pickTarget(t);
+      if (aimAt) {
+        const desired = Math.atan2(aimAt.pos.y - t.y, aimAt.pos.x - t.x);
+        t.aim = lerpAngle(t.aim, desired, 1 - Math.pow(0.0008, dt));
+      }
       if (t.cooldown > 0) continue;
       const target = this.pickTarget(t);
       if (!target) continue;
@@ -352,14 +400,13 @@ export class Game {
       this.fire(t, target);
     }
 
-    // projectiles
     for (const p of this.projectiles) {
-      // homing soft update toward live target
-      if (p.targetId != null) {
+      if (p.targetId != null && p.homing > 0) {
         const tgt = this.enemies.find((e) => e.id === p.targetId);
         if (tgt) {
-          p.tx = tgt.pos.x;
-          p.ty = tgt.pos.y;
+          const k = 1 - Math.pow(1 - p.homing, dt * 8);
+          p.tx += (tgt.pos.x - p.tx) * k;
+          p.ty += (tgt.pos.y - p.ty) * k;
         }
       }
       const hit = p.update(dt);
@@ -374,7 +421,6 @@ export class Game {
       .map((f) => ({ ...f, life: f.life - dt, y: f.y - 24 * dt }))
       .filter((f) => f.life > 0);
 
-    // Defeat check before victory so a last-frame leak still counts
     if (this.lives <= 0) {
       this.lives = 0;
       this.enemies = [];
@@ -388,7 +434,6 @@ export class Game {
       return;
     }
 
-    // wave complete?
     if (
       this.waveActive &&
       this.spawnQueue.length === 0 &&
@@ -396,7 +441,8 @@ export class Game {
       this.projectiles.length === 0
     ) {
       this.waveActive = false;
-      this.gold += 25 + this.waveIndex * 3;
+      const bonus = scaleGold(waveClearBonus(this.waveIndex), this.mods.gold);
+      this.gold += bonus;
       if (this.waveIndex >= WAVES_PER_LEVEL) {
         this.phase = 'won';
         const unlocked = loadProgress();
@@ -405,16 +451,37 @@ export class Game {
         this.onResult?.(true);
       } else {
         this.phase = 'prepare';
-        this.onToast?.(`Wave ${this.waveIndex} cleared! +${25 + this.waveIndex * 3}g bonus`);
+        this.onToast?.(`Wave ${this.waveIndex} cleared! +${bonus}g bonus`);
       }
       this.onHud?.();
+    }
+  }
+
+  private collectBounties(): void {
+    for (const e of this.enemies) {
+      if (!e.alive && !e.reachedEnd) {
+        const payout = scaleGold(e.reward, this.mods.gold);
+        this.gold += payout;
+        this.fx.death(e);
+        this.audio.kill();
+        this.floats.push({
+          x: e.pos.x,
+          y: e.pos.y - 10,
+          text: `+${payout}`,
+          color: '#f4d35e',
+          life: 0.7,
+        });
+      }
+    }
+    this.enemies = this.enemies.filter((e) => e.alive);
+    if (this.selectedEnemyId && !this.enemies.some((e) => e.id === this.selectedEnemyId)) {
+      this.selectedEnemyId = null;
     }
   }
 
   private pickTarget(t: Tower): Enemy | null {
     const inRange = this.enemies.filter((e) => dist({ x: t.x, y: t.y }, e.pos) <= t.range);
     if (!inRange.length) return null;
-    // prioritize furthest along path
     inRange.sort((a, b) => b.progress - a.progress);
     return inRange[0];
   }
@@ -422,61 +489,74 @@ export class Game {
   private fire(t: Tower, target: Enemy): void {
     const def = t.def;
     const status = t.statusScale();
+    t.aim = Math.atan2(target.pos.y - t.y, target.pos.x - t.x);
+    t.recoil = 1;
+    t.muzzle = 1;
+    this.fx.muzzle(t.x, t.y, t.aim, def.color);
+    this.audio.fire(t.kind);
+
     if (def.chain > 0) {
       const hit = new Set<number>();
       let current: Enemy | null = target;
       let fromX = t.x;
       let fromY = t.y;
-      let dmg = t.damage;
+      let dmg = this.shotDamage(t);
       for (let i = 0; i < def.chain && current; i++) {
         hit.add(current.id);
+        const points = jaggedBolt(fromX, fromY, current.pos.x, current.pos.y);
         this.beams.push({
           x1: fromX,
           y1: fromY,
           x2: current.pos.x,
           y2: current.pos.y,
           color: def.color,
-          life: 0.18,
+          life: 0.22,
+          maxLife: 0.22,
+          width: 3.2 - i * 0.4,
+          points,
         });
         current.takeDamage(dmg, def.pierceArmor);
+        this.fx.burst(current.pos.x, current.pos.y, def.color, 6, 'spark');
         if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
-        if (def.burnDps > 0) current.applyBurn(def.burnDps * status, def.burnDuration);
-        if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status, def.poisonDuration);
+        if (def.burnDps > 0) current.applyBurn(def.burnDps * status * this.mods.damage, def.burnDuration);
+        if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status * this.mods.damage, def.poisonDuration);
         fromX = current.pos.x;
         fromY = current.pos.y;
-        dmg *= 0.7;
+        dmg *= 0.72;
         const next = this.enemies
-          .filter((e) => !hit.has(e.id) && dist(current!.pos, e.pos) < 90)
+          .filter((e) => !hit.has(e.id) && dist(current!.pos, e.pos) < CHAIN_RANGE)
           .sort((a, b) => dist(current!.pos, a.pos) - dist(current!.pos, b.pos))[0];
         current = next ?? null;
       }
-      for (const e of this.enemies) {
-        if (!e.alive && !e.reachedEnd) this.gold += e.reward;
-      }
-      this.enemies = this.enemies.filter((e) => e.alive);
+      this.fx.addShake(1.4);
+      this.collectBounties();
       return;
     }
 
+    const feel = PROJECTILE_FEEL[t.kind];
     this.projectiles.push(
       new Projectile({
         x: t.x,
         y: t.y,
         tx: target.pos.x,
         ty: target.pos.y,
-        speed: def.splash > 0 ? 280 : 420,
-        damage: t.damage,
+        speed: feel.speed,
+        damage: this.shotDamage(t),
         splash: def.splash,
         pierceArmor: def.pierceArmor,
         slow: def.slow,
         slowDuration: def.slowDuration,
-        burnDps: def.burnDps * status,
+        burnDps: def.burnDps * status * this.mods.damage,
         burnDuration: def.burnDuration,
-        poisonDps: def.poisonDps * status,
+        poisonDps: def.poisonDps * status * this.mods.damage,
         poisonDuration: def.poisonDuration,
         chain: 0,
         color: def.color,
         targetId: target.id,
-        trail: t.kind === 'arrow' || t.kind === 'lightning',
+        trail: t.kind === 'arrow',
+        kind: t.kind,
+        arc: feel.arc,
+        homing: feel.homing,
       }),
     );
   }
@@ -488,6 +568,9 @@ export class Game {
       if (p.burnDps > 0) e.applyBurn(p.burnDps * mul, p.burnDuration);
       if (p.poisonDps > 0) e.applyPoison(p.poisonDps * mul, p.poisonDuration);
     };
+
+    this.fx.impact(p.x, p.y, p.kind, p.color, p.splash);
+    this.audio.impact(p.kind);
 
     if (p.splash > 0) {
       for (const e of this.enemies) {
@@ -503,25 +586,16 @@ export class Game {
       }
     }
 
-    for (const e of this.enemies) {
-      if (!e.alive && !e.reachedEnd) {
-        this.gold += e.reward;
-        this.floats.push({
-          x: e.pos.x,
-          y: e.pos.y - 10,
-          text: `+${e.reward}`,
-          color: '#f4d35e',
-          life: 0.7,
-        });
-      }
-    }
-    this.enemies = this.enemies.filter((e) => e.alive);
-    if (this.selectedEnemyId && !this.enemies.some((e) => e.id === this.selectedEnemyId)) {
-      this.selectedEnemyId = null;
-    }
+    this.collectBounties();
   }
 
   private draw(): void {
+    this.renderer.time = this.clock;
+    const sh = this.fx.shake;
+    this.ctx.save();
+    if (sh > 0.2) {
+      this.ctx.translate((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh);
+    }
     this.renderer.clear();
     this.renderer.drawPathGlow(this.waypoints);
     const canPlace =
@@ -547,7 +621,9 @@ export class Game {
     }
     for (const p of this.projectiles) this.renderer.drawProjectile(p);
     this.renderer.drawBeams(this.beams);
+    this.renderer.drawParticles(this.fx);
     this.renderer.drawFloating(this.floats);
     if (this.phase === 'paused') this.renderer.drawPausedBanner();
+    this.ctx.restore();
   }
 }
