@@ -1,5 +1,7 @@
 /** Optional baked images. Missing files just mean we keep procedural art. */
 
+import type { EnemyKind } from './constants';
+
 export function loadImage(src: string): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
   const img = new Image();
@@ -17,4 +19,11 @@ export const TEX = {
   dirt: loadImage('/textures/dirt.jpg'),
   water: loadImage('/textures/water.jpg'),
   tree: loadImage('/sprites/tree.png'),
+  enemies: {
+    scout: loadImage('/sprites/enemies/goblin.png'),
+    grunt: loadImage('/sprites/enemies/raider.png'),
+    swarm: loadImage('/sprites/enemies/imp.png'),
+    brute: loadImage('/sprites/enemies/troll.png'),
+    boss: loadImage('/sprites/enemies/warlord.png'),
+  } satisfies Record<EnemyKind, HTMLImageElement | null>,
 };

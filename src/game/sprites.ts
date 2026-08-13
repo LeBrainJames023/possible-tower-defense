@@ -1,6 +1,7 @@
 import type { Enemy, BeamFx, Projectile, Tower } from './entities';
 import { PX } from './constants';
 import { drawTowerBody } from './drawTowers';
+import { TEX, texReady } from './assets';
 
 export function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -86,101 +87,30 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   ctx.ellipse(e.pos.x, e.pos.y + r * 0.75, r * 0.95, r * 0.32, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(e.facing);
-  const g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 2, 0, 0, r);
-  g.addColorStop(0, e.hitFlash > 0.3 ? '#ffffff' : e.color);
-  g.addColorStop(1, e.colorDark);
-  ctx.fillStyle = g;
-
-  switch (e.kind) {
-    case 'scout':
-      ctx.beginPath();
-      ctx.moveTo(r * 1.25, 0);
-      ctx.lineTo(-r * 0.7, r * 0.75);
-      ctx.lineTo(-r * 0.35, 0);
-      ctx.lineTo(-r * 0.7, -r * 0.75);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.beginPath();
-      ctx.arc(r * 0.15, -r * 0.15, r * 0.22, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case 'grunt':
-      roundRect(ctx, -r * 0.85, -r * 0.75, r * 1.7, r * 1.5, 3);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-      ctx.fillStyle = e.colorDark;
-      roundRect(ctx, -r * 0.45, -r * 0.35, r * 0.9, r * 0.55, 2);
-      ctx.fill();
-      ctx.fillStyle = '#dfe8f0';
-      ctx.fillRect(r * 0.35, -r * 0.15, r * 0.55, r * 0.28);
-      break;
-    case 'brute':
-      roundRect(ctx, -r, -r, r * 2, r * 2, 5);
-      ctx.fill();
-      ctx.fillStyle = e.colorDark;
-      ctx.beginPath();
-      ctx.moveTo(-r * 0.2, -r * 1.15);
-      ctx.lineTo(r * 0.15, -r * 0.5);
-      ctx.lineTo(-r * 0.5, -r * 0.5);
-      ctx.closePath();
-      ctx.moveTo(r * 0.55, -r * 1.05);
-      ctx.lineTo(r * 0.9, -r * 0.35);
-      ctx.lineTo(r * 0.2, -r * 0.35);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = 2;
-      roundRect(ctx, -r * 0.7, -r * 0.7, r * 1.4, r * 1.4, 4);
-      ctx.stroke();
-      break;
-    case 'swarm':
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = e.colorDark;
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.moveTo(-r * 0.2, 0);
-      ctx.lineTo(-r * 1.3, -r * 0.8);
-      ctx.moveTo(-r * 0.2, 0);
-      ctx.lineTo(-r * 1.3, r * 0.8);
-      ctx.stroke();
-      ctx.fillStyle = '#14332e';
-      ctx.beginPath();
-      ctx.arc(r * 0.35, -r * 0.2, 1.6, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case 'boss':
-      roundRect(ctx, -r, -r * 0.9, r * 2, r * 1.85, 8);
-      ctx.fill();
-      ctx.fillStyle = e.color;
-      ctx.beginPath();
-      ctx.moveTo(-r * 0.7, -r * 0.7);
-      ctx.lineTo(0, -r * 1.25);
-      ctx.lineTo(r * 0.7, -r * 0.7);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#f4d35e';
-      ctx.beginPath();
-      ctx.arc(0, -r * 0.15, r * 0.28, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = `rgba(212, 160, 255, ${0.5 + Math.sin(time * 3) * 0.25})`;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(0, 0, r + 4, 0, Math.PI * 2);
-      ctx.stroke();
-      break;
+  const img = TEX.enemies[e.kind];
+  if (texReady(img)) {
+    const h = r * 3.35;
+    const w = h * (img.naturalWidth / img.naturalHeight);
+    const flip = Math.cos(e.facing) < 0 ? -1 : 1;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(flip, 1);
+    ctx.drawImage(img, -w / 2, -h + r * 0.55, w, h);
+    if (e.hitFlash > 0.25) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = Math.min(0.7, e.hitFlash);
+      ctx.drawImage(img, -w / 2, -h + r * 0.55, w, h);
+    }
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = e.hitFlash > 0.3 ? '#ffffff' : e.color;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
-  ctx.restore();
 
   if (selected) {
     ctx.strokeStyle = '#fff';
@@ -222,7 +152,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   const bw = Math.max(28, r * 2.35);
   const bh = 5;
   const bx = e.pos.x - bw / 2;
-  const by = e.pos.y - r - 14;
+  const by = e.pos.y - (texReady(TEX.enemies[e.kind]) ? r * 2.7 : r) - 14;
   ctx.fillStyle = 'rgba(0,0,0,0.55)';
   roundRect(ctx, bx, by, bw, bh, 2);
   ctx.fill();

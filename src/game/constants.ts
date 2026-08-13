@@ -220,7 +220,7 @@ export const PROJECTILE_FEEL: Record<TowerKind, ProjectileFeel> = {
 export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   scout: {
     kind: 'scout',
-    name: 'Scout',
+    name: 'Goblin',
     blurb: 'Fast and fragile — Ice helps a lot.',
     hp: 42,
     speed: u(82),
@@ -232,7 +232,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   },
   grunt: {
     kind: 'grunt',
-    name: 'Grunt',
+    name: 'Raider',
     blurb: 'Balanced fodder. Arrow towers chew them up.',
     hp: 100,
     speed: u(48),
@@ -244,7 +244,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   },
   brute: {
     kind: 'brute',
-    name: 'Brute',
+    name: 'Troll',
     blurb: 'Armored. Cannon pierces; Poison wears them down.',
     hp: 210,
     speed: u(32),
@@ -256,7 +256,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   },
   swarm: {
     kind: 'swarm',
-    name: 'Swarm',
+    name: 'Imp',
     blurb: 'Tiny packs. Splash and Lightning shine here.',
     hp: 22,
     speed: u(86),
@@ -268,7 +268,7 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   },
   boss: {
     kind: 'boss',
-    name: 'Colossus',
+    name: 'Warlord',
     blurb: 'Wave boss. Focus fire and keep slows up.',
     hp: 980,
     speed: u(24),
