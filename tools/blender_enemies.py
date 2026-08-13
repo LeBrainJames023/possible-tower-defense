@@ -1,7 +1,7 @@
-"""Headless Blender: sprite billboards from CC0 Quaternius glTF/FBX models.
+"""Headless Blender: Quaternius billboards with a grit pass.
 
-Clay primitives could not carry faces or weapons. These are finished low-poly
-meshes, lit the same way as the tree, written as transparent PNGs.
+Bump, dirtier palettes, tusks, wolf fur, harder light. The meshes stay
+low-poly — this is surface, not a new sculpt.
 """
 
 from __future__ import annotations
@@ -19,7 +19,6 @@ OUT_DIR = os.path.join(ROOT, "public", "sprites", "enemies")
 if "--" in sys.argv:
     OUT_DIR = sys.argv[sys.argv.index("--") + 1]
 
-# Slot → finished model. Names in the gallery stay the picks; these are the meshes.
 ROSTER = [
     ("goblin", "Big/glTF/Tribal.gltf"),
     ("raider", "Big/glTF/Orc.gltf"),
@@ -33,6 +32,27 @@ ROSTER = [
     ("drake", "Flying/glTF/Dragon_Evolved.gltf"),
 ]
 
+# hsv: HueSat (0.5 hue = no shift). multiply: grime overlay. tusks: relative size. fur: hair length or 0.
+LOOKS = {
+    "goblin": {"hsv": (0.52, 0.72, 0.70), "mul": (0.42, 0.48, 0.28), "fac": 0.42, "bump": 0.45, "tusks": 0.85, "fur": 0.0, "air": False},
+    "raider": {"hsv": (0.48, 0.68, 0.64), "mul": (0.32, 0.40, 0.18), "fac": 0.48, "bump": 0.42, "tusks": 1.15, "fur": 0.0, "air": False},
+    "imp": {"hsv": (0.50, 0.78, 0.62), "mul": (0.38, 0.10, 0.08), "fac": 0.40, "bump": 0.50, "tusks": 0.70, "fur": 0.0, "air": False},
+    "warg": {"hsv": (0.50, 0.55, 0.52), "mul": (0.18, 0.12, 0.08), "fac": 0.55, "bump": 0.22, "tusks": 1.05, "fur": 0.0, "air": False},
+    "troll": {"hsv": (0.58, 0.55, 0.72), "mul": (0.40, 0.42, 0.28), "fac": 0.50, "bump": 0.55, "tusks": 1.35, "fur": 0.0, "air": False},
+    "ogre": {"hsv": (0.62, 0.55, 0.60), "mul": (0.22, 0.28, 0.32), "fac": 0.45, "bump": 0.48, "tusks": 1.20, "fur": 0.0, "air": False},
+    "warlord": {"hsv": (0.47, 0.62, 0.58), "mul": (0.30, 0.34, 0.16), "fac": 0.50, "bump": 0.40, "tusks": 1.25, "fur": 0.0, "air": False},
+    "hellbat": {"hsv": (0.50, 0.70, 0.55), "mul": (0.28, 0.06, 0.06), "fac": 0.46, "bump": 0.38, "tusks": 0.80, "fur": 0.0, "air": True},
+    "wyvern": {"hsv": (0.38, 0.75, 0.62), "mul": (0.22, 0.40, 0.16), "fac": 0.52, "bump": 0.55, "tusks": 1.10, "fur": 0.0, "air": True},
+    "drake": {"hsv": (0.72, 0.70, 0.58), "mul": (0.32, 0.16, 0.42), "fac": 0.50, "bump": 0.52, "tusks": 1.20, "fur": 0.0, "air": True},
+}
+
+WOLF_COLORS = {
+    "Main": (0.14, 0.10, 0.07, 1.0),
+    "Main_Light": (0.32, 0.24, 0.14, 1.0),
+    "Nose": (0.04, 0.03, 0.02, 1.0),
+    "Eyes_Black": (0.02, 0.02, 0.02, 1.0),
+}
+
 
 def reset_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -44,12 +64,6 @@ def import_model(path: str):
         bpy.ops.import_scene.gltf(filepath=path)
     elif ext == ".fbx":
         bpy.ops.import_scene.fbx(filepath=path)
-    elif ext == ".blend":
-        bpy.ops.wm.append(
-            filepath=os.path.join(path, "Object", "Bat"),
-            directory=os.path.join(path, "Object") + os.sep,
-            filename="Bat",
-        )
     else:
         raise SystemExit(f"unsupported model: {path}")
 
@@ -88,30 +102,181 @@ def apply_idle_pose():
 
 
 def drop_stray_meshes():
-    """Factory / importer leftovers inflate the camera frame."""
     for ob in list(bpy.context.scene.objects):
         if ob.type == "MESH" and ob.name.startswith("Icosphere") and ob.parent is None:
             bpy.data.objects.remove(ob, do_unlink=True)
 
 
-def lift_dark_materials():
-    """Near-black CC0 mats vanish on a transparent sprite. Lift just enough to read."""
+def _new_mix(nt):
+    try:
+        n = nt.nodes.new("ShaderNodeMixRGB")
+        n.blend_type = "MULTIPLY"
+        return n, "Fac", "Color1", "Color2", "Color"
+    except RuntimeError:
+        n = nt.nodes.new("ShaderNodeMix")
+        n.data_type = "RGBA"
+        n.blend_type = "MULTIPLY"
+        return n, "Factor", "A", "B", "Result"
+
+
+def dress_material(mat, look, slot: str):
+    if not mat.use_nodes:
+        return
+    nt = mat.node_tree
+    bsdf = next((n for n in nt.nodes if n.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None:
+        return
+
+    if slot == "warg" and mat.name in WOLF_COLORS:
+        bsdf.inputs["Base Color"].default_value = WOLF_COLORS[mat.name]
+        if "Eye" in mat.name:
+            if "Emission Color" in bsdf.inputs:
+                bsdf.inputs["Emission Color"].default_value = (0.95, 0.55, 0.08, 1)
+            if "Emission Strength" in bsdf.inputs:
+                bsdf.inputs["Emission Strength"].default_value = 4.0
+
+    color_sock = bsdf.inputs.get("Base Color")
+    if color_sock is None:
+        return
+
+    hsv = nt.nodes.new("ShaderNodeHueSaturation")
+    hsv.inputs["Hue"].default_value = look["hsv"][0]
+    hsv.inputs["Saturation"].default_value = look["hsv"][1]
+    hsv.inputs["Value"].default_value = look["hsv"][2]
+    hsv.location = (-360, 200)
+
+    mix, f_in, a_in, b_in, out_n = _new_mix(nt)
+    mix.inputs[f_in].default_value = look["fac"]
+    mix.inputs[b_in].default_value = (*look["mul"], 1.0)
+    mix.location = (-180, 200)
+
+    if color_sock.is_linked:
+        src = color_sock.links[0].from_socket
+        nt.links.remove(color_sock.links[0])
+        nt.links.new(src, hsv.inputs["Color"])
+    else:
+        rgb = nt.nodes.new("ShaderNodeRGB")
+        rgb.outputs[0].default_value = list(color_sock.default_value)
+        nt.links.new(rgb.outputs[0], hsv.inputs["Color"])
+    nt.links.new(hsv.outputs["Color"], mix.inputs[a_in])
+    nt.links.new(mix.outputs[out_n], color_sock)
+
+    tex = nt.nodes.new("ShaderNodeTexNoise")
+    tex.inputs["Scale"].default_value = 18.0
+    tex.inputs["Detail"].default_value = 6.0
+    tex.location = (-560, -40)
+    vor = nt.nodes.new("ShaderNodeTexVoronoi")
+    vor.feature = "F1"
+    vor.inputs["Scale"].default_value = 9.0
+    vor.location = (-560, -220)
+    add = nt.nodes.new("ShaderNodeMath")
+    add.operation = "MULTIPLY"
+    add.inputs[1].default_value = 0.55
+    add.location = (-340, -80)
+    nt.links.new(tex.outputs["Fac"], add.inputs[0])
+    dist = vor.outputs.get("Distance") or vor.outputs[0]
+    nt.links.new(dist, add.inputs[1])
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = look["bump"]
+    bump.inputs["Distance"].default_value = 0.12
+    bump.location = (-180, -80)
+    nt.links.new(add.outputs["Value"], bump.inputs["Height"])
+    nrm = bsdf.inputs.get("Normal")
+    if nrm:
+        nt.links.new(bump.outputs["Normal"], nrm)
+
+    if "Roughness" in bsdf.inputs and not bsdf.inputs["Roughness"].is_linked:
+        bsdf.inputs["Roughness"].default_value = 0.78
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.22
+
+
+def dress_all(slot: str):
+    look = LOOKS[slot]
     for mat in bpy.data.materials:
-        if not mat.use_nodes:
-            continue
-        bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
-        if bsdf is None:
-            continue
-        sock = bsdf.inputs.get("Base Color")
-        if sock is None or sock.is_linked:
-            continue
-        col = list(sock.default_value)
-        lum = 0.2126 * col[0] + 0.7152 * col[1] + 0.0722 * col[2]
-        if lum >= 0.08:
-            continue
-        for i in range(3):
-            col[i] = min(1.0, col[i] * 5.0 + 0.06)
-        sock.default_value = col
+        dress_material(mat, look, slot)
+
+
+def body_size():
+    mn, mx = mesh_bounds()
+    return (mn + mx) * 0.5, max((mx - mn).x, (mx - mn).y, (mx - mn).z, 0.01)
+
+
+def ivory():
+    m = bpy.data.materials.new("ivory")
+    m.use_nodes = True
+    b = m.node_tree.nodes["Principled BSDF"]
+    b.inputs["Base Color"].default_value = (0.84, 0.76, 0.58, 1)
+    if "Roughness" in b.inputs:
+        b.inputs["Roughness"].default_value = 0.38
+    return m
+
+
+def add_tusks(scale: float):
+    if scale <= 0:
+        return
+    arm = next((o for o in bpy.context.scene.objects if o.type == "ARMATURE"), None)
+    if arm is None:
+        return
+    bone = arm.pose.bones.get("Head")
+    if bone is None:
+        return
+    bpy.context.view_layer.update()
+    head = (arm.matrix_world @ bone.matrix).translation
+    _, size = body_size()
+    length = size * 0.11 * scale
+    rad = length * 0.22
+    mat = ivory()
+    for side in (-1.0, 1.0):
+        bpy.ops.mesh.primitive_cone_add(
+            vertices=8,
+            radius1=rad,
+            radius2=rad * 0.08,
+            depth=length,
+            location=head + Vector((side * size * 0.055, -size * 0.11, -size * 0.05)),
+        )
+        tusk = bpy.context.object
+        tusk.rotation_euler = (radians(108), 0, side * radians(22))
+        tusk.data.materials.append(mat)
+        tusk.name = "tusk"
+
+
+def add_fur(length: float):
+    if length <= 0:
+        return
+    body = next(
+        (o for o in bpy.context.scene.objects if o.type == "MESH" and "Wolf" in o.name),
+        None,
+    )
+    if body is None:
+        return
+    fur = bpy.data.materials.new("fur")
+    fur.use_nodes = True
+    b = fur.node_tree.nodes["Principled BSDF"]
+    b.inputs["Base Color"].default_value = (0.16, 0.11, 0.07, 1)
+    if "Roughness" in b.inputs:
+        b.inputs["Roughness"].default_value = 0.92
+    if "Sheen Weight" in b.inputs:
+        b.inputs["Sheen Weight"].default_value = 0.6
+    body.data.materials.append(fur)
+
+    bpy.ops.object.select_all(action="DESELECT")
+    body.select_set(True)
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.particle_system_add()
+    ps = body.particle_systems[-1]
+    s = ps.settings
+    s.type = "HAIR"
+    s.count = 420
+    s.hair_length = length
+    s.child_type = "SIMPLE"
+    s.child_percent = 40
+    s.rendered_child_count = 3
+    s.use_modifier_stack = True
+    s.factor_random = 0.35
+    s.clump_factor = 0.55
+    s.roughness_1 = 0.18
+    s.material = len(body.material_slots)
 
 
 def mesh_bounds():
@@ -122,6 +287,15 @@ def mesh_bounds():
     found = False
     for ob in bpy.context.scene.objects:
         if ob.type != "MESH" or ob.hide_render:
+            continue
+        if ob.name.startswith("tusk"):
+            continue
+        if ob.particle_systems:
+            found = True
+            for corner in ob.bound_box:
+                w = ob.matrix_world @ Vector(corner)
+                mn.x, mn.y, mn.z = min(mn.x, w.x), min(mn.y, w.y), min(mn.z, w.z)
+                mx.x, mx.y, mx.z = max(mx.x, w.x), max(mx.y, w.y), max(mx.z, w.z)
             continue
         ev = ob.evaluated_get(deps)
         me = ev.to_mesh()
@@ -140,7 +314,7 @@ def mesh_bounds():
     return mn, mx
 
 
-def setup_camera_and_lights():
+def setup_camera_and_lights(air: bool = False):
     mn, mx = mesh_bounds()
     center = (mn + mx) * 0.5
     size = max((mx - mn).x, (mx - mn).y, (mx - mn).z, 0.01)
@@ -148,47 +322,52 @@ def setup_camera_and_lights():
 
     cam_data = bpy.data.cameras.new("cam")
     cam_data.type = "ORTHO"
-    cam_data.ortho_scale = size * 1.72
+    cam_data.ortho_scale = size * (2.05 if air else 1.78)
     cam = bpy.data.objects.new("cam", cam_data)
-    cam.location = center + Vector((dist * 0.72, -dist * 0.88, dist * 0.62))
+    cam.location = center + Vector(
+        (dist * 0.95, -dist * 1.2, dist * 0.28) if air else (dist * 0.72, -dist * 0.88, dist * 0.62)
+    )
     bpy.context.scene.collection.objects.link(cam)
     bpy.context.scene.camera = cam
 
     track = cam.constraints.new("TRACK_TO")
     empty = bpy.data.objects.new("look", None)
-    empty.location = center + Vector((0, 0, size * 0.05))
+    empty.location = center + Vector((0, 0, size * 0.04))
     bpy.context.scene.collection.objects.link(empty)
     track.target = empty
     track.track_axis = "TRACK_NEGATIVE_Z"
     track.up_axis = "UP_Y"
 
     sun_data = bpy.data.lights.new("sun", "SUN")
-    sun_data.energy = 4.2
-    sun_data.angle = 0.18
+    sun_data.energy = 5.4
+    sun_data.angle = 0.08
     sun = bpy.data.objects.new("sun", sun_data)
-    sun.rotation_euler = (radians(42), radians(8), radians(28))
+    sun.rotation_euler = (radians(48), radians(6), radians(32))
     bpy.context.scene.collection.objects.link(sun)
 
     fill_data = bpy.data.lights.new("fill", "AREA")
-    fill_data.energy = 90
-    fill_data.size = size * 2.5
+    fill_data.energy = 36
+    fill_data.size = size * 2.2
     fill = bpy.data.objects.new("fill", fill_data)
-    fill.location = center + Vector((-dist * 0.8, dist * 0.5, dist * 0.7))
+    fill.location = center + Vector((-dist * 0.85, dist * 0.4, dist * 0.55))
     bpy.context.scene.collection.objects.link(fill)
 
     rim_data = bpy.data.lights.new("rim", "AREA")
-    rim_data.energy = 55
-    rim_data.size = size * 2.0
-    rim_data.color = (1.0, 0.92, 0.82)
+    rim_data.energy = 70
+    rim_data.size = size * 1.8
+    rim_data.color = (1.0, 0.78, 0.55)
     rim = bpy.data.objects.new("rim", rim_data)
-    rim.location = center + Vector((dist * 0.4, dist * 0.9, dist * 0.3))
+    rim.location = center + Vector((dist * 0.35, dist * 0.95, dist * 0.25))
     bpy.context.scene.collection.objects.link(rim)
+
+    if hasattr(bpy.context.scene.eevee, "use_shadows"):
+        bpy.context.scene.eevee.use_shadows = True
 
 
 def setup_render(out_path: str):
     scene = bpy.context.scene
-    scene.render.resolution_x = 512
-    scene.render.resolution_y = 640
+    scene.render.resolution_x = 640
+    scene.render.resolution_y = 800
     scene.render.film_transparent = True
     scene.render.filepath = out_path
     scene.render.image_settings.file_format = "PNG"
@@ -201,20 +380,23 @@ def setup_render(out_path: str):
     scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (0.08, 0.09, 0.11, 1)
-    bg.inputs[1].default_value = 0.35
+    bg.inputs[0].default_value = (0.05, 0.05, 0.06, 1)
+    bg.inputs[1].default_value = 0.18
 
 
 def bake_one(slot: str, rel: str):
     path = os.path.join(CACHE, rel)
     if not os.path.isfile(path):
         raise FileNotFoundError(path)
+    look = LOOKS[slot]
     reset_scene()
     import_model(path)
     drop_stray_meshes()
     apply_idle_pose()
-    lift_dark_materials()
-    setup_camera_and_lights()
+    dress_all(slot)
+    add_tusks(look["tusks"])
+    add_fur(look["fur"])
+    setup_camera_and_lights(bool(look.get("air")))
     out = os.path.join(OUT_DIR, f"{slot}.png")
     setup_render(out)
     bpy.ops.render.render(write_still=True)
