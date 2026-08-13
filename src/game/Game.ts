@@ -30,7 +30,7 @@ import {
   type DifficultyId,
 } from './balance';
 import { dist, lerpAngle } from '../shared/math';
-import { offsetToMap, clientToMap, identityMapView, type MapView } from '../shared/pointer';
+import { clientToMap, identityMapView, type MapView } from '../shared/pointer';
 import type { Vec2 } from '../shared/math';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
@@ -350,17 +350,13 @@ export class Game {
     return true;
   }
 
-  setPointerFromEvent(e: { offsetX: number; offsetY: number; clientX: number; clientY: number }): void {
-    const fromOffset = offsetToMap(e.offsetX, e.offsetY, this.mapView);
-    const rect = this.canvas.getBoundingClientRect();
-    const pt = fromOffset ?? clientToMap(e.clientX, e.clientY, rect, this.mapView);
-    this.pointer = pt;
-    this.hover = pt ? { c: Math.floor(pt.x / TILE), r: Math.floor(pt.y / TILE) } : null;
+  setPointerFromEvent(e: { clientX: number; clientY: number }): void {
+    this.setPointer(e.clientX, e.clientY);
   }
 
   setPointer(clientX: number, clientY: number): void {
     const rect = this.canvas.getBoundingClientRect();
-    const pt = clientToMap(clientX, clientY, rect, this.mapView);
+    const pt = clientToMap(clientX, clientY, rect, MAP_W, MAP_H);
     this.pointer = pt;
     this.hover = pt ? { c: Math.floor(pt.x / TILE), r: Math.floor(pt.y / TILE) } : null;
   }
@@ -621,12 +617,11 @@ export class Game {
 
   private draw(): void {
     this.renderer.time = this.clock;
-    const v = this.mapView;
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.imageSmoothingEnabled = true;
     this.ctx.fillStyle = '#071018';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.setTransform(v.scale, 0, 0, v.scale, v.padX, v.padY);
+    this.ctx.setTransform(this.canvas.width / MAP_W, 0, 0, this.canvas.height / MAP_H, 0, 0);
 
     const sh = this.fx.shake;
     this.ctx.save();

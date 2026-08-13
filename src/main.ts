@@ -40,6 +40,7 @@ const buildPanel = document.getElementById('build-panel')!;
 const buildDetail = document.getElementById('build-detail')!;
 const buildDetailText = document.getElementById('build-detail-text')!;
 const inspectPanel = document.getElementById('inspect-panel')!;
+const buildTitle = document.getElementById('build-title')!;
 const btnBuild = document.getElementById('btn-build') as HTMLButtonElement;
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -124,13 +125,21 @@ function renderLevels(): void {
 
 function syncOverlay(): void {
   const building = !!game.buildCell;
+  const confirming = building && !!game.selectedKind;
   const tower = game.getSelectedTower();
   const enemy = game.getSelectedEnemy();
   const inspect = !!(tower || enemy);
   mapOverlay.classList.toggle('hidden', !building && !inspect);
   buildPanel.classList.toggle('hidden', !building);
+  buildPanel.classList.toggle('is-confirm', confirming);
   inspectPanel.classList.toggle('hidden', !inspect);
-  buildDetail.classList.toggle('hidden', !building || !game.selectedKind);
+  buildDetail.classList.toggle('hidden', !confirming);
+  if (confirming && game.selectedKind) {
+    buildTitle.textContent = TOWERS[game.selectedKind].name;
+  } else {
+    buildTitle.textContent = 'Build';
+  }
+  requestAnimationFrame(layoutPlayfield);
 }
 
 function closeBuildMenu(): void {

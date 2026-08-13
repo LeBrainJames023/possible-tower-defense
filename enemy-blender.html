@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blender enemy sprites</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0b0d;
+        --panel: #16141a;
+        --line: #3a342c;
+        --text: #f3ece3;
+        --muted: #a89888;
+        --accent: #e07040;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 18px 18px 48px;
+        background: #0b0b0d;
+        color: var(--text);
+        font-family: 'DM Sans', system-ui, sans-serif;
+      }
+      h1 {
+        font-family: 'Syne', system-ui, sans-serif;
+        margin: 0 0 6px;
+      }
+      .lede {
+        color: var(--muted);
+        max-width: 44rem;
+        line-height: 1.45;
+        margin: 0 0 22px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .card img {
+        width: 100%;
+        height: 240px;
+        object-fit: contain;
+        background:
+          linear-gradient(#1a2830, #142018);
+        border-radius: 8px;
+      }
+      .name {
+        font-weight: 700;
+        margin-top: 10px;
+      }
+      .blurb {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-top: 4px;
+      }
+      .lane {
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        color: #e8c878;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Finished models — your ten picks</h1>
+    <p class="lede">
+      Clay spheres are gone. These are CC0 meshes from Quaternius, lit and snapped to transparent
+      PNGs the same way as the tree. They are low-poly and stylized — faces, weapons, wings — not
+      Jackson’s Moria. Each card names the actual mesh so you can keep, swap, or dump the pack.
+    </p>
+    <div class="grid">
+      <article class="card">
+        <div class="lane">GROUND SCOUT</div>
+        <img src="/sprites/enemies/goblin.png?v=cc0" alt="Goblin Stabber" />
+        <div class="name">Goblin — Stabber</div>
+        <div class="blurb">Quaternius Tribal — mask, bone crest, spear-less. Closest small warrior.</div>
+      </article>
+      <article class="card">
+        <div class="lane">GROUND GRUNT</div>
+        <img src="/sprites/enemies/raider.png?v=cc0" alt="Raider Berserker" />
+        <div class="name">Raider — Berserker</div>
+        <div class="blurb">Quaternius Orc — green, spiked club, blue crest.</div>
+      </article>
+      <article class="card">
+        <div class="lane">GROUND SWARM</div>
+        <img src="/sprites/enemies/imp.png?v=cc0" alt="Imp Gremlin" />
+        <div class="name">Imp — Gremlin</div>
+        <div class="blurb">Quaternius Demon — horns, halo, trident. Small-file but not tiny.</div>
+      </article>
+      <article class="card">
+        <div class="lane">GROUND HUNTER</div>
+        <img src="/sprites/enemies/warg.png?v=cc0" alt="Plated warg" />
+        <div class="name">Warg — Plated</div>
+        <div class="blurb">Quaternius Wolf — real quadruped. Flat-colored, no iron plates yet.</div>
+      </article>
+      <article class="card">
+        <div class="lane">GROUND TANK</div>
+        <img src="/sprites/enemies/troll.png?v=cc0" alt="Bridge clubber troll" />
+        <div class="name">Troll — Bridge clubber</div>
+        <div class="blurb">Quaternius Yeti — bulky, fur hood. Standing in for a bridge troll.</div>
+      </article>
+      <article class="card">
+        <div class="lane">GROUND MINI-BOSS</div>
+        <img src="/sprites/enemies/ogre.png?v=cc0" alt="Ogre Mauler" />
+        <div class="name">Ogre — Mauler</div>
+        <div class="blurb">Quaternius Blue Demon — horned brute with a club. Not a belly-ogre.</div>
+      </article>
+      <article class="card">
+        <div class="lane">GROUND WAVE BOSS</div>
+        <img src="/sprites/enemies/warlord.png?v=cc0" alt="Troll king" />
+        <div class="name">Warlord — Troll king</div>
+        <div class="blurb">Quaternius Orc Skull — skull helm, spiked club. Closest to a war-boss.</div>
+      </article>
+      <article class="card">
+        <div class="lane">AIR SCOUT</div>
+        <img src="/sprites/enemies/hellbat.png?v=cc0" alt="Cave bat" />
+        <div class="name">Hellbat — Cave bat</div>
+        <div class="blurb">Quaternius Flying Demon — wings. The old Bat file baked empty.</div>
+      </article>
+      <article class="card">
+        <div class="lane">AIR HUNTER</div>
+        <img src="/sprites/enemies/wyvern.png?v=cc0" alt="Forest wyvern" />
+        <div class="name">Wyvern — Forest</div>
+        <div class="blurb">Quaternius Dragon — orange, winged. Stylized, not a forest wyvern.</div>
+      </article>
+      <article class="card">
+        <div class="lane">AIR BOSS</div>
+        <img src="/sprites/enemies/drake.png?v=cc0" alt="Dusk drake" />
+        <div class="name">Drake — Dusk</div>
+        <div class="blurb">Quaternius Dragon Evolved — bigger horns, darker belly.</div>
+      </article>
+    </div>
+  </body>
+</html>

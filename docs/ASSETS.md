@@ -13,11 +13,14 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sfx/water.mp3` | **sox** beating tones + pink noise → **ffmpeg** mp3 | Stream bed; louder on the two “wet” maps |
 | `public/icons/*.png` | **Inkscape** (SVG in `tools/icons/`) | Tower dock swatches instead of flat CSS gradients |
 | `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Low-poly tree billboard on decor tiles |
+| `public/sprites/enemies/*.png` | **Blender** headless (`tools/blender_enemies.py`) importing **Quaternius** CC0 glTF | Ten picked *roles* using finished meshes: Tribal, Orc, Demon, Wolf, Yeti, Blue Demon, Orc Skull, Flying Demon, Dragon, Dragon Evolved. Source files stay in `tools/cache/` (gitignored). |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Unchanged procedural hits — still no sample pack |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
 
 Poly Haven textures are CC0. We downloaded files at bake time (not the live API in-game). Credit: [aerial_grass_rock](https://polyhaven.com/a/aerial_grass_rock), [dirt](https://polyhaven.com/a/dirt).
+
+Enemy meshes are CC0 from [Quaternius](https://quaternius.com/): Ultimate Monsters, Ultimate Animated Animals (Wolf). Credit is not required; we log it anyway.
 
 ## Tools on this machine we did **not** use this pass
 
