@@ -2,7 +2,10 @@
 
 Captured for later — not in this pass:
 
-- Music / richer soundscape (combat SFX + mute exist)
+- Music / richer soundscape (wind + water beds exist; still no music)
+- Hand-painted Krita/GIMP tile variants
+- Tiled as a visual map editor that exports into `levels.ts` (single source of truth must stay TypeScript)
+- MagicaVoxel / Blender sprite sheets for extra props
 - More targeting modes (closest, strongest)
 - Endless mode after campaign
 - Mobile layout polish beyond basic stacking

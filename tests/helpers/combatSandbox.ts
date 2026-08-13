@@ -1,7 +1,7 @@
 /**
  * Headless combat helpers — used by tests to verify towers/projectiles without a browser.
  */
-import { CHAIN_RANGE, PROJECTILE_FEEL, TILE, type TowerKind } from '../../src/game/constants';
+import { CHAIN_RANGE, MAP_H, MAP_W, PROJECTILE_FEEL, TILE, type TowerKind } from '../../src/game/constants';
 import { buildWave, LEVELS, pathWaypoints } from '../../src/game/levels';
 import { Enemy, Tower, Projectile } from '../../src/game/entities';
 import { dist } from '../../src/shared/math';
@@ -38,16 +38,16 @@ export function makeFakeCanvas(): HTMLCanvasElement {
     createRadialGradient: () => ({ addColorStop: noop }),
   };
   return {
-    width: 960,
-    height: 576,
+    width: MAP_W,
+    height: MAP_H,
     getContext: () => ctx,
     getBoundingClientRect: () => ({
       left: 0,
       top: 0,
-      width: 960,
-      height: 576,
-      right: 960,
-      bottom: 576,
+      width: MAP_W,
+      height: MAP_H,
+      right: MAP_W,
+      bottom: MAP_H,
       x: 0,
       y: 0,
       toJSON: () => ({}),

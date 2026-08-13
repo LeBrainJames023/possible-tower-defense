@@ -1,9 +1,10 @@
-import { COLS, ROWS, TILE, type CellKind, type TowerKind, TOWERS } from './constants';
+import { COLS, ROWS, TILE, PX, type CellKind, type TowerKind, TOWERS } from './constants';
 import type { Enemy, FloatingText, BeamFx, Projectile, Tower } from './entities';
 import type { Vec2 } from '../shared/math';
 import { drawBeams, drawEnemy, drawProjectile, drawTower } from './sprites';
 import { drawFx, type FxWorld } from './fx';
 import { themeFor, type MapTheme } from './themes';
+import { TEX, texReady } from './assets';
 
 function hash(c: number, r: number, salt = 0): number {
   const n = Math.sin(c * 12.9898 + r * 78.233 + salt * 4.12) * 43758.5453;
@@ -14,12 +15,14 @@ export class Renderer {
   private ctx: CanvasRenderingContext2D;
   time = 0;
   theme: MapTheme = themeFor(1);
+  levelId = 1;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
   }
 
   setLevel(id: number): void {
+    this.levelId = id;
     this.theme = themeFor(id);
   }
 
@@ -49,51 +52,100 @@ export class Renderer {
           this.drawDirt(x, y, c, r);
         } else {
           this.drawGrass(x, y, c, r);
-          if (kind === 'decor') this.drawTree(x + TILE / 2, y + TILE / 2 + 2, c, r);
+          if (kind === 'decor') this.drawTree(x + TILE / 2, y + TILE / 2 + 2 * PX, c, r);
           else if (showBuildHints) {
-            ctx.strokeStyle = 'rgba(244, 211, 94, 0.2)';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(x + 5, y + 5, TILE - 10, TILE - 10);
+            ctx.strokeStyle = 'rgba(244, 211, 94, 0.22)';
+            ctx.lineWidth = 1.5 * PX;
+            ctx.strokeRect(x + 6 * PX, y + 6 * PX, TILE - 12 * PX, TILE - 12 * PX);
           }
         }
       }
     }
 
-    if (hover && selectedKind) {
+    if (hover) {
       const x = hover.c * TILE;
       const y = hover.r * TILE;
-      ctx.fillStyle = canPlace ? 'rgba(87, 204, 153, 0.28)' : 'rgba(239, 71, 111, 0.3)';
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.strokeStyle = canPlace ? '#57cc99' : '#ef476f';
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE - 2);
-      if (canPlace) {
-        const def = TOWERS[selectedKind];
-        ctx.beginPath();
-        ctx.arc(x + TILE / 2, y + TILE / 2, def.range, 0, Math.PI * 2);
-        ctx.strokeStyle = `${def.color}66`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+      if (selectedKind) {
+        ctx.fillStyle = canPlace ? 'rgba(87, 204, 153, 0.28)' : 'rgba(239, 71, 111, 0.3)';
+        ctx.fillRect(x, y, TILE, TILE);
+        if (canPlace) {
+          const def = TOWERS[selectedKind];
+          ctx.beginPath();
+          ctx.arc(x + TILE / 2, y + TILE / 2, def.range, 0, Math.PI * 2);
+          ctx.strokeStyle = `${def.color}66`;
+          ctx.lineWidth = 2 * PX;
+          ctx.stroke();
+        }
       }
+      ctx.strokeStyle = selectedKind ? (canPlace ? '#57cc99' : '#ef476f') : 'rgba(244, 211, 94, 0.85)';
+      ctx.lineWidth = 2.5 * PX;
+      ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE - 2);
     }
+  }
+
+  private wetLevel(): boolean {
+    return this.levelId === 2 || this.levelId === 8;
+  }
+
+  private stampTexture(
+    img: HTMLImageElement,
+    x: number,
+    y: number,
+    c: number,
+    r: number,
+    alpha: number,
+    composite: GlobalCompositeOperation,
+  ): void {
+    const { ctx } = this;
+    const sw = Math.min(TILE, img.naturalWidth);
+    const sh = Math.min(TILE, img.naturalHeight);
+    const ox = Math.floor(hash(c, r, 3) * Math.max(1, img.naturalWidth - sw));
+    const oy = Math.floor(hash(c, r, 7) * Math.max(1, img.naturalHeight - sh));
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.globalCompositeOperation = composite;
+    ctx.drawImage(img, ox, oy, sw, sh, x, y, TILE, TILE);
+    ctx.restore();
+  }
+
+  private stampWater(x: number, y: number): void {
+    const img = TEX.water;
+    if (!texReady(img)) return;
+    const { ctx } = this;
+    const shift = (this.time * 18) % img.naturalWidth;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, TILE, TILE);
+    ctx.clip();
+    ctx.globalAlpha = this.wetLevel() ? 0.32 : 0.12;
+    ctx.globalCompositeOperation = 'soft-light';
+    ctx.drawImage(img, x - shift, y, img.naturalWidth, TILE);
+    ctx.drawImage(img, x - shift + img.naturalWidth, y, img.naturalWidth, TILE);
+    ctx.restore();
   }
 
   private drawGrass(x: number, y: number, c: number, r: number): void {
     const { ctx, theme } = this;
     ctx.fillStyle = (c + r) % 2 === 0 ? theme.grassA : theme.grassB;
     ctx.fillRect(x, y, TILE, TILE);
+    if (texReady(TEX.grass)) this.stampTexture(TEX.grass, x, y, c, r, 0.42, 'multiply');
     ctx.strokeStyle = theme.blade;
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.15 * PX;
     ctx.beginPath();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 8; i++) {
       const hx = hash(c, r, i);
       const hy = hash(c, r, i + 9);
-      const px = x + 6 + hx * 36;
-      const py = y + 10 + hy * 30;
+      const px = x + 5 * PX + hx * (TILE - 10 * PX);
+      const py = y + 10 * PX + hy * (TILE - 16 * PX);
       ctx.moveTo(px, py);
-      ctx.lineTo(px + 1.5, py - 5 - hy * 4);
+      ctx.lineTo(px + 1.6 * PX, py - (6 + hy * 5) * PX);
     }
     ctx.stroke();
+    ctx.fillStyle = 'rgba(255, 255, 220, 0.07)';
+    const speck = hash(c, r, 40);
+    ctx.beginPath();
+    ctx.arc(x + 10 * PX + speck * (TILE - 20 * PX), y + 12 * PX + hash(c, r, 41) * (TILE - 24 * PX), 1.4 * PX, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   private drawDirt(x: number, y: number, c: number, r: number): void {
@@ -101,59 +153,71 @@ export class Renderer {
     ctx.fillStyle = theme.pathEdge;
     ctx.fillRect(x, y, TILE, TILE);
     ctx.fillStyle = theme.pathMid;
-    ctx.fillRect(x + 3, y + 3, TILE - 6, TILE - 6);
+    ctx.fillRect(x + 4 * PX, y + 4 * PX, TILE - 8 * PX, TILE - 8 * PX);
+    if (texReady(TEX.dirt)) this.stampTexture(TEX.dirt, x, y, c, r, 0.5, 'multiply');
+    this.stampWater(x, y);
     ctx.fillStyle = theme.pathLight;
-    ctx.fillRect(x + 10, y + 11, TILE - 22, TILE - 24);
+    ctx.fillRect(x + 12 * PX, y + 13 * PX, TILE - 26 * PX, TILE - 28 * PX);
     ctx.fillStyle = theme.pebble;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 6; i++) {
       const hx = hash(c, r, 20 + i);
       const hy = hash(c, r, 30 + i);
-      ctx.globalAlpha = 0.35 + hx * 0.35;
+      ctx.globalAlpha = 0.32 + hx * 0.4;
       ctx.beginPath();
-      ctx.arc(x + 8 + hx * 32, y + 8 + hy * 32, 1.2 + hy, 0, Math.PI * 2);
+      ctx.arc(x + 8 * PX + hx * (TILE - 16 * PX), y + 8 * PX + hy * (TILE - 16 * PX), (1.3 + hy * 1.4) * PX, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1.1 * PX;
     ctx.beginPath();
-    ctx.moveTo(x + 8, y + 20);
-    ctx.lineTo(x + 22, y + 28);
+    ctx.moveTo(x + 10 * PX, y + 24 * PX);
+    ctx.lineTo(x + 28 * PX, y + 36 * PX);
+    ctx.moveTo(x + 18 * PX, y + 14 * PX);
+    ctx.lineTo(x + 40 * PX, y + 22 * PX);
     ctx.stroke();
   }
 
   private drawTree(cx: number, cy: number, c: number, r: number): void {
     const { ctx, theme } = this;
-    const lean = (hash(c, r, 1) - 0.5) * 6;
     ctx.fillStyle = 'rgba(0,0,0,0.28)';
     ctx.beginPath();
-    ctx.ellipse(cx, cy + 12, 12, 4.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy + 16 * PX, 16 * PX, 5.5 * PX, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    if (texReady(TEX.tree)) {
+      const tw = TILE * 1.2;
+      const th = TILE * 1.45;
+      ctx.drawImage(TEX.tree, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      return;
+    }
+
+    const lean = (hash(c, r, 1) - 0.5) * 8 * PX;
     ctx.fillStyle = theme.trunk;
     ctx.beginPath();
-    ctx.moveTo(cx - 3 + lean, cy + 12);
-    ctx.lineTo(cx + 3 + lean, cy + 12);
-    ctx.lineTo(cx + 2, cy - 4);
-    ctx.lineTo(cx - 2, cy - 4);
+    ctx.moveTo(cx - 4 * PX + lean, cy + 16 * PX);
+    ctx.lineTo(cx + 4 * PX + lean, cy + 16 * PX);
+    ctx.lineTo(cx + 2.5 * PX, cy - 5 * PX);
+    ctx.lineTo(cx - 2.5 * PX, cy - 5 * PX);
     ctx.closePath();
     ctx.fill();
-    const canopy = ctx.createRadialGradient(cx - 3, cy - 10, 2, cx, cy - 4, 18);
+    const canopy = ctx.createRadialGradient(cx - 4 * PX, cy - 14 * PX, 2 * PX, cx, cy - 5 * PX, 24 * PX);
     canopy.addColorStop(0, theme.canopy);
     canopy.addColorStop(1, theme.canopyDark);
     ctx.fillStyle = canopy;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 20);
-    ctx.lineTo(cx + 16, cy - 2);
-    ctx.lineTo(cx + 8, cy + 2);
-    ctx.lineTo(cx - 8, cy + 2);
-    ctx.lineTo(cx - 16, cy - 2);
+    ctx.moveTo(cx, cy - 26 * PX);
+    ctx.lineTo(cx + 21 * PX, cy - 2 * PX);
+    ctx.lineTo(cx + 10 * PX, cy + 3 * PX);
+    ctx.lineTo(cx - 10 * PX, cy + 3 * PX);
+    ctx.lineTo(cx - 21 * PX, cy - 2 * PX);
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = theme.canopy;
     ctx.beginPath();
-    ctx.moveTo(cx - 2, cy - 16);
-    ctx.lineTo(cx + 7, cy - 6);
-    ctx.lineTo(cx - 8, cy - 4);
+    ctx.moveTo(cx - 3 * PX, cy - 21 * PX);
+    ctx.lineTo(cx + 9 * PX, cy - 8 * PX);
+    ctx.lineTo(cx - 11 * PX, cy - 5 * PX);
     ctx.closePath();
     ctx.fill();
   }
@@ -162,7 +226,7 @@ export class Renderer {
     if (waypoints.length < 2) return;
     const { ctx, theme } = this;
     ctx.strokeStyle = theme.glow;
-    ctx.lineWidth = 24;
+    ctx.lineWidth = 32 * PX;
     ctx.lineCap = 'butt';
     ctx.lineJoin = 'miter';
     ctx.beginPath();
@@ -178,40 +242,40 @@ export class Renderer {
     const s = waypoints[0];
     const e = waypoints[waypoints.length - 1];
 
-    const sg = ctx.createRadialGradient(s.x, s.y, 2, s.x, s.y, 28 * pulse);
+    const sg = ctx.createRadialGradient(s.x, s.y, 2 * PX, s.x, s.y, 36 * PX * pulse);
     sg.addColorStop(0, 'rgba(110, 182, 234, 0.95)');
     sg.addColorStop(1, 'rgba(110, 182, 234, 0)');
     ctx.fillStyle = sg;
     ctx.beginPath();
-    ctx.arc(s.x, s.y, 28 * pulse, 0, Math.PI * 2);
+    ctx.arc(s.x, s.y, 36 * PX * pulse, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#dfefff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(s.x - 8, s.y - 8, 16, 16);
+    ctx.lineWidth = 2.2 * PX;
+    ctx.strokeRect(s.x - 10 * PX, s.y - 10 * PX, 20 * PX, 20 * PX);
     ctx.fillStyle = '#dfefff';
-    ctx.font = 'bold 11px DM Sans, sans-serif';
+    ctx.font = `bold ${Math.round(13 * PX)}px DM Sans, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('IN', s.x, s.y - 32);
+    ctx.fillText('IN', s.x, s.y - 42 * PX);
 
-    const eg = ctx.createRadialGradient(e.x, e.y, 2, e.x, e.y, 30 * pulse);
+    const eg = ctx.createRadialGradient(e.x, e.y, 2 * PX, e.x, e.y, 38 * PX * pulse);
     eg.addColorStop(0, 'rgba(239, 71, 111, 0.95)');
     eg.addColorStop(1, 'rgba(239, 71, 111, 0)');
     ctx.fillStyle = eg;
     ctx.beginPath();
-    ctx.arc(e.x, e.y, 30 * pulse, 0, Math.PI * 2);
+    ctx.arc(e.x, e.y, 38 * PX * pulse, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffb070';
     ctx.beginPath();
-    ctx.moveTo(e.x, e.y - 11);
-    ctx.lineTo(e.x + 10, e.y + 7);
-    ctx.lineTo(e.x - 10, e.y + 7);
+    ctx.moveTo(e.x, e.y - 14 * PX);
+    ctx.lineTo(e.x + 13 * PX, e.y + 9 * PX);
+    ctx.lineTo(e.x - 13 * PX, e.y + 9 * PX);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = '#ffd6e0';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.6 * PX;
     ctx.stroke();
     ctx.fillStyle = '#ffd6e0';
-    ctx.fillText('BASE', e.x, e.y - 34);
+    ctx.fillText('BASE', e.x, e.y - 44 * PX);
   }
 
   drawTower(t: Tower, selected: boolean): void {
@@ -237,7 +301,7 @@ export class Renderer {
   drawFloating(texts: FloatingText[]): void {
     const { ctx } = this;
     ctx.textAlign = 'center';
-    ctx.font = 'bold 14px DM Sans, sans-serif';
+    ctx.font = `bold ${Math.round(16 * PX)}px DM Sans, sans-serif`;
     for (const t of texts) {
       ctx.globalAlpha = Math.min(1, t.life);
       ctx.fillStyle = t.color;
@@ -249,11 +313,11 @@ export class Renderer {
   drawPausedBanner(): void {
     const { ctx } = this;
     ctx.fillStyle = 'rgba(7, 16, 24, 0.45)';
-    ctx.fillRect(0, 0, COLS * TILE, 36);
+    ctx.fillRect(0, 0, COLS * TILE, 44 * PX);
     ctx.fillStyle = '#f4d35e';
-    ctx.font = 'bold 16px Syne, sans-serif';
+    ctx.font = `bold ${Math.round(18 * PX)}px Syne, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('PAUSED — click enemies or towers to inspect', (COLS * TILE) / 2, 24);
+    ctx.fillText('PAUSED — click enemies or towers to inspect', (COLS * TILE) / 2, 30 * PX);
   }
 }
 

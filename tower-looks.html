@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tower look options</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0b0d;
+        --panel: #16141a;
+        --line: #3a342c;
+        --text: #f3ece3;
+        --muted: #a89888;
+        --accent: #e07040;
+        --font-display: 'Syne', system-ui, sans-serif;
+        --font-body: 'DM Sans', system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #0b0b0d;
+        color: var(--text);
+        font-family: var(--font-body);
+      }
+      body {
+        padding: 18px 18px 48px;
+      }
+      h1 {
+        font-family: var(--font-display);
+        font-size: 1.7rem;
+        margin: 0 0 6px;
+      }
+      .lede {
+        color: var(--muted);
+        margin: 0 0 22px;
+        max-width: 52rem;
+        line-height: 1.45;
+      }
+      .kind {
+        margin: 0 0 28px;
+      }
+      .kind h2 {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        margin: 0 0 10px;
+        color: #e8c878;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      @media (max-width: 900px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        appearance: none;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 10px;
+        color: inherit;
+        cursor: pointer;
+        padding: 12px;
+        min-height: 300px;
+        text-align: left;
+        font: inherit;
+      }
+      .card:focus-visible,
+      .card.picked {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(224, 112, 64, 0.35);
+      }
+      canvas {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        background: #1a2830;
+      }
+      .name {
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+      .blurb {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.35;
+      }
+      #picks {
+        position: sticky;
+        bottom: 0;
+        background: #16141aee;
+        border: 2px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 8px;
+        font-size: 1rem;
+      }
+      #picks strong {
+        color: #e8c878;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tower look options</h1>
+    <p class="lede">
+      Epic fantasy pass — runes, gold trim, glowing cores. Think raid boss siege, not a cartoon, not
+      a history museum. Click a card to mark a pick.
+    </p>
+    <div id="gallery"></div>
+    <div id="picks">No picks yet — click a look under each tower.</div>
+    <script>
+      const KINDS = [
+        {
+          id: 'arrow',
+          title: 'Arrow — fast single shots',
+          looks: [
+            { id: 'watch', name: 'Watch turret', blurb: 'Moonlit sentinel post, silver bow, glowing string.' },
+            { id: 'nest', name: 'Ranger nest', blurb: 'Warden tree-fort, spirit bow, rune-tipped arrow.' },
+            { id: 'ballista', name: 'Ballista', blurb: 'Gold-banded siege bow, crystal-headed bolt.' },
+          ],
+        },
+        {
+          id: 'cannon',
+          title: 'Cannon — slow splash, armor shred',
+          looks: [
+            { id: 'mortar', name: 'Siege mortar', blurb: 'Dwarven pot, molten core, lion-mouth muzzle.' },
+            { id: 'gun', name: 'Field gun', blurb: 'Dragon-head bronze, hextech bands, ember trail.' },
+            { id: 'bombard', name: 'Bombard', blurb: 'Keep cannon, rune collar, focusing crystal.' },
+          ],
+        },
+        {
+          id: 'ice',
+          title: 'Ice — freeze packs',
+          looks: [
+            { id: 'spire', name: 'Crystal spire', blurb: 'Frozen throne shards, inner sapphire light.' },
+            { id: 'well', name: 'Frozen well', blurb: 'Arcane font, circling frost glyphs.' },
+            { id: 'obelisk', name: 'Obelisk', blurb: 'Icecrown pillar, gold bands, killing point.' },
+          ],
+        },
+        {
+          id: 'lightning',
+          title: 'Lightning — chain',
+          looks: [
+            { id: 'tesla', name: 'Tesla coil', blurb: 'Hextech coil, arcane core, snapping storm.' },
+            { id: 'rod', name: 'Storm rod', blurb: 'Shaman totem, horned cap, chained lightning.' },
+            { id: 'pylons', name: 'Rune pylons', blurb: 'Twin arcane pylons, energy bridge.' },
+          ],
+        },
+        {
+          id: 'fire',
+          title: 'Fire — napalm + burn',
+          looks: [
+            { id: 'brazier', name: 'Brazier', blurb: 'Phoenix bowl, horned rim, living flame.' },
+            { id: 'thrower', name: 'Flamethrower', blurb: 'Dragon-skull nozzle, molten tank.' },
+            { id: 'forge', name: 'Forge', blurb: 'Rune hearth, chimney, white-hot core.' },
+          ],
+        },
+        {
+          id: 'poison',
+          title: 'Poison — long venom',
+          looks: [
+            { id: 'vat', name: 'Alchemy vat', blurb: 'Plague cauldron, gold hoops, toxic glow.' },
+            { id: 'shroom', name: 'Mushroom grove', blurb: 'Zaun-caps with rune spots, spore halo.' },
+            { id: 'censer', name: 'Censer', blurb: 'Unholy lantern, hanging chains, venom mist.' },
+          ],
+        },
+      ];
+
+      const picks = {};
+      const canvases = [];
+
+      function rnd(n) {
+        const x = Math.sin(n * 127.1) * 43758.5453;
+        return x - Math.floor(x);
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rr);
+        ctx.arcTo(x + w, y + h, x, y + h, rr);
+        ctx.arcTo(x, y + h, x, y, rr);
+        ctx.arcTo(x, y, x + w, y, rr);
+        ctx.closePath();
+      }
+
+      function aura(ctx, color, r, t) {
+        const g = ctx.createRadialGradient(0, 2, 2, 0, 2, r);
+        g.addColorStop(0, color + '55');
+        g.addColorStop(0.55, color + '22');
+        g.addColorStop(1, color + '00');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(0, 2, r + Math.sin(t * 3) * 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function goldBand(ctx, x, y, w, h) {
+        const g = ctx.createLinearGradient(x, y, x, y + h);
+        g.addColorStop(0, '#ffe9a0');
+        g.addColorStop(0.4, '#e0b24a');
+        g.addColorStop(1, '#8a5a18');
+        ctx.fillStyle = g;
+        roundRect(ctx, x, y, w, h, 1);
+        ctx.fill();
+      }
+
+      function steel(ctx, x, y, w, h, r) {
+        const g = ctx.createLinearGradient(x, y, x + w, y + h);
+        g.addColorStop(0, '#d8e0ea');
+        g.addColorStop(0.35, '#6a7888');
+        g.addColorStop(1, '#243040');
+        ctx.fillStyle = g;
+        roundRect(ctx, x, y, w, h, r);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.28)';
+        ctx.fillRect(x + 1, y + 1, w * 0.35, Math.max(1.2, h * 0.18));
+      }
+
+      function wood(ctx, x, y, w, h, seed) {
+        const g = ctx.createLinearGradient(x, y, x + w, y + h);
+        g.addColorStop(0, '#d4a06a');
+        g.addColorStop(0.4, '#8a4a28');
+        g.addColorStop(1, '#4a2414');
+        ctx.fillStyle = g;
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = 'rgba(40,16,8,0.35)';
+        for (let i = 0; i < 4; i++) {
+          const yy = y + 2 + rnd(seed + i) * (h - 4);
+          ctx.beginPath();
+          ctx.moveTo(x, yy);
+          ctx.lineTo(x + w, yy);
+          ctx.stroke();
+        }
+      }
+
+      function rune(ctx, x, y, s, color, t) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.65 + Math.sin(t * 4 + x) * 0.25;
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(-s, s);
+        ctx.lineTo(0, -s);
+        ctx.lineTo(s, s);
+        ctx.moveTo(-s * 0.4, 0);
+        ctx.lineTo(s * 0.4, 0);
+        ctx.stroke();
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function crystal(ctx, x, y, w, h, c1, c2) {
+        const g = ctx.createLinearGradient(x, y, x + w, y + h);
+        g.addColorStop(0, c1);
+        g.addColorStop(1, c2);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + w, y + h * 0.45);
+        ctx.lineTo(x, y + h);
+        ctx.lineTo(x - w, y + h * 0.45);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.beginPath();
+        ctx.moveTo(x - w * 0.15, y + 2);
+        ctx.lineTo(x + w * 0.2, y + h * 0.4);
+        ctx.lineTo(x - w * 0.05, y + h * 0.38);
+        ctx.fill();
+      }
+
+      function motes(ctx, t, color, n) {
+        ctx.fillStyle = color;
+        for (let i = 0; i < n; i++) {
+          const a = t * 0.7 + i * 1.7;
+          ctx.globalAlpha = 0.35 + Math.sin(a) * 0.25;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * 16, Math.sin(a * 1.3) * 8 - 8, 1.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function ground(ctx, w, h, seed) {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, '#2a4a58');
+        g.addColorStop(0.45, '#3a6a48');
+        g.addColorStop(1, '#4a6a38');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'rgba(255,220,120,0.08)';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.5, h * 0.2, w * 0.4, 30, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#6aaa58';
+        for (let i = 0; i < 20; i++) {
+          ctx.fillRect(rnd(seed + i) * w, 20 + rnd(seed + i + 9) * h * 0.5, 1.5, 6);
+        }
+      }
+
+      function pad(ctx) {
+        ctx.fillStyle = 'rgba(0,0,0,0.28)';
+        ctx.beginPath();
+        ctx.ellipse(1, 24, 24, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const g = ctx.createRadialGradient(-4, 18, 2, 0, 21, 20);
+        g.addColorStop(0, '#8a6a40');
+        g.addColorStop(1, '#3a2a18');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.ellipse(0, 21, 20, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        goldBand(ctx, -12, 16, 24, 2);
+      }
+
+      function drawLook(ctx, kind, look, t) {
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ground(ctx, w, h, kind.length + look.length);
+        ctx.save();
+        ctx.translate(w / 2, h * 0.62);
+        ctx.scale(2.9, 2.9);
+        pad(ctx);
+        const fn = DRAW[kind + ':' + look];
+        if (fn) fn(ctx, t);
+        ctx.restore();
+      }
+
+      const DRAW = {
+        'arrow:watch'(ctx, t) {
+          aura(ctx, '#7ec8ff', 22, t);
+          wood(ctx, -18, 6, 36, 12, 1);
+          goldBand(ctx, -16, 5, 32, 2.5);
+          for (let i = 0; i < 6; i++) wood(ctx, -16 + i * 5.5, -10, 5, 18, 2 + i);
+          steel(ctx, -3, -18, 6, 18, 1);
+          ctx.save();
+          ctx.rotate(Math.sin(t * 0.5) * 0.12);
+          ctx.strokeStyle = '#c8e8ff';
+          ctx.shadowColor = '#4aa8ff';
+          ctx.shadowBlur = 8;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, -8, 13, 0.4, 5.6);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = '#ffe9a0';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(-10, -8);
+          ctx.lineTo(16, -9);
+          ctx.stroke();
+          crystal(ctx, 18, -14, 3, 10, '#e8f4ff', '#3a8ad0');
+          ctx.restore();
+          rune(ctx, -10, 10, 2.2, '#7ec8ff', t);
+        },
+        'arrow:nest'(ctx, t) {
+          aura(ctx, '#6adf8a', 20, t);
+          ctx.fillStyle = '#5a3820';
+          ctx.beginPath();
+          ctx.ellipse(0, 12, 16, 7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          wood(ctx, -12, -8, 24, 22, 10);
+          ctx.fillStyle = '#c8a070';
+          ctx.beginPath();
+          ctx.ellipse(0, -8, 11, 4, 0, 0, Math.PI * 2);
+          ctx.fill();
+          goldBand(ctx, -11, 2, 22, 2);
+          ctx.strokeStyle = '#b6f08a';
+          ctx.shadowColor = '#4aaa40';
+          ctx.shadowBlur = 10;
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.arc(1, -12, 12, 0.35, 5.6);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          crystal(ctx, 16, -18, 3.2, 12, '#d8ffc0', '#2a8a40');
+          motes(ctx, t, '#8ee05a', 5);
+        },
+        'arrow:ballista'(ctx, t) {
+          aura(ctx, '#f0c878', 22, t);
+          wood(ctx, -24, 8, 48, 10, 20);
+          wood(ctx, -6, -10, 12, 22, 21);
+          wood(ctx, -26, -16, 10, 24, 22);
+          wood(ctx, 16, -16, 10, 24, 23);
+          goldBand(ctx, -22, -11, 44, 3);
+          ctx.strokeStyle = '#ffe9a0';
+          ctx.shadowColor = '#e0b24a';
+          ctx.shadowBlur = 8;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(-22, -16);
+          ctx.quadraticCurveTo(0, -26, 22, -16);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          steel(ctx, -4, -13, 26, 3, 1);
+          crystal(ctx, 26, -18, 4, 12, '#fff4c8', '#c48a20');
+          rune(ctx, 0, 12, 2.4, '#ffe9a0', t);
+        },
+        'cannon:mortar'(ctx, t) {
+          aura(ctx, '#ff7a30', 22, t);
+          wood(ctx, -20, 8, 40, 11, 30);
+          steel(ctx, -18, -6, 36, 18, 6);
+          goldBand(ctx, -16, 2, 32, 2.5);
+          ctx.fillStyle = '#1a1008';
+          ctx.beginPath();
+          ctx.ellipse(0, -8, 9, 6, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = `rgba(255,140,40,${0.55 + Math.sin(t * 6) * 0.25})`;
+          ctx.beginPath();
+          ctx.ellipse(0, -9, 6, 3.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#e8c878';
+          ctx.beginPath();
+          ctx.moveTo(-10, -6);
+          ctx.lineTo(-14, -14);
+          ctx.lineTo(-6, -8);
+          ctx.moveTo(10, -6);
+          ctx.lineTo(14, -14);
+          ctx.lineTo(6, -8);
+          ctx.fill();
+          rune(ctx, 0, 10, 2.2, '#ff9a40', t);
+        },
+        'cannon:gun'(ctx, t) {
+          aura(ctx, '#ffb040', 20, t);
+          ctx.fillStyle = '#4a3a28';
+          ctx.beginPath();
+          ctx.arc(-14, 13, 8, 0, Math.PI * 2);
+          ctx.arc(13, 13, 8, 0, Math.PI * 2);
+          ctx.fill();
+          goldBand(ctx, -16, 11, 6, 4);
+          goldBand(ctx, 11, 11, 6, 4);
+          wood(ctx, -18, 2, 36, 9, 40);
+          ctx.save();
+          ctx.rotate(-0.18);
+          const tube = ctx.createLinearGradient(0, -12, 0, 4);
+          tube.addColorStop(0, '#f0d090');
+          tube.addColorStop(0.5, '#c07828');
+          tube.addColorStop(1, '#5a3010');
+          ctx.fillStyle = tube;
+          roundRect(ctx, -10, -12, 40, 11, 3);
+          ctx.fill();
+          goldBand(ctx, 4, -11, 3, 9);
+          goldBand(ctx, 16, -11, 3, 9);
+          ctx.fillStyle = '#8a2010';
+          ctx.beginPath();
+          ctx.moveTo(30, -12);
+          ctx.lineTo(42, -6.5);
+          ctx.lineTo(30, -1);
+          ctx.fill();
+          ctx.fillStyle = `rgba(255,180,60,${0.4 + Math.sin(t * 8) * 0.25})`;
+          ctx.beginPath();
+          ctx.ellipse(40, -6.5, 5, 3, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        },
+        'cannon:bombard'(ctx, t) {
+          aura(ctx, '#e8c878', 20, t);
+          steel(ctx, -20, 2, 40, 16, 4);
+          goldBand(ctx, -18, 8, 36, 3);
+          ctx.fillStyle = '#2a1810';
+          ctx.beginPath();
+          ctx.ellipse(0, -4, 8, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          crystal(ctx, 0, -26, 6, 20, '#ffe9a0', '#c06020');
+          rune(ctx, -12, 12, 2, '#ffe9a0', t);
+          rune(ctx, 12, 12, 2, '#ffe9a0', t + 1);
+        },
+        'ice:spire'(ctx, t) {
+          aura(ctx, '#7ec8ff', 24, t);
+          crystal(ctx, 0, -30, 8, 36, '#e8f8ff', '#3a88c8');
+          crystal(ctx, -10, -16, 5, 22, '#b0e0ff', '#2468a8');
+          crystal(ctx, 11, -14, 5, 20, '#ffffff', '#5aa8d8');
+          goldBand(ctx, -8, 4, 16, 2.5);
+          motes(ctx, t, '#c8f0ff', 6);
+        },
+        'ice:well'(ctx, t) {
+          aura(ctx, '#9ad4ea', 22, t);
+          steel(ctx, -16, 2, 32, 14, 4);
+          goldBand(ctx, -14, 6, 28, 2);
+          ctx.fillStyle = '#7ec8ff';
+          ctx.beginPath();
+          ctx.ellipse(0, 2, 11, 4.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.55)';
+          ctx.beginPath();
+          ctx.ellipse(-2, 1, 6, 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          for (let i = 0; i < 6; i++) {
+            const a = t * 1.2 + i * 1.05;
+            rune(ctx, Math.cos(a) * 14, Math.sin(a) * 5 - 2, 1.6, '#c8f0ff', t);
+          }
+        },
+        'ice:obelisk'(ctx, t) {
+          aura(ctx, '#a8e0ff', 22, t);
+          ctx.fillStyle = '#8ec8e8';
+          ctx.beginPath();
+          ctx.moveTo(0, -32);
+          ctx.lineTo(8, 12);
+          ctx.lineTo(-8, 12);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.5)';
+          ctx.beginPath();
+          ctx.moveTo(0, -32);
+          ctx.lineTo(3, 6);
+          ctx.lineTo(-1, 6);
+          ctx.fill();
+          goldBand(ctx, -8, -8, 16, 3);
+          goldBand(ctx, -7, 4, 14, 3);
+          rune(ctx, 0, -4, 2.4, '#e8f8ff', t);
+        },
+        'lightning:tesla'(ctx, t) {
+          aura(ctx, '#ffe566', 22, t);
+          wood(ctx, -16, 8, 32, 10, 80);
+          steel(ctx, -5, -14, 10, 24, 2);
+          goldBand(ctx, -6, -4, 12, 2);
+          ctx.strokeStyle = '#e8c878';
+          ctx.lineWidth = 2.8;
+          ctx.beginPath();
+          ctx.ellipse(0, -6, 12, 4.2, 0, 0, Math.PI * 2);
+          ctx.ellipse(0, 2, 15, 4.8, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = '#fff8d0';
+          ctx.shadowColor = '#ffe566';
+          ctx.shadowBlur = 16;
+          ctx.beginPath();
+          ctx.arc(0, -20, 5 + Math.sin(t * 12) * 1.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = 'rgba(255,250,180,0.9)';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(0, -20);
+          ctx.lineTo(9, -10);
+          ctx.lineTo(-7, -8);
+          ctx.lineTo(4, 0);
+          ctx.stroke();
+        },
+        'lightning:rod'(ctx, t) {
+          aura(ctx, '#fff4b0', 20, t);
+          steel(ctx, -12, 6, 24, 12, 3);
+          goldBand(ctx, -10, 10, 20, 2);
+          const rod = ctx.createLinearGradient(0, -30, 0, 10);
+          rod.addColorStop(0, '#fff8e0');
+          rod.addColorStop(1, '#4a5868');
+          ctx.fillStyle = rod;
+          ctx.beginPath();
+          ctx.moveTo(-2.5, 10);
+          ctx.lineTo(-1, -26);
+          ctx.lineTo(3.5, -28);
+          ctx.lineTo(2.5, 10);
+          ctx.fill();
+          ctx.fillStyle = '#e8c878';
+          ctx.beginPath();
+          ctx.moveTo(1, -34);
+          ctx.lineTo(7, -24);
+          ctx.lineTo(-5, -24);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(1, -34);
+          ctx.lineTo(8, -30);
+          ctx.lineTo(3, -26);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255,245,180,0.9)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(1, 6);
+          ctx.lineTo(8, -2);
+          ctx.lineTo(-4, -10);
+          ctx.lineTo(3, -20);
+          ctx.stroke();
+        },
+        'lightning:pylons'(ctx, t) {
+          aura(ctx, '#c8b0ff', 22, t);
+          steel(ctx, -22, -16, 8, 32, 2);
+          steel(ctx, 14, -16, 8, 32, 2);
+          goldBand(ctx, -23, -4, 10, 2);
+          goldBand(ctx, 13, -4, 10, 2);
+          crystal(ctx, -18, -30, 4, 14, '#e8d8ff', '#7a40d0');
+          crystal(ctx, 18, -30, 4, 14, '#e8d8ff', '#7a40d0');
+          ctx.strokeStyle = `rgba(210,180,255,${0.55 + Math.sin(t * 8) * 0.35})`;
+          ctx.shadowColor = '#a070ff';
+          ctx.shadowBlur = 10;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(-18, -24);
+          ctx.lineTo(-4, -12);
+          ctx.lineTo(6, -22);
+          ctx.lineTo(18, -24);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        },
+        'fire:brazier'(ctx, t) {
+          aura(ctx, '#ff6a2a', 24, t);
+          steel(ctx, -18, 2, 36, 14, 4);
+          goldBand(ctx, -16, 8, 32, 2.5);
+          ctx.fillStyle = '#e8c878';
+          ctx.beginPath();
+          ctx.moveTo(-16, 2);
+          ctx.lineTo(-20, -8);
+          ctx.lineTo(-12, 2);
+          ctx.moveTo(16, 2);
+          ctx.lineTo(20, -8);
+          ctx.lineTo(12, 2);
+          ctx.fill();
+          const f = 1 + Math.sin(t * 11) * 0.1;
+          ctx.fillStyle = '#ff4a18';
+          ctx.beginPath();
+          ctx.moveTo(-8, 6);
+          ctx.quadraticCurveTo(18 * f, -2, 0, -22 * f);
+          ctx.quadraticCurveTo(-18 * f, -2, 8, 6);
+          ctx.fill();
+          ctx.fillStyle = '#ffe08a';
+          ctx.beginPath();
+          ctx.moveTo(-3, 4);
+          ctx.quadraticCurveTo(8, 0, 0, -14 * f);
+          ctx.quadraticCurveTo(-8, 0, 3, 4);
+          ctx.fill();
+        },
+        'fire:thrower'(ctx, t) {
+          aura(ctx, '#ff8030', 22, t);
+          steel(ctx, -18, -6, 24, 22, 7);
+          goldBand(ctx, -16, 4, 20, 2.5);
+          ctx.save();
+          ctx.rotate(-0.08);
+          ctx.fillStyle = '#c05020';
+          ctx.beginPath();
+          ctx.moveTo(6, -10);
+          ctx.lineTo(28, -14);
+          ctx.lineTo(34, -4);
+          ctx.lineTo(28, 6);
+          ctx.lineTo(6, 2);
+          ctx.fill();
+          ctx.fillStyle = '#1a1008';
+          ctx.beginPath();
+          ctx.ellipse(30, -4, 4, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          const jet = 1 + Math.sin(t * 13) * 0.1;
+          ctx.fillStyle = '#ff6a2a';
+          ctx.beginPath();
+          ctx.moveTo(32, -6);
+          ctx.quadraticCurveTo(48, -14 * jet, 56, -4);
+          ctx.quadraticCurveTo(48, 6 * jet, 32, -2);
+          ctx.fill();
+          ctx.fillStyle = '#ffe08a';
+          ctx.beginPath();
+          ctx.moveTo(32, -4);
+          ctx.quadraticCurveTo(44, -6, 50, -4);
+          ctx.quadraticCurveTo(44, -1, 32, -3);
+          ctx.fill();
+          ctx.restore();
+        },
+        'fire:forge'(ctx, t) {
+          aura(ctx, '#ff9040', 20, t);
+          ctx.fillStyle = '#c06038';
+          ctx.fillRect(-20, 2, 40, 16);
+          ctx.fillStyle = '#8a3018';
+          ctx.fillRect(-18, 10, 36, 8);
+          goldBand(ctx, -18, 6, 36, 2);
+          steel(ctx, 8, -24, 10, 28, 2);
+          ctx.fillStyle = `rgba(255,80,20,${0.6 + Math.sin(t * 6) * 0.2})`;
+          ctx.fillRect(-12, 8, 18, 8);
+          ctx.fillStyle = `rgba(255,230,120,${0.55 + Math.sin(t * 8) * 0.2})`;
+          ctx.fillRect(-6, 10, 8, 4);
+          rune(ctx, -8, 0, 2, '#ffe08a', t);
+        },
+        'poison:vat'(ctx, t) {
+          aura(ctx, '#7edc4a', 22, t);
+          wood(ctx, -16, 10, 32, 8, 120);
+          const glass = ctx.createLinearGradient(-13, -14, 13, 12);
+          glass.addColorStop(0, '#d8ff90');
+          glass.addColorStop(0.4, '#40c040');
+          glass.addColorStop(1, '#145828');
+          ctx.fillStyle = glass;
+          roundRect(ctx, -13, -14, 26, 26, 10);
+          ctx.fill();
+          goldBand(ctx, -14, -2, 28, 3);
+          goldBand(ctx, -13, 8, 26, 3);
+          ctx.fillStyle = 'rgba(220,255,160,0.55)';
+          ctx.beginPath();
+          ctx.ellipse(0, -6, 9, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#c8c0b4';
+          ctx.fillRect(11, -6, 10, 3);
+          ctx.fillStyle = '#8ee05a';
+          ctx.beginPath();
+          ctx.arc(21, 8 + Math.sin(t * 4) * 1.4, 2, 0, Math.PI * 2);
+          ctx.fill();
+          rune(ctx, 0, 2, 2.2, '#d8ff90', t);
+        },
+        'poison:shroom'(ctx, t) {
+          aura(ctx, '#8ee05a', 22, t);
+          wood(ctx, -20, 8, 40, 9, 130);
+          const caps = [
+            [0, -6, 13, '#6adf4a'],
+            [-13, 2, 8, '#3aaa38'],
+            [13, 3, 7.5, '#c8f060'],
+          ];
+          for (const [x, y, r, c] of caps) {
+            ctx.fillStyle = '#e8d8b0';
+            ctx.fillRect(x - 2, y, 4, 14);
+            ctx.fillStyle = c;
+            ctx.beginPath();
+            ctx.ellipse(x, y, r, r * 0.5, 0, Math.PI, 0);
+            ctx.fill();
+            ctx.fillStyle = '#143218';
+            ctx.beginPath();
+            ctx.arc(x - 3, y - 1, 1.3, 0, Math.PI * 2);
+            ctx.arc(x + 3, y, 1.1, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          motes(ctx, t, '#c8f080', 6);
+        },
+        'poison:censer'(ctx, t) {
+          aura(ctx, '#7edc4a', 22, t);
+          steel(ctx, -10, 10, 20, 8, 2);
+          ctx.strokeStyle = '#e8c878';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(-8, 10);
+          ctx.lineTo(-10, -12);
+          ctx.lineTo(10, -12);
+          ctx.lineTo(8, 10);
+          ctx.stroke();
+          const brass = ctx.createRadialGradient(-3, -12, 2, 0, -4, 12);
+          brass.addColorStop(0, '#ffe08a');
+          brass.addColorStop(0.45, '#d4a03a');
+          brass.addColorStop(1, '#5a3810');
+          ctx.fillStyle = brass;
+          ctx.beginPath();
+          ctx.arc(0, -6, 10, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#0e3018';
+          ctx.beginPath();
+          ctx.arc(0, -7, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#8ee05a';
+          ctx.shadowColor = '#40c040';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(0, -7, 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          motes(ctx, t, '#b8e878', 5);
+        },
+      };
+
+      const gallery = document.getElementById('gallery');
+      for (const kind of KINDS) {
+        const section = document.createElement('section');
+        section.className = 'kind';
+        section.innerHTML = `<h2>${kind.title}</h2>`;
+        const row = document.createElement('div');
+        row.className = 'row';
+        for (const look of kind.looks) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'card';
+          btn.dataset.kind = kind.id;
+          btn.dataset.look = look.id;
+          const canvas = document.createElement('canvas');
+          canvas.width = 440;
+          canvas.height = 300;
+          btn.append(canvas);
+          const name = document.createElement('div');
+          name.className = 'name';
+          name.textContent = look.name;
+          const blurb = document.createElement('div');
+          blurb.className = 'blurb';
+          blurb.textContent = look.blurb;
+          btn.append(name, blurb);
+          btn.addEventListener('click', () => {
+            picks[kind.id] = look.name;
+            row.querySelectorAll('.card').forEach((el) => el.classList.remove('picked'));
+            btn.classList.add('picked');
+            syncPicks();
+          });
+          row.append(btn);
+          canvases.push({ canvas, kind: kind.id, look: look.id });
+        }
+        section.append(row);
+        gallery.append(section);
+      }
+
+      function syncPicks() {
+        const parts = KINDS.map((k) => {
+          const v = picks[k.id];
+          return v ? `${k.id}: ${v}` : `${k.id}: —`;
+        });
+        document.getElementById('picks').innerHTML = `<strong>Your picks</strong> — ${parts.join(' · ')}`;
+      }
+
+      function tick(now) {
+        const t = now / 1000;
+        for (const item of canvases) {
+          const ctx = item.canvas.getContext('2d');
+          drawLook(ctx, item.kind, item.look, t);
+        }
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    </script>
+  </body>
+</html>

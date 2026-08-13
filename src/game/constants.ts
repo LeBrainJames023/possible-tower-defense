@@ -1,14 +1,20 @@
-export const TILE = 48;
+export const TILE = 64;
 export const COLS = 20;
 export const ROWS = 12;
-export const MAP_W = COLS * TILE; // 960
-export const MAP_H = ROWS * TILE; // 576
+export const MAP_W = COLS * TILE; // 1280
+export const MAP_H = ROWS * TILE; // 768
+
+/** Authored at 48px tiles — scales ranges, speeds, and sprite sizes with TILE. */
+export const PX = TILE / 48;
+export function u(n: number): number {
+  return n * PX;
+}
 
 export const WAVES_PER_LEVEL = 10;
 export const LEVEL_COUNT = 10;
 
 /** Max lightning jump distance between chained foes. */
-export const CHAIN_RANGE = 108;
+export const CHAIN_RANGE = u(108);
 
 export type CellKind = 'grass' | 'path' | 'decor';
 
@@ -70,7 +76,7 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     role: 'DPS',
     color: '#6eb6ea',
     colorDark: '#1a4e7a',
-    range: 152,
+    range: u(152),
     damage: 12,
     fireRate: 2.0,
     splash: 0,
@@ -93,10 +99,10 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     role: 'AoE',
     color: '#e8893a',
     colorDark: '#6b2a08',
-    range: 162,
+    range: u(162),
     damage: 34,
     fireRate: 0.48,
-    splash: 72,
+    splash: u(72),
     slow: 0,
     slowDuration: 0,
     pierceArmor: true,
@@ -116,10 +122,10 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     role: 'Control',
     color: '#9ae4f7',
     colorDark: '#1a5f7c',
-    range: 128,
+    range: u(128),
     damage: 4,
     fireRate: 1.15,
-    splash: 52,
+    splash: u(52),
     slow: 0.5,
     slowDuration: 2.05,
     pierceArmor: false,
@@ -139,7 +145,7 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     role: 'Chain',
     color: '#ffe566',
     colorDark: '#8a6200',
-    range: 142,
+    range: u(142),
     damage: 18,
     fireRate: 1.08,
     splash: 0,
@@ -162,10 +168,10 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     role: 'Burn',
     color: '#ff6b4a',
     colorDark: '#8a180c',
-    range: 126,
+    range: u(126),
     damage: 12,
     fireRate: 0.92,
-    splash: 56,
+    splash: u(56),
     slow: 0,
     slowDuration: 0,
     pierceArmor: false,
@@ -185,10 +191,10 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     role: 'DoT',
     color: '#7be38a',
     colorDark: '#1a5c32',
-    range: 138,
+    range: u(138),
     damage: 5,
     fireRate: 1.05,
-    splash: 18,
+    splash: u(18),
     slow: 0.12,
     slowDuration: 1.0,
     pierceArmor: false,
@@ -203,12 +209,12 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
 };
 
 export const PROJECTILE_FEEL: Record<TowerKind, ProjectileFeel> = {
-  arrow: { speed: 560, arc: 0, homing: 1 },
-  cannon: { speed: 255, arc: 46, homing: 0.22 },
-  ice: { speed: 370, arc: 12, homing: 0.55 },
-  lightning: { speed: 900, arc: 0, homing: 0 },
-  fire: { speed: 305, arc: 20, homing: 0.38 },
-  poison: { speed: 290, arc: 10, homing: 0.5 },
+  arrow: { speed: u(560), arc: 0, homing: 1 },
+  cannon: { speed: u(255), arc: u(46), homing: 0.22 },
+  ice: { speed: u(370), arc: u(12), homing: 0.55 },
+  lightning: { speed: u(900), arc: 0, homing: 0 },
+  fire: { speed: u(305), arc: u(20), homing: 0.38 },
+  poison: { speed: u(290), arc: u(10), homing: 0.5 },
 };
 
 export const ENEMIES: Record<EnemyKind, EnemyDef> = {
@@ -217,10 +223,10 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     name: 'Scout',
     blurb: 'Fast and fragile — Ice helps a lot.',
     hp: 42,
-    speed: 82,
+    speed: u(82),
     reward: 9,
     armor: 0,
-    radius: 11,
+    radius: u(11),
     color: '#4ee0a5',
     colorDark: '#157a4a',
   },
@@ -229,10 +235,10 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     name: 'Grunt',
     blurb: 'Balanced fodder. Arrow towers chew them up.',
     hp: 100,
-    speed: 48,
+    speed: u(48),
     reward: 12,
     armor: 0.06,
-    radius: 14,
+    radius: u(14),
     color: '#a8b8c9',
     colorDark: '#334556',
   },
@@ -241,10 +247,10 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     name: 'Brute',
     blurb: 'Armored. Cannon pierces; Poison wears them down.',
     hp: 210,
-    speed: 32,
+    speed: u(32),
     reward: 26,
     armor: 0.4,
-    radius: 19,
+    radius: u(19),
     color: '#ff5d7a',
     colorDark: '#7a102c',
   },
@@ -253,10 +259,10 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     name: 'Swarm',
     blurb: 'Tiny packs. Splash and Lightning shine here.',
     hp: 22,
-    speed: 86,
+    speed: u(86),
     reward: 5,
     armor: 0,
-    radius: 9,
+    radius: u(9),
     color: '#9ff5e4',
     colorDark: '#1f6f62',
   },
@@ -265,10 +271,10 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     name: 'Colossus',
     blurb: 'Wave boss. Focus fire and keep slows up.',
     hp: 980,
-    speed: 24,
+    speed: u(24),
     reward: 110,
     armor: 0.3,
-    radius: 28,
+    radius: u(28),
     color: '#d4a0ff',
     colorDark: '#4a1480',
   },

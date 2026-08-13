@@ -163,8 +163,8 @@ export class FxWorld {
       this.particles.push({
         x: Math.random() * w,
         y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 8,
-        vy: -6 - Math.random() * 10,
+        vx: 18 + Math.random() * 16,
+        vy: -8 - Math.random() * 10,
         life: 8 + Math.random() * 10,
         maxLife: 18,
         size: 1 + Math.random() * 1.6,
@@ -192,7 +192,13 @@ export class FxWorld {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.vy += p.gravity * dt;
-      p.vx *= 0.98;
+      if (p.kind === 'mote') {
+        p.vx += 10 * dt;
+        p.vx = Math.min(p.vx, 42);
+        if (p.x > mapW + 12) p.life = 0;
+      } else {
+        p.vx *= 0.98;
+      }
     }
     this.particles = this.particles.filter((p) => p.life > 0);
     if (this.particles.length > MAX_PARTICLES) {
@@ -210,10 +216,10 @@ export class FxWorld {
     const motes = this.particles.filter((p) => p.kind === 'mote').length;
     if (motes < 22 && this.particles.length < MAX_PARTICLES) {
       this.particles.push({
-        x: Math.random() * mapW,
-        y: mapH + 4,
-        vx: (Math.random() - 0.5) * 8,
-        vy: -8 - Math.random() * 12,
+        x: -4,
+        y: Math.random() * mapH,
+        vx: 22 + Math.random() * 14,
+        vy: -6 - Math.random() * 10,
         life: 10,
         maxLife: 10,
         size: 1.2,

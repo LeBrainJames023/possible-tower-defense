@@ -3,7 +3,9 @@
 ## Visual direction
 
 - Deep slate night map, teal/blue accents, amber gold, coral danger
-- Geometric procedural sprites (no noisy textures)
+- Geometric procedural sprites, plus light CC0 texture overlays (multiply-tinted so levels keep their palettes)
+- Towers: Ballista, Field gun, Crystal spire, Rune pylons, Brazier, Alchemy vat — fantasy gold/runes, not toy icons
+- Wind motes drift across the map; path tiles get a faint scrolling water caustic
 - Readable HUD: Syne for titles, DM Sans for UI
 
 ## Interaction (BCI)

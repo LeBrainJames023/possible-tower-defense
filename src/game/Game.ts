@@ -6,6 +6,7 @@ import {
   PROJECTILE_FEEL,
   MAP_W,
   MAP_H,
+  u,
   type TowerKind,
 } from './constants';
 import {
@@ -29,6 +30,7 @@ import {
   type DifficultyId,
 } from './balance';
 import { dist, lerpAngle } from '../shared/math';
+import { offsetToMap, clientToMap, identityMapView, type MapView } from '../shared/pointer';
 import type { Vec2 } from '../shared/math';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
@@ -60,7 +62,7 @@ function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
   const segs = 5;
   for (let i = 1; i < segs; i++) {
     const t = i / segs;
-    const off = (Math.random() - 0.5) * 22;
+    const off = (Math.random() - 0.5) * u(22);
     pts.push({ x: x1 + dx * t + px * off, y: y1 + dy * t + py * off });
   }
   pts.push({ x: x2, y: y2 });
@@ -83,9 +85,11 @@ export class Game {
   lives = 0;
   waveIndex = 0; // completed waves
   phase: GamePhase = 'prepare';
-  selectedKind: TowerKind | null = 'arrow';
+  selectedKind: TowerKind | null = null;
   selectedTowerId: number | null = null;
   selectedEnemyId: number | null = null;
+  /** Grass cell waiting for the on-map Build menu. */
+  buildCell: { c: number; r: number } | null = null;
 
   towers: Tower[] = [];
   enemies: Enemy[] = [];
@@ -94,7 +98,10 @@ export class Game {
   floats: FloatingText[] = [];
 
   hover: { c: number; r: number } | null = null;
+  pointer: { x: number; y: number } | null = null;
   occupied = new Set<string>();
+  /** How the map sits inside the canvas — drawing and clicks share this. */
+  mapView: MapView = identityMapView(MAP_W, MAP_H);
 
   private spawnQueue: Array<{ kind: WaveSpawn['kind']; at: number }> = [];
   private waveTime = 0;
@@ -116,6 +123,8 @@ export class Game {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D unavailable');
     this.ctx = ctx;
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
     this.renderer = new Renderer(ctx);
   }
 
@@ -145,12 +154,14 @@ export class Game {
     this.occupied.clear();
     this.spawnQueue = [];
     this.waveActive = false;
-    this.selectedKind = 'arrow';
+    this.selectedKind = null;
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
+    this.buildCell = null;
     this.clock = 0;
     this.fx.clear();
     this.fx.seedAmbient(MAP_W, MAP_H);
+    this.audio.setAmbience(level.id === 2 || level.id === 8);
     this.onHud?.();
     this.ensureLoop();
   }
@@ -231,6 +242,10 @@ export class Game {
     this.onHud?.();
   }
 
+  canBuildAt(c: number, r: number): boolean {
+    return canPlaceOnCell(this.grid, c, r) && !this.occupied.has(`${c},${r}`);
+  }
+
   tryPlace(c: number, r: number): boolean {
     if (this.phase !== 'prepare' && this.phase !== 'wave') return false;
     if (!this.selectedKind) return false;
@@ -260,6 +275,7 @@ export class Game {
     this.selectedTowerId = tower.id;
     this.selectedEnemyId = null;
     this.fx.burst(x, y, def.color, 10, 'spark');
+    this.audio.place();
     this.floats.push({ x, y: y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
     this.onHud?.();
     return true;
@@ -274,17 +290,15 @@ export class Game {
     return true;
   }
 
-  selectEnemyAt(clientX: number, clientY: number): boolean {
-    const rect = this.canvas.getBoundingClientRect();
-    const scaleX = this.canvas.width / rect.width;
-    const scaleY = this.canvas.height / rect.height;
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
+  selectEnemyAt(): boolean {
+    const pt = this.pointer;
+    if (!pt) return false;
+    const { x, y } = pt;
     let best: Enemy | null = null;
-    let bestD = 36;
+    let bestD = u(36);
     for (const e of this.enemies) {
       const d = dist({ x, y }, e.pos);
-      const reach = Math.max(28, e.radius + 10);
+      const reach = Math.max(u(28), e.radius + u(10));
       if (d < reach && d < bestD) {
         bestD = d;
         best = e;
@@ -336,13 +350,29 @@ export class Game {
     return true;
   }
 
-  canvasToCell(clientX: number, clientY: number): { c: number; r: number } {
+  setPointerFromEvent(e: { offsetX: number; offsetY: number; clientX: number; clientY: number }): void {
+    const fromOffset = offsetToMap(e.offsetX, e.offsetY, this.mapView);
     const rect = this.canvas.getBoundingClientRect();
-    const scaleX = this.canvas.width / rect.width;
-    const scaleY = this.canvas.height / rect.height;
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
-    return { c: Math.floor(x / TILE), r: Math.floor(y / TILE) };
+    const pt = fromOffset ?? clientToMap(e.clientX, e.clientY, rect, this.mapView);
+    this.pointer = pt;
+    this.hover = pt ? { c: Math.floor(pt.x / TILE), r: Math.floor(pt.y / TILE) } : null;
+  }
+
+  setPointer(clientX: number, clientY: number): void {
+    const rect = this.canvas.getBoundingClientRect();
+    const pt = clientToMap(clientX, clientY, rect, this.mapView);
+    this.pointer = pt;
+    this.hover = pt ? { c: Math.floor(pt.x / TILE), r: Math.floor(pt.y / TILE) } : null;
+  }
+
+  clearPointer(): void {
+    this.pointer = null;
+    this.hover = null;
+  }
+
+  canvasToCell(clientX: number, clientY: number): { c: number; r: number } | null {
+    this.setPointer(clientX, clientY);
+    return this.hover;
   }
 
   private update(dt: number): void {
@@ -581,7 +611,7 @@ export class Game {
       const tgt = this.enemies.find((e) => e.id === p.targetId);
       if (tgt) apply(tgt);
       else {
-        const near = this.enemies.find((e) => dist({ x: p.x, y: p.y }, e.pos) < 20);
+        const near = this.enemies.find((e) => dist({ x: p.x, y: p.y }, e.pos) < u(20));
         if (near) apply(near);
       }
     }
@@ -591,26 +621,37 @@ export class Game {
 
   private draw(): void {
     this.renderer.time = this.clock;
+    const v = this.mapView;
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.fillStyle = '#071018';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.setTransform(v.scale, 0, 0, v.scale, v.padX, v.padY);
+
     const sh = this.fx.shake;
     this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.rect(0, 0, MAP_W, MAP_H);
+    this.ctx.clip();
     if (sh > 0.2) {
       this.ctx.translate((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh);
     }
     this.renderer.clear();
     this.renderer.drawPathGlow(this.waypoints);
+    const focus = this.buildCell ?? this.hover;
     const canPlace =
-      !!this.hover &&
+      !!focus &&
       !!this.selectedKind &&
-      canPlaceOnCell(this.grid, this.hover.c, this.hover.r) &&
-      !this.occupied.has(`${this.hover.c},${this.hover.r}`) &&
+      canPlaceOnCell(this.grid, focus.c, focus.r) &&
+      !this.occupied.has(`${focus.c},${focus.r}`) &&
       this.gold >= TOWERS[this.selectedKind].cost;
 
     this.renderer.drawGrid(
       this.grid,
-      this.hover,
+      focus,
       canPlace,
       this.selectedKind,
-      !!this.selectedKind,
+      true,
     );
     this.renderer.drawSpawnExit(this.waypoints);
     for (const t of this.towers) {

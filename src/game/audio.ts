@@ -1,25 +1,50 @@
 import type { TowerKind } from './constants';
 
 /**
- * Tiny procedural SFX bus (Web Audio). No sample files.
+ * Combat SFX stay procedural (Web Audio). Wind/water beds are baked mp3 loops.
  * Unlocks on first click — browsers block audio until then.
  */
 export class AudioBus {
   muted = false;
   private ctx: AudioContext | null = null;
   private lastShot = 0;
+  private windBuf: AudioBuffer | null = null;
+  private waterBuf: AudioBuffer | null = null;
+  private windSrc: AudioBufferSourceNode | null = null;
+  private waterSrc: AudioBufferSourceNode | null = null;
+  private bedsPromise: Promise<void> | null = null;
+  private wet = false;
 
   unlock(): void {
     if (this.muted) return;
     const ctx = this.ensure();
     if (ctx.state === 'suspended') void ctx.resume();
+    void this.loadBeds().then(() => this.startAmbience(this.wet));
   }
 
   toggleMute(): boolean {
     this.muted = !this.muted;
-    if (this.muted) this.ctx?.suspend();
-    else this.unlock();
+    if (this.muted) {
+      this.stopAmbience();
+      this.ctx?.suspend();
+    } else {
+      this.unlock();
+    }
     return this.muted;
+  }
+
+  setAmbience(wet: boolean): void {
+    this.wet = wet;
+    if (this.muted) {
+      this.stopAmbience();
+      return;
+    }
+    void this.loadBeds().then(() => this.startAmbience(this.wet));
+  }
+
+  place(): void {
+    this.noise(0.06, 0.05, 220);
+    this.tone(160, 0.08, 'sine', 0.045);
   }
 
   ui(): void {
@@ -77,6 +102,76 @@ export class AudioBus {
 
   leak(): void {
     this.tone(140, 0.18, 'sawtooth', 0.07);
+  }
+
+  private loadBeds(): Promise<void> {
+    if (!this.bedsPromise) {
+      this.bedsPromise = (async () => {
+        try {
+          const ctx = this.ensure();
+          this.windBuf = await this.decode('/sfx/wind.mp3', ctx);
+          this.waterBuf = await this.decode('/sfx/water.mp3', ctx);
+        } catch {
+          /* beds optional */
+        }
+      })();
+    }
+    return this.bedsPromise;
+  }
+
+  private async decode(url: string, ctx: AudioContext): Promise<AudioBuffer | null> {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const raw = await res.arrayBuffer();
+    return ctx.decodeAudioData(raw.slice(0));
+  }
+
+  private startAmbience(wet: boolean): void {
+    if (this.muted) return;
+    this.stopAmbience();
+    const ctx = this.ensure();
+    if (ctx.state !== 'running') return;
+    if (this.windBuf) {
+      this.windSrc = this.loop(ctx, this.windBuf, 0.045);
+    }
+    if (this.waterBuf) {
+      const g = ctx.createGain();
+      g.gain.value = wet ? 0.05 : 0.012;
+      const src = ctx.createBufferSource();
+      src.buffer = this.waterBuf;
+      src.loop = true;
+      src.connect(g);
+      g.connect(ctx.destination);
+      src.start();
+      this.waterSrc = src;
+    }
+  }
+
+  stopAmbience(): void {
+    try {
+      this.windSrc?.stop();
+    } catch {
+      /* already stopped */
+    }
+    try {
+      this.waterSrc?.stop();
+    } catch {
+      /* already stopped */
+    }
+    this.windSrc = null;
+    this.waterSrc = null;
+  }
+
+  private loop(ctx: AudioContext, buf: AudioBuffer, vol: number): AudioBufferSourceNode {
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    src.buffer = buf;
+    src.loop = true;
+    gain.gain.value = vol;
+    src.connect(gain);
+    gain.connect(ctx.destination);
+    src.start();
+    return src;
   }
 
   private ensure(): AudioContext {

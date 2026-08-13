@@ -1,14 +1,31 @@
 # Assets
 
-All in-game art is **procedurally drawn** in `src/game/renderer.ts`, `src/game/sprites.ts`, and `src/game/fx.ts` (Canvas 2D shapes/gradients/particles).
+Art is still mostly **procedural Canvas 2D** (`src/game/renderer.ts`, `src/game/sprites.ts`, `src/game/fx.ts`). This pass adds a thin layer of baked files so grass, dirt, trees, wind, and water read as a place — not a screenshot of a 3D engine.
 
-SFX are generated in `src/game/audio.ts` with the Web Audio API (no sample files).
+Regenerate with `./tools/build-env-assets.sh`.
 
-| Asset | Source | Notes |
+| Asset | Tool | What it changed |
 | --- | --- | --- |
-| Map tiles, towers, enemies, VFX | Hand-coded canvas rendering | No third-party pack |
-| Combat SFX | Web Audio oscillators/noise in `src/game/audio.ts` | Mute in HUD |
-| Fonts: Syne + DM Sans | Google Fonts | SIL Open Font License |
-| Favicon | Inline SVG in `index.html` | Original |
+| `public/textures/grass.jpg` | **Poly Haven** (`aerial_grass_rock`, CC0) + **ImageMagick** | Real ground grain, resized/color-graded, then multiply-tinted per level so palettes stay |
+| `public/textures/dirt.jpg` | **Poly Haven** (`dirt`, CC0) + **ImageMagick** | Path grit on top of the painted dirt tiles |
+| `public/textures/water.jpg` | **ImageMagick** `plasma:` caustic | Soft wet light that scrolls on the path (stronger on levels 2 and 8) |
+| `public/sfx/wind.mp3` | **sox** brown-noise bed → **ffmpeg** mp3 | Quiet looping wind under combat SFX |
+| `public/sfx/water.mp3` | **sox** beating tones + pink noise → **ffmpeg** mp3 | Stream bed; louder on the two “wet” maps |
+| `public/icons/*.png` | **Inkscape** (SVG in `tools/icons/`) | Tower dock swatches instead of flat CSS gradients |
+| `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Low-poly tree billboard on decor tiles |
+| Combat beeps / shots | Web Audio in `src/game/audio.ts` | Unchanged procedural hits — still no sample pack |
 
-No AI-generated image files and no paid asset packs were used for this build.
+Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
+
+Poly Haven textures are CC0. We downloaded files at bake time (not the live API in-game). Credit: [aerial_grass_rock](https://polyhaven.com/a/aerial_grass_rock), [dirt](https://polyhaven.com/a/dirt).
+
+## Tools on this machine we did **not** use this pass
+
+| Tool | Why not (yet) |
+| --- | --- |
+| **Godot** | Would mean rewriting the whole Vite + Canvas game. Wrong ceiling for a polish patch. |
+| **Tiled** | Maps already live in `src/game/levels.ts`. A second map source would drift out of sync. |
+| **MagicaVoxel** | Great for 3D voxel props; this game is 2D billboards. Blender covered the one 3D bake. |
+| **Krita / GIMP / LibreSprite / Audacity** | Hand-paint / hand-edit tools. The batch cousins (ImageMagick, sox, ffmpeg) did the repeatable work. |
+
+No AI-generated image files and no paid packs.

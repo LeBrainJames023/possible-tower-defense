@@ -50,12 +50,10 @@
           <h2>How to play</h2>
           <ul class="howto">
             <li>
-              <strong>Tower dock</strong> sits under the map — Arrow, Cannon, Ice, Lightning, Fire,
-              Poison.
+              <strong>Click grass</strong> beside the path — a Build menu opens on the map.
+              Pick a tower, then Build. Path and trees are blocked.
             </li>
-            <li><strong>Pick a tower</strong>, then click green grass beside the brown path. Click again to place more of the same type.</li>
-            <li><strong>Trees are decoration</strong> — not build pads. Path tiles are blocked.</li>
-            <li><strong>Click enemies or towers</strong> anytime (even paused) to inspect them.</li>
+            <li><strong>Click your towers or enemies</strong> to inspect, upgrade, or sell — the map stays on screen.</li>
             <li><strong>Difficulty</strong> — Easy / Normal / Hard on the title screen. Normal is the tuned campaign.</li>
           </ul>
           <div class="btn-row">
@@ -120,27 +118,37 @@
           <p id="toast" class="toast hidden" role="status" aria-live="polite"></p>
 
           <div class="game-body">
-            <canvas id="game-canvas" width="960" height="576" aria-label="Tower defense map"></canvas>
-          </div>
-
-          <footer class="dock" id="game-dock">
-            <div class="dock-shop">
-              <div class="dock-label">Choose a tower, then click grass beside the path</div>
-              <div id="tower-shop" class="tower-shop"></div>
+            <canvas id="game-canvas" width="1280" height="768" aria-label="Tower defense map"></canvas>
+            <div id="map-overlay" class="map-overlay hidden">
+              <section id="build-panel" class="map-panel hidden">
+                <div class="map-panel-head">
+                  <h3>Build tower</h3>
+                  <button type="button" class="btn btn-ghost btn-hud" id="btn-build-close">Close</button>
+                </div>
+                <div id="tower-shop" class="tower-shop"></div>
+                <div id="build-detail" class="build-detail hidden">
+                  <p id="build-detail-text" class="selection-stats"></p>
+                  <div class="btn-row">
+                    <button type="button" class="btn btn-primary" id="btn-build">Build</button>
+                    <button type="button" class="btn btn-ghost" id="btn-build-back">Back</button>
+                  </div>
+                </div>
+              </section>
+              <aside id="inspect-panel" class="map-panel inspect-panel hidden">
+                <div class="map-panel-head">
+                  <h3 id="selection-title">Inspector</h3>
+                  <button type="button" class="btn btn-ghost btn-hud" id="btn-inspect-close">Close</button>
+                </div>
+                <p id="selection-stats" class="selection-stats"></p>
+                <div id="tower-actions" class="btn-col hidden">
+                  <button type="button" class="btn btn-primary" id="btn-upgrade">Upgrade</button>
+                  <button type="button" class="btn btn-danger" id="btn-sell">Sell</button>
+                  <button type="button" class="btn btn-ghost" id="btn-deselect">Deselect</button>
+                </div>
+                <p id="hint" class="hint"></p>
+              </aside>
             </div>
-            <aside id="inspect-panel" class="inspect-panel">
-              <h3 id="selection-title">Inspector</h3>
-              <p id="selection-stats" class="selection-stats">
-                Click a tower or enemy on the map to learn about it.
-              </p>
-              <div id="tower-actions" class="btn-col hidden">
-                <button type="button" class="btn btn-primary" id="btn-upgrade">Upgrade</button>
-                <button type="button" class="btn btn-danger" id="btn-sell">Sell</button>
-                <button type="button" class="btn btn-ghost" id="btn-deselect">Deselect</button>
-              </div>
-              <p id="hint" class="hint">Tip: Pause anytime to study the battlefield.</p>
-            </aside>
-          </footer>
+          </div>
         </div>
       </div>
 
