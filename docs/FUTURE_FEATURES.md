@@ -8,6 +8,7 @@ Captured for later — not in this pass:
 - MagicaVoxel / Blender sprite sheets for extra props
 - Flying vs ground targeting (Kingdom Rush style: cannon cannot lock air; arrows/lightning can)
 - Full 10-creature waves (warg, ogre, hellbat, wyvern, drake still unused). Five kinds now use Quaternius billboards as placeholders.
+- Enemy sprite polish — per-creature cleanup, or image-gen if we explicitly choose. Placeholders are good enough to play.
 - Image-gen enemy sprites — only if we explicitly choose. Style drift and license logging are the traps; not default.
 - Other CC0 creature packs if we find a meaner free set (no paid packs)
 - More targeting modes (closest, strongest)
