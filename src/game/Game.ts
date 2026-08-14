@@ -555,6 +555,7 @@ export class Game {
         current = next ?? null;
       }
       this.fx.addShake(1.4);
+      this.audio.impact('lightning');
       this.collectBounties();
       return;
     }

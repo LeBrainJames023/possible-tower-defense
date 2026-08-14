@@ -1,7 +1,9 @@
-import type { Enemy, BeamFx, Projectile, Tower } from './entities';
+import type { Enemy, Tower } from './entities';
 import { PX } from './constants';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
+
+export { drawBeams, drawProjectile } from './drawProjectiles';
 
 export function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -24,7 +26,7 @@ export function roundRect(
 export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, selected: boolean, time: number): void {
   const def = t.def;
   const { x, y } = t;
-  const scale = PX * (1 + (t.level - 1) * 0.08);
+  const scale = PX * 1.1 * (1 + (t.level - 1) * 0.08);
   const recoil = t.recoil * 5 * PX;
 
   if (selected) {
@@ -160,138 +162,4 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   ctx.fillStyle = pct > 0.45 ? '#57cc99' : pct > 0.2 ? '#f4d35e' : '#ef476f';
   roundRect(ctx, bx, by, bw * pct, bh, 2);
   ctx.fill();
-}
-
-export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): void {
-  const x = p.x;
-  const y = p.visualY();
-  const ang = Math.atan2(p.vy, p.vx || 1);
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(ang);
-  ctx.scale(PX, PX);
-
-  switch (p.kind) {
-    case 'arrow':
-      ctx.strokeStyle = `${p.color}99`;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(-16, 0);
-      ctx.lineTo(-4, 0);
-      ctx.stroke();
-      ctx.fillStyle = '#e8f4ff';
-      ctx.beginPath();
-      ctx.moveTo(10, 0);
-      ctx.lineTo(-6, -3.5);
-      ctx.lineTo(-4, 0);
-      ctx.lineTo(-6, 3.5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#ffe9a0';
-      ctx.beginPath();
-      ctx.moveTo(14, 0);
-      ctx.lineTo(4, -4.5);
-      ctx.lineTo(4, 4.5);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'cannon': {
-      const shadow = ctx.createRadialGradient(0, 0, 1, 0, 0, 8);
-      shadow.addColorStop(0, '#3a2418');
-      shadow.addColorStop(1, p.color);
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.beginPath();
-      ctx.ellipse(0, 10, 7, 3, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = shadow;
-      ctx.beginPath();
-      ctx.arc(0, 0, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(255,220,160,0.55)';
-      ctx.beginPath();
-      ctx.arc(-2, -2, 2.4, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-    case 'ice':
-      ctx.fillStyle = '#e8fbff';
-      ctx.beginPath();
-      ctx.moveTo(9, 0);
-      ctx.lineTo(0, 5);
-      ctx.lineTo(-8, 0);
-      ctx.lineTo(0, -5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = p.color;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-      break;
-    case 'fire':
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.moveTo(10, 0);
-      ctx.quadraticCurveTo(0, 8, -10, 0);
-      ctx.quadraticCurveTo(0, -8, 10, 0);
-      ctx.fill();
-      ctx.fillStyle = '#ffe08a';
-      ctx.beginPath();
-      ctx.arc(2, 0, 3.2, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case 'poison': {
-      const wob = Math.sin(p.age * 14) * 1.2;
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 6 + wob, 5 - wob * 0.3, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.45)';
-      ctx.beginPath();
-      ctx.arc(-1.5, -1.5, 1.8, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-    default:
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(0, 0, 4, 0, Math.PI * 2);
-      ctx.fill();
-  }
-  ctx.restore();
-}
-
-export function drawBeams(ctx: CanvasRenderingContext2D, beams: BeamFx[]): void {
-  for (const b of beams) {
-    const a = Math.min(1, b.life / (b.maxLife || 0.18));
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    const pts = b.points.length >= 2 ? b.points : [
-      { x: b.x1, y: b.y1 },
-      { x: b.x2, y: b.y2 },
-    ];
-
-    ctx.globalAlpha = a * 0.35;
-    ctx.strokeStyle = b.color;
-    ctx.lineWidth = (b.width || 3) * 3 * PX;
-    strokePts(ctx, pts);
-
-    ctx.globalAlpha = a;
-    ctx.strokeStyle = '#fff6c2';
-    ctx.lineWidth = (b.width || 3) * PX;
-    strokePts(ctx, pts);
-
-    ctx.fillStyle = '#fff';
-    ctx.globalAlpha = a;
-    ctx.beginPath();
-    ctx.arc(b.x2, b.y2, (4 + (1 - a) * 6) * PX, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-}
-
-function strokePts(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[]): void {
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.stroke();
 }

@@ -57,37 +57,65 @@ export class AudioBus {
     this.lastShot = now;
     switch (kind) {
       case 'arrow':
-        this.tone(880, 0.06, 'square', 0.05);
+        this.noise(0.045, 0.055, 2400);
+        this.tone(980, 0.05, 'square', 0.04);
+        this.tone(420, 0.04, 'triangle', 0.03, 0.02);
         break;
       case 'cannon':
-        this.noise(0.12, 0.08, 180);
-        this.tone(90, 0.14, 'sine', 0.1);
+        this.noise(0.1, 0.09, 140, 'lowpass');
+        this.tone(72, 0.16, 'sine', 0.11);
         break;
       case 'ice':
-        this.tone(1400, 0.08, 'triangle', 0.045);
+        this.noise(0.06, 0.035, 3200);
+        this.tone(1680, 0.07, 'triangle', 0.04);
+        this.tone(2100, 0.05, 'sine', 0.025, 0.02);
         break;
       case 'lightning':
-        this.noise(0.07, 0.07, 900);
-        this.tone(1600, 0.05, 'sawtooth', 0.04);
+        this.noise(0.055, 0.08, 1400);
+        this.tone(1900, 0.04, 'sawtooth', 0.045);
+        this.tone(720, 0.06, 'square', 0.03, 0.02);
         break;
       case 'fire':
-        this.noise(0.1, 0.05, 300);
-        this.tone(220, 0.09, 'sawtooth', 0.04);
+        this.noise(0.09, 0.07, 280, 'lowpass');
+        this.tone(160, 0.1, 'sawtooth', 0.045);
+        this.noise(0.12, 0.03, 1800, 'bandpass', 0.04);
         break;
       case 'poison':
-        this.tone(310, 0.1, 'sine', 0.05);
+        this.noise(0.08, 0.04, 420, 'lowpass');
+        this.tone(260, 0.11, 'sine', 0.045);
         break;
     }
   }
 
   impact(kind: TowerKind): void {
-    if (kind === 'cannon') {
-      this.noise(0.14, 0.1, 120);
-      this.tone(70, 0.16, 'sine', 0.12);
-    } else if (kind === 'lightning') {
-      this.tone(1200, 0.04, 'square', 0.05);
-    } else {
-      this.tone(240, 0.05, 'triangle', 0.04);
+    switch (kind) {
+      case 'arrow':
+        this.noise(0.04, 0.05, 900);
+        this.tone(210, 0.05, 'triangle', 0.04);
+        break;
+      case 'cannon':
+        this.noise(0.22, 0.14, 90, 'lowpass');
+        this.tone(58, 0.22, 'sine', 0.14);
+        this.tone(110, 0.1, 'triangle', 0.05, 0.04);
+        break;
+      case 'ice':
+        this.noise(0.07, 0.05, 2600);
+        this.tone(1540, 0.06, 'triangle', 0.045);
+        this.tone(980, 0.08, 'sine', 0.03, 0.03);
+        break;
+      case 'lightning':
+        this.noise(0.05, 0.06, 1100);
+        this.tone(1400, 0.035, 'square', 0.04);
+        break;
+      case 'fire':
+        this.noise(0.12, 0.08, 160, 'lowpass');
+        this.tone(90, 0.12, 'sine', 0.07);
+        this.noise(0.14, 0.035, 1400, 'bandpass', 0.03);
+        break;
+      case 'poison':
+        this.noise(0.09, 0.06, 380, 'lowpass');
+        this.tone(180, 0.09, 'sine', 0.05);
+        break;
     }
   }
 
@@ -210,7 +238,13 @@ export class AudioBus {
     }
   }
 
-  private noise(dur: number, vol: number, hp: number): void {
+  private noise(
+    dur: number,
+    vol: number,
+    hp: number,
+    type: BiquadFilterType = 'bandpass',
+    delay = 0,
+  ): void {
     if (this.muted) return;
     try {
       const ctx = this.ensure();
@@ -222,10 +256,10 @@ export class AudioBus {
       const src = ctx.createBufferSource();
       src.buffer = buf;
       const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
+      filter.type = type;
       filter.frequency.value = hp;
       const gain = ctx.createGain();
-      const t0 = ctx.currentTime;
+      const t0 = ctx.currentTime + delay;
       gain.gain.setValueAtTime(vol, t0);
       gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
       src.connect(filter);

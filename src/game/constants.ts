@@ -66,7 +66,13 @@ export interface ProjectileFeel {
   homing: number;
 }
 
-/** Classic TD niches — always shown in the bottom dock. */
+/**
+ * Classic TD niches — always shown in the bottom dock.
+ * Splash is combat radius (not visual size). Hit falloff: full damage inside 40% of
+ * splash, 65% out to the edge. Arrow = single. Lightning = chain (CHAIN_RANGE), no splash.
+ * Cannon ~1.5 tiles, ice/fire mid splash, poison tiny (DoT, almost single).
+ * Leave these numbers until enemy speeds/attributes land — FX should match, not retune.
+ */
 export const TOWERS: Record<TowerKind, TowerDef> = {
   arrow: {
     kind: 'arrow',

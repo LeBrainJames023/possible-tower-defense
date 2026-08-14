@@ -2,7 +2,9 @@
 
 Captured for later — not in this pass:
 
-- Music / richer soundscape (wind + water beds exist; still no music)
+- Music / richer soundscape (wind + water beds exist; per-tower combat SFX are still procedural)
+- Enemy attributes / speed variety — projectile feel should stay readable when scouts and brutes differ more
+- Splash / economy retune — leave current radii until the roster settles (cannon ~1.5 tiles, ice/fire mid, poison tiny, arrow single, lightning chain)
 - Hand-painted Krita/GIMP tile variants
 - Tiled as a visual map editor that exports into `levels.ts` (single source of truth must stay TypeScript)
 - MagicaVoxel / Blender sprite sheets for extra props

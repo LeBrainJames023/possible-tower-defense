@@ -25,6 +25,7 @@ export interface ImpactRing {
   radius: number;
   maxRadius: number;
   life: number;
+  maxLife: number;
   color: string;
   width: number;
 }
@@ -60,13 +61,14 @@ export class FxWorld {
     }
   }
 
-  ring(x: number, y: number, color: string, maxRadius: number, width = 3): void {
+  ring(x: number, y: number, color: string, maxRadius: number, width = 3, life = 0.38): void {
     this.rings.push({
       x,
       y,
       radius: 4,
       maxRadius,
-      life: 0.38,
+      life,
+      maxLife: life,
       color,
       width,
     });
@@ -96,19 +98,26 @@ export class FxWorld {
 
   impact(x: number, y: number, kind: TowerKind, color: string, splash: number): void {
     if (kind === 'cannon') {
-      this.burst(x, y, color, 18, 'smoke');
-      this.burst(x, y, '#f4d35e', 10, 'spark');
-      this.ring(x, y, color, splash * 0.95, 4);
-      this.addShake(3.2);
-    } else if (kind === 'ice') {
-      this.burst(x, y, '#e8fbff', 14, 'shard');
-      this.ring(x, y, color, splash * 0.8, 2);
-    } else if (kind === 'fire') {
+      this.burst(x, y, '#3a2418', 22, 'smoke');
       this.burst(x, y, color, 16, 'ember');
-      this.ring(x, y, '#ff9a4a', splash * 0.75, 3);
+      this.burst(x, y, '#f4d35e', 14, 'spark');
+      this.ring(x, y, '#ffb14a', splash * 0.45, 6, 0.28);
+      this.ring(x, y, color, splash, 5, 0.52);
+      this.addShake(4.4);
+    } else if (kind === 'ice') {
+      this.burst(x, y, '#e8fbff', 18, 'shard');
+      this.burst(x, y, color, 6, 'spark');
+      this.ring(x, y, color, splash, 2.4, 0.42);
+    } else if (kind === 'fire') {
+      this.burst(x, y, color, 18, 'ember');
+      this.burst(x, y, '#3a1a10', 8, 'smoke');
+      this.ring(x, y, '#ff9a4a', splash, 3.2, 0.44);
     } else if (kind === 'poison') {
-      this.burst(x, y, color, 12, 'goo');
-      this.ring(x, y, color, Math.max(22, splash), 2);
+      this.burst(x, y, color, 10, 'goo');
+      this.ring(x, y, color, Math.max(splash, 12), 2, 0.32);
+    } else if (kind === 'lightning') {
+      this.burst(x, y, '#fff6c2', 10, 'spark');
+      this.ring(x, y, color, 22, 2, 0.2);
     } else {
       this.burst(x, y, color, 8, 'spark');
     }
@@ -207,7 +216,7 @@ export class FxWorld {
 
     for (const r of this.rings) {
       r.life -= dt;
-      const t = 1 - r.life / 0.38;
+      const t = 1 - r.life / r.maxLife;
       r.radius = r.maxRadius * Math.min(1, t * 1.15);
     }
     this.rings = this.rings.filter((r) => r.life > 0);
@@ -234,7 +243,7 @@ export class FxWorld {
 
 export function drawFx(ctx: CanvasRenderingContext2D, fx: FxWorld): void {
   for (const r of fx.rings) {
-    const a = Math.max(0, r.life / 0.38);
+    const a = Math.max(0, r.life / r.maxLife);
     ctx.globalAlpha = a * 0.7;
     ctx.strokeStyle = r.color;
     ctx.lineWidth = r.width * a;
