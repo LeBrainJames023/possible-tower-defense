@@ -542,7 +542,8 @@ export class Game {
           points,
         });
         current.takeDamage(dmg, def.pierceArmor);
-        this.fx.burst(current.pos.x, current.pos.y, def.color, 6, 'spark');
+        this.fx.flash(current.pos.x, current.pos.y, '#fff8d0', 24 - i * 3, 0.14);
+        this.fx.burst(current.pos.x, current.pos.y, def.color, 10, 'spark', -8);
         if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
         if (def.burnDps > 0) current.applyBurn(def.burnDps * status * this.mods.damage, def.burnDuration);
         if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status * this.mods.damage, def.poisonDuration);

@@ -1,5 +1,8 @@
 import type { TowerKind } from './constants';
 
+/** Sit under the wind bed — old mix was peaking too hard on every shot. */
+const MIX = 0.48;
+
 /**
  * Combat SFX stay procedural (Web Audio). Wind/water beds are baked mp3 loops.
  * Unlocks on first click — browsers block audio until then.
@@ -57,32 +60,29 @@ export class AudioBus {
     this.lastShot = now;
     switch (kind) {
       case 'arrow':
-        this.noise(0.045, 0.055, 2400);
-        this.tone(980, 0.05, 'square', 0.04);
-        this.tone(420, 0.04, 'triangle', 0.03, 0.02);
+        this.noise(0.05, 0.05, 2800);
+        this.tone(1100, 0.04, 'triangle', 0.035);
         break;
       case 'cannon':
-        this.noise(0.1, 0.09, 140, 'lowpass');
-        this.tone(72, 0.16, 'sine', 0.11);
+        this.noise(0.08, 0.07, 110, 'lowpass');
+        this.tone(64, 0.12, 'sine', 0.07);
         break;
       case 'ice':
-        this.noise(0.06, 0.035, 3200);
-        this.tone(1680, 0.07, 'triangle', 0.04);
-        this.tone(2100, 0.05, 'sine', 0.025, 0.02);
+        this.noise(0.07, 0.03, 3600);
+        this.tone(1480, 0.08, 'sine', 0.035, 0, 1.45);
         break;
       case 'lightning':
-        this.noise(0.055, 0.08, 1400);
-        this.tone(1900, 0.04, 'sawtooth', 0.045);
-        this.tone(720, 0.06, 'square', 0.03, 0.02);
+        this.noise(0.028, 0.07, 2400);
+        this.tone(2100, 0.03, 'sawtooth', 0.04);
+        this.tone(420, 0.05, 'square', 0.02, 0.018);
         break;
       case 'fire':
-        this.noise(0.09, 0.07, 280, 'lowpass');
-        this.tone(160, 0.1, 'sawtooth', 0.045);
-        this.noise(0.12, 0.03, 1800, 'bandpass', 0.04);
+        this.noise(0.1, 0.05, 220, 'lowpass');
+        this.crackle(0.028, 4);
         break;
       case 'poison':
-        this.noise(0.08, 0.04, 420, 'lowpass');
-        this.tone(260, 0.11, 'sine', 0.045);
+        this.noise(0.09, 0.04, 280, 'lowpass');
+        this.tone(220, 0.1, 'sine', 0.035, 0, 0.4);
         break;
     }
   }
@@ -90,31 +90,34 @@ export class AudioBus {
   impact(kind: TowerKind): void {
     switch (kind) {
       case 'arrow':
-        this.noise(0.04, 0.05, 900);
-        this.tone(210, 0.05, 'triangle', 0.04);
+        this.noise(0.035, 0.04, 1100);
+        this.tone(190, 0.045, 'triangle', 0.03);
         break;
       case 'cannon':
-        this.noise(0.22, 0.14, 90, 'lowpass');
-        this.tone(58, 0.22, 'sine', 0.14);
-        this.tone(110, 0.1, 'triangle', 0.05, 0.04);
+        this.noise(0.28, 0.09, 70, 'lowpass');
+        this.tone(48, 0.26, 'sine', 0.08);
+        this.tone(92, 0.12, 'triangle', 0.03, 0.05);
+        this.noise(0.16, 0.04, 180, 'lowpass', 0.06);
         break;
       case 'ice':
-        this.noise(0.07, 0.05, 2600);
-        this.tone(1540, 0.06, 'triangle', 0.045);
-        this.tone(980, 0.08, 'sine', 0.03, 0.03);
+        this.noise(0.08, 0.045, 4200);
+        this.tone(1760, 0.05, 'triangle', 0.04);
+        this.tone(2400, 0.04, 'sine', 0.025, 0.02, 1.2);
+        this.tone(880, 0.07, 'sine', 0.02, 0.04);
         break;
       case 'lightning':
-        this.noise(0.05, 0.06, 1100);
-        this.tone(1400, 0.035, 'square', 0.04);
+        this.noise(0.04, 0.055, 1800);
+        this.tone(1600, 0.03, 'square', 0.035);
+        this.tone(280, 0.06, 'sawtooth', 0.02, 0.02);
         break;
       case 'fire':
-        this.noise(0.12, 0.08, 160, 'lowpass');
-        this.tone(90, 0.12, 'sine', 0.07);
-        this.noise(0.14, 0.035, 1400, 'bandpass', 0.03);
+        this.noise(0.1, 0.05, 140, 'lowpass');
+        this.tone(70, 0.1, 'sine', 0.04);
+        this.crackle(0.032, 6, 0.02);
         break;
       case 'poison':
-        this.noise(0.09, 0.06, 380, 'lowpass');
-        this.tone(180, 0.09, 'sine', 0.05);
+        this.noise(0.1, 0.05, 240, 'lowpass');
+        this.tone(150, 0.1, 'sine', 0.04, 0, 0.35);
         break;
     }
   }
@@ -210,12 +213,25 @@ export class AudioBus {
     return this.ctx;
   }
 
+  private crackle(vol: number, pops: number, delay = 0): void {
+    for (let i = 0; i < pops; i++) {
+      this.noise(
+        0.016 + Math.random() * 0.02,
+        vol,
+        1300 + Math.random() * 1800,
+        'bandpass',
+        delay + i * 0.03,
+      );
+    }
+  }
+
   private tone(
     freq: number,
     dur: number,
     type: OscillatorType,
     vol: number,
     delay = 0,
+    endRatio = 0.55,
   ): void {
     if (this.muted) return;
     try {
@@ -226,8 +242,8 @@ export class AudioBus {
       const gain = ctx.createGain();
       osc.type = type;
       osc.frequency.setValueAtTime(freq, t0);
-      osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * 0.55), t0 + dur);
-      gain.gain.setValueAtTime(vol, t0);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * endRatio), t0 + dur);
+      gain.gain.setValueAtTime(vol * MIX, t0);
       gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -260,7 +276,7 @@ export class AudioBus {
       filter.frequency.value = hp;
       const gain = ctx.createGain();
       const t0 = ctx.currentTime + delay;
-      gain.gain.setValueAtTime(vol, t0);
+      gain.gain.setValueAtTime(vol * MIX, t0);
       gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
       src.connect(filter);
       filter.connect(gain);
