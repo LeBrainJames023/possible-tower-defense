@@ -6,6 +6,7 @@ import { drawFx, type FxWorld } from './fx';
 import { themeFor, type MapTheme } from './themes';
 import { TEX, texReady } from './assets';
 import { drawLandmarks } from './drawLandmarks';
+import { drawWorldDecor, drawWorldGround, drawWorldPath } from './drawWorld';
 import { isWetLevel, type WorldId } from './worlds';
 import type { LevelDef } from './levels';
 
@@ -63,7 +64,18 @@ export class Renderer {
           this.drawDirt(x, y, c, r);
         } else {
           this.drawGrass(x, y, c, r);
-          if (kind === 'decor') this.drawTree(x + TILE / 2, y + TILE / 2 + 2 * PX, c, r);
+          if (kind === 'decor') {
+            drawWorldDecor(
+              ctx,
+              this.theme,
+              this.world,
+              x + TILE / 2,
+              y + TILE / 2 + 2 * PX,
+              c,
+              r,
+              this.time,
+            );
+          }
           else if (showBuildHints) {
             ctx.strokeStyle = 'rgba(244, 211, 94, 0.22)';
             ctx.lineWidth = 1.5 * PX;
@@ -140,19 +152,10 @@ export class Renderer {
     const mix = hash(c, r, 2);
     ctx.fillStyle = mix > 0.55 ? theme.grassA : theme.grassB;
     ctx.fillRect(x, y, TILE, TILE);
-    if (texReady(TEX.grass)) this.stampTexture(TEX.grass, x, y, c, r, 0.42, 'multiply');
-    ctx.strokeStyle = theme.blade;
-    ctx.lineWidth = 1.15 * PX;
-    ctx.beginPath();
-    for (let i = 0; i < 8; i++) {
-      const hx = hash(c, r, i);
-      const hy = hash(c, r, i + 9);
-      const px = x + 5 * PX + hx * (TILE - 10 * PX);
-      const py = y + 10 * PX + hy * (TILE - 16 * PX);
-      ctx.moveTo(px, py);
-      ctx.lineTo(px + 1.6 * PX, py - (6 + hy * 5) * PX);
+    if (this.world === 'forest' && texReady(TEX.grass)) {
+      this.stampTexture(TEX.grass, x, y, c, r, 0.42, 'multiply');
     }
-    ctx.stroke();
+    drawWorldGround(ctx, theme, this.world, x, y, c, r, this.time);
     ctx.fillStyle = 'rgba(255, 255, 220, 0.07)';
     const speck = hash(c, r, 40);
     ctx.beginPath();
@@ -169,7 +172,9 @@ export class Renderer {
     ctx.fillRect(x, y, TILE, 3 * PX);
     ctx.fillRect(x, y + TILE - 3 * PX, TILE, 3 * PX);
     ctx.globalAlpha = 1;
-    if (texReady(TEX.dirt)) this.stampTexture(TEX.dirt, x, y, c, r, 0.5, 'multiply');
+    if ((this.world === 'forest' || this.world === 'desert') && texReady(TEX.dirt)) {
+      this.stampTexture(TEX.dirt, x, y, c, r, 0.5, 'multiply');
+    }
     this.stampWater(x, y);
     ctx.fillStyle = theme.pebble;
     for (let i = 0; i < 6; i++) {
@@ -189,50 +194,7 @@ export class Renderer {
     ctx.moveTo(x + 18 * PX, y + 14 * PX);
     ctx.lineTo(x + 40 * PX, y + 22 * PX);
     ctx.stroke();
-  }
-
-  private drawTree(cx: number, cy: number, c: number, r: number): void {
-    const { ctx, theme } = this;
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + 16 * PX, 16 * PX, 5.5 * PX, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (texReady(TEX.tree)) {
-      const tw = TILE * 1.2;
-      const th = TILE * 1.45;
-      ctx.drawImage(TEX.tree, cx - tw / 2, cy - th + 18 * PX, tw, th);
-      return;
-    }
-
-    const lean = (hash(c, r, 1) - 0.5) * 8 * PX;
-    ctx.fillStyle = theme.trunk;
-    ctx.beginPath();
-    ctx.moveTo(cx - 4 * PX + lean, cy + 16 * PX);
-    ctx.lineTo(cx + 4 * PX + lean, cy + 16 * PX);
-    ctx.lineTo(cx + 2.5 * PX, cy - 5 * PX);
-    ctx.lineTo(cx - 2.5 * PX, cy - 5 * PX);
-    ctx.closePath();
-    ctx.fill();
-    const canopy = ctx.createRadialGradient(cx - 4 * PX, cy - 14 * PX, 2 * PX, cx, cy - 5 * PX, 24 * PX);
-    canopy.addColorStop(0, theme.canopy);
-    canopy.addColorStop(1, theme.canopyDark);
-    ctx.fillStyle = canopy;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - 26 * PX);
-    ctx.lineTo(cx + 21 * PX, cy - 2 * PX);
-    ctx.lineTo(cx + 10 * PX, cy + 3 * PX);
-    ctx.lineTo(cx - 10 * PX, cy + 3 * PX);
-    ctx.lineTo(cx - 21 * PX, cy - 2 * PX);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = theme.canopy;
-    ctx.beginPath();
-    ctx.moveTo(cx - 3 * PX, cy - 21 * PX);
-    ctx.lineTo(cx + 9 * PX, cy - 8 * PX);
-    ctx.lineTo(cx - 11 * PX, cy - 5 * PX);
-    ctx.closePath();
-    ctx.fill();
+    drawWorldPath(ctx, theme, this.world, x, y, this.time);
   }
 
   drawPathGlow(waypoints: Vec2[]): void {

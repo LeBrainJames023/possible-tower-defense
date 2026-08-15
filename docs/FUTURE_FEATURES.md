@@ -16,7 +16,6 @@ Captured for later — not in this pass:
 - More targeting modes (closest, strongest)
 - Hand-author unique paths for worlds 2–5 (today they reuse Forest shapes, flipped/reversed)
 - Enemy color tinge per world (same five kinds for now)
-- World props — cactus, ice spike, lava, rune (palette-only backgrounds first)
 - Endless mode after campaign
 - Mobile layout polish beyond basic stacking
 - Tower preview ghosts with DPS estimate

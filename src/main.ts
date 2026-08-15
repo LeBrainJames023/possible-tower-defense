@@ -149,6 +149,9 @@ function renderWorlds(): void {
     if (cleared) btn.classList.add('cleared');
     if (!open) btn.classList.add('locked');
     btn.disabled = !open;
+    const swatch = document.createElement('span');
+    swatch.className = 'world-swatch';
+    swatch.style.background = world.theme.grassA;
     const badge = document.createElement('span');
     badge.className = 'level-badge';
     badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
@@ -157,7 +160,7 @@ function renderWorlds(): void {
     const blurb = document.createElement('span');
     blurb.className = 'world-blurb';
     blurb.textContent = open ? world.blurb : 'Clear the previous world first.';
-    btn.append(badge, name, blurb);
+    btn.append(swatch, badge, name, blurb);
     btn.style.borderColor = world.theme.ui;
     btn.addEventListener('click', () => {
       if (!open) return;

@@ -18,7 +18,8 @@ Each world has **10 stages × 10 waves**. Worlds get meaner. Stages inside a wor
 2. **Forest** — the ten maps we already have. No rewrite.
 3. **Bare-bones 40** — Desert / Ice / Fire / Hollow reuse those ten path *shapes*, flipped or reversed, plus the world palette and harder HP. Same towers, same enemies.
 4. **Loop** — beat a world’s stage 10 → next world lights up on the map. Big click targets. No walking Mario man.
-5. **Later (not this pass)** — hand-author unique paths, enemy color tinge, world props (cactus, ice spike, lava, rune). Do not image-gen.
+5. **World look** — each land has its own ground marks and blocked-tile props (tree / cactus / crystal / lava rock / rune). Same five enemies.
+6. **Later** — hand-author unique paths, enemy color tinge. Do not image-gen.
 
 ## Why transforms first
 
