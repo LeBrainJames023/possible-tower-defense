@@ -1,4 +1,5 @@
-import { ENEMIES, ENEMY_GAIT, TOWERS, type EnemyKind, type TowerKind } from './constants';
+import { TOWERS, type TowerKind } from './constants';
+import { ENEMIES, ENEMY_GAIT, type EnemyKind } from './enemies';
 import type { Vec2 } from '../shared/math';
 import { dist, pathTotalLength } from '../shared/math';
 

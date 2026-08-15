@@ -21,7 +21,6 @@ export const CHAIN_RANGE = u(108);
 export type CellKind = 'grass' | 'path' | 'decor';
 
 export type TowerKind = 'arrow' | 'cannon' | 'ice' | 'lightning' | 'fire' | 'poison';
-export type EnemyKind = 'scout' | 'grunt' | 'brute' | 'swarm' | 'boss';
 
 export interface TowerDef {
   kind: TowerKind;
@@ -45,19 +44,6 @@ export interface TowerDef {
   poisonDuration: number;
   upgradeCost: number;
   upgradeMul: number;
-}
-
-export interface EnemyDef {
-  kind: EnemyKind;
-  name: string;
-  blurb: string;
-  hp: number;
-  speed: number;
-  reward: number;
-  armor: number;
-  radius: number;
-  color: string;
-  colorDark: string;
 }
 
 export interface ProjectileFeel {
@@ -223,88 +209,6 @@ export const PROJECTILE_FEEL: Record<TowerKind, ProjectileFeel> = {
   lightning: { speed: u(900), arc: 0, homing: 0 },
   fire: { speed: u(305), arc: u(20), homing: 0.38 },
   poison: { speed: u(290), arc: u(10), homing: 0.5 },
-};
-
-export const ENEMIES: Record<EnemyKind, EnemyDef> = {
-  scout: {
-    kind: 'scout',
-    name: 'Goblin',
-    blurb: 'Fast and fragile — Ice helps a lot.',
-    hp: 42,
-    speed: u(82),
-    reward: 9,
-    armor: 0,
-    radius: u(11),
-    color: '#4ee0a5',
-    colorDark: '#157a4a',
-  },
-  grunt: {
-    kind: 'grunt',
-    name: 'Raider',
-    blurb: 'Balanced fodder. Arrow towers chew them up.',
-    hp: 100,
-    speed: u(48),
-    reward: 12,
-    armor: 0.06,
-    radius: u(14),
-    color: '#a8b8c9',
-    colorDark: '#334556',
-  },
-  brute: {
-    kind: 'brute',
-    name: 'Troll',
-    blurb: 'Armored. Cannon pierces; Poison wears them down.',
-    hp: 210,
-    speed: u(32),
-    reward: 26,
-    armor: 0.4,
-    radius: u(19),
-    color: '#ff5d7a',
-    colorDark: '#7a102c',
-  },
-  swarm: {
-    kind: 'swarm',
-    name: 'Imp',
-    blurb: 'Tiny packs. Splash and Lightning shine here.',
-    hp: 22,
-    speed: u(86),
-    reward: 5,
-    armor: 0,
-    radius: u(9),
-    color: '#9ff5e4',
-    colorDark: '#1f6f62',
-  },
-  boss: {
-    kind: 'boss',
-    name: 'Warlord',
-    blurb: 'Wave boss. Focus fire and keep slows up.',
-    hp: 980,
-    speed: u(24),
-    reward: 110,
-    armor: 0.3,
-    radius: u(28),
-    color: '#d4a0ff',
-    colorDark: '#4a1480',
-  },
-};
-
-/** Walk language only — does not change speed, HP, or bounty. */
-export interface EnemyGait {
-  /** Bob cycles per second. */
-  stepHz: number;
-  bobAmp: number;
-  sway: number;
-  squash: number;
-  jitter: number;
-  dust: boolean;
-}
-
-export const ENEMY_GAIT: Record<EnemyKind, EnemyGait> = {
-  scout: { stepHz: 3.6, bobAmp: 3.4, sway: 2.4, squash: 0.04, jitter: 0, dust: false },
-  grunt: { stepHz: 1.7, bobAmp: 2.1, sway: 0.8, squash: 0.06, jitter: 0, dust: true },
-  swarm: { stepHz: 4.4, bobAmp: 2.6, sway: 1.2, squash: 0.03, jitter: 2.8, dust: false },
-  brute: { stepHz: 0.85, bobAmp: 1.5, sway: 0.4, squash: 0.14, jitter: 0, dust: true },
-  boss: { stepHz: 0.7, bobAmp: 1.1, sway: 0.2, squash: 0.1, jitter: 0, dust: true },
 };
 
 export const TOWER_ORDER: TowerKind[] = [

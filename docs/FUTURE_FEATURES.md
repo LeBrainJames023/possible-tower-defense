@@ -9,12 +9,13 @@ Captured for later — not in this pass:
 - Tiled as a visual map editor that exports into `levels.ts` (single source of truth must stay TypeScript)
 - MagicaVoxel / Blender sprite sheets for extra props
 - Flying vs ground targeting (Kingdom Rush style: cannon cannot lock air; arrows/lightning can)
-- Full 10-creature waves (warg, ogre, hellbat, wyvern, drake still unused). Five kinds now use Quaternius billboards as placeholders.
+- Unique art for world specials / champions / bosses (today they reuse Quaternius bodies as placeholders)
+- On-death tricks (magma pop, wisp chill) and flyers once the roster feels right
 - Enemy sprite polish — per-creature cleanup, or image-gen if we explicitly choose. Placeholders are good enough to play.
 - Image-gen enemy sprites — only if we explicitly choose. Style drift and license logging are the traps; not default.
 - Other CC0 creature packs if we find a meaner free set (no paid packs)
 - More targeting modes (closest, strongest)
-- Enemy color tinge per world (same five kinds for now)
+- Enemy color tinge / unique meshes for locals (placeholder bodies for now)
 - Endless mode after campaign
 - Mobile layout polish beyond basic stacking
 - Tower preview ghosts with DPS estimate

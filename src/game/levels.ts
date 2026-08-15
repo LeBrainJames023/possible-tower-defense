@@ -1,5 +1,7 @@
-import type { CellKind, EnemyKind } from './constants';
-import { COLS, ENEMIES, ROWS, STAGES_PER_WORLD, TILE, WAVES_PER_LEVEL } from './constants';
+import type { CellKind } from './constants';
+import { COLS, ROWS, STAGES_PER_WORLD, TILE, WAVES_PER_LEVEL } from './constants';
+import { ENEMIES, type EnemyKind } from './enemies';
+import { championAt, rosterFor, specialAt } from './worldRoster';
 import type { Vec2 } from '../shared/math';
 import { PATH_OVERRIDES, scatterWorldDecor } from './worldPaths';
 import { WORLDS, type WorldId } from './worlds';
@@ -423,36 +425,46 @@ export function buildWave(stage: number, wave: number, worldIndex = 1): WaveSpaw
   const pressure = 1 + (st - 1) * 0.12 + (w - 1) * 0.08 + (wi - 1) * 0.18;
 
   const groups: WaveSpawn[] = [];
+  const local1 = specialAt(wi, st, 1);
+  const local2 = specialAt(wi, st, 2);
+  const champ = championAt(wi, st);
+  const boss = rosterFor(wi).boss;
 
   if (w <= 2) {
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.7 });
   } else if (w === 3) {
     groups.push({ kind: 'grunt', count: Math.round(5 * pressure), interval: 0.65 });
     groups.push({ kind: 'scout', count: Math.round(4 * pressure), interval: 0.45, delay: 1.5 });
+    if (local1) groups.push({ kind: local1, count: Math.round(2 * pressure), interval: 0.7, delay: 2.2 });
   } else if (w === 4) {
     groups.push({ kind: 'swarm', count: Math.round(10 * pressure), interval: 0.28 });
     groups.push({ kind: 'grunt', count: Math.round(4 * pressure), interval: 0.6, delay: 2 });
   } else if (w === 5) {
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.55 });
     groups.push({ kind: 'brute', count: Math.round(2 + st * 0.3), interval: 1.2, delay: 2 });
+    if (local1) groups.push({ kind: local1, count: Math.round(2 * pressure), interval: 0.8, delay: 3 });
   } else if (w === 6) {
     groups.push({ kind: 'scout', count: Math.round(8 * pressure), interval: 0.35 });
     groups.push({ kind: 'swarm', count: Math.round(8 * pressure), interval: 0.25, delay: 1 });
+    if (local2) groups.push({ kind: local2, count: Math.round(3 * pressure), interval: 0.7, delay: 2 });
   } else if (w === 7) {
     groups.push({ kind: 'brute', count: Math.round(3 + st * 0.4), interval: 1.0 });
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.5, delay: 1.5 });
+    if (champ) groups.push({ kind: champ, count: 1, interval: 2, delay: 3 });
   } else if (w === 8) {
     groups.push({ kind: 'swarm', count: Math.round(14 * pressure), interval: 0.22 });
     groups.push({ kind: 'scout', count: Math.round(6 * pressure), interval: 0.4, delay: 1 });
     groups.push({ kind: 'brute', count: Math.round(2 + st * 0.35), interval: 1.1, delay: 3 });
+    if (local1) groups.push({ kind: local1, count: Math.round(3 * pressure), interval: 0.65, delay: 2 });
   } else if (w === 9) {
     groups.push({ kind: 'grunt', count: Math.round(8 * pressure), interval: 0.45 });
     groups.push({ kind: 'brute', count: Math.round(4 + st * 0.4), interval: 0.9, delay: 1 });
     groups.push({ kind: 'scout', count: Math.round(8 * pressure), interval: 0.35, delay: 3 });
+    if (local2) groups.push({ kind: local2, count: Math.round(3 * pressure), interval: 0.7, delay: 2 });
   } else {
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.5 });
     groups.push({ kind: 'brute', count: Math.round(3 + st * 0.5), interval: 0.85, delay: 1.5 });
-    groups.push({ kind: 'boss', count: 1 + (st >= 8 ? 1 : 0), interval: 2.5, delay: 4 });
+    groups.push({ kind: boss, count: 1 + (st >= 8 ? 1 : 0), interval: 2.5, delay: 4 });
     groups.push({ kind: 'swarm', count: Math.round(10 * pressure), interval: 0.25, delay: 5 });
   }
 

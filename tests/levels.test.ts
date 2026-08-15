@@ -115,6 +115,27 @@ describe('buildWave', () => {
     expect(groups.some((g) => g.kind === 'boss')).toBe(true);
   });
 
+  it('keeps Forest stage 1 free of locals and champions', () => {
+    expect(waveRoster(1, 3, 1)).toEqual(['Raider', 'Goblin']);
+    expect(waveRoster(1, 7, 1).includes('Alpha Warg')).toBe(false);
+  });
+
+  it('brings Desert locals, a wave-7 champion, and a world boss', () => {
+    expect(waveRoster(1, 3, 2).includes('Scorpion')).toBe(true);
+    expect(waveRoster(3, 6, 2).includes('Dune Runner')).toBe(true);
+    expect(waveRoster(1, 7, 2).includes('Dune Tyrant')).toBe(true);
+    expect(waveRoster(1, 10, 2).includes('Sand Khan')).toBe(true);
+    expect(waveRoster(1, 10, 2).includes('Warlord')).toBe(false);
+  });
+
+  it('gives every world its own wave-10 boss and Forest a late champion', () => {
+    expect(waveRoster(2, 7, 1).includes('Alpha Warg')).toBe(true);
+    expect(waveRoster(1, 10, 1).includes('Warlord')).toBe(true);
+    expect(waveRoster(1, 10, 3).includes('Frost Jarl')).toBe(true);
+    expect(waveRoster(1, 10, 4).includes('Ash Titan')).toBe(true);
+    expect(waveRoster(1, 10, 5).includes('The Magician')).toBe(true);
+  });
+
   it('names the wave roster in spawn order', () => {
     expect(waveRoster(1, 1)).toEqual(['Raider']);
     expect(waveRoster(1, 3)).toEqual(['Raider', 'Goblin']);

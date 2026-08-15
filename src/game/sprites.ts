@@ -1,5 +1,6 @@
 import type { Enemy, Tower } from './entities';
-import { ENEMY_GAIT, PX } from './constants';
+import { PX } from './constants';
+import { ENEMY_GAIT, creatureFor } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
 
@@ -93,7 +94,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   ctx.ellipse(e.pos.x, e.pos.y + r * 0.75, r * 0.95, r * 0.32, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  const img = TEX.enemies[e.kind];
+  const img = TEX.creatures[creatureFor(e.kind)];
   if (texReady(img)) {
     const h = r * 3.35;
     const w = h * (img.naturalWidth / img.naturalHeight);
@@ -127,7 +128,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   }
 
   const hurt = e.hp < e.maxHp - 0.4;
-  const by = e.pos.y - (texReady(TEX.enemies[e.kind]) ? r * 2.7 : r) - 14;
+  const by = e.pos.y - (texReady(TEX.creatures[creatureFor(e.kind)]) ? r * 2.7 : r) - 14;
   if (hurt || selected) {
     const bw = Math.max(28, r * 2.35);
     const bh = 5;

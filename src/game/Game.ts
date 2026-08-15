@@ -9,6 +9,7 @@ import {
   u,
   type TowerKind,
 } from './constants';
+import { leakLives } from './enemies';
 import {
   buildGrid,
   buildWave,
@@ -397,7 +398,7 @@ export class Game {
         this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.55, '#6a5340', 2, 'smoke', -18);
       }
       if (e.reachedEnd) {
-        this.lives -= e.kind === 'boss' ? 5 : 1;
+        this.lives -= leakLives(e.kind);
         this.audio.leak();
         this.renderer.keepWound = 1;
         const gate = this.waypoints[this.waypoints.length - 1];

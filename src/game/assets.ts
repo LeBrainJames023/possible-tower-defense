@@ -1,6 +1,6 @@
 /** Optional baked images. Missing files just mean we keep procedural art. */
 
-import type { EnemyKind } from './constants';
+import type { CreatureSprite } from './enemies';
 
 export function loadImage(src: string): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
@@ -19,11 +19,16 @@ export const TEX = {
   dirt: loadImage('/textures/dirt.jpg'),
   water: loadImage('/textures/water.jpg'),
   tree: loadImage('/sprites/tree.png'),
-  enemies: {
-    scout: loadImage('/sprites/enemies/goblin.png'),
-    grunt: loadImage('/sprites/enemies/raider.png'),
-    swarm: loadImage('/sprites/enemies/imp.png'),
-    brute: loadImage('/sprites/enemies/troll.png'),
-    boss: loadImage('/sprites/enemies/warlord.png'),
-  } satisfies Record<EnemyKind, HTMLImageElement | null>,
+  creatures: {
+    goblin: loadImage('/sprites/enemies/goblin.png'),
+    raider: loadImage('/sprites/enemies/raider.png'),
+    imp: loadImage('/sprites/enemies/imp.png'),
+    troll: loadImage('/sprites/enemies/troll.png'),
+    warlord: loadImage('/sprites/enemies/warlord.png'),
+    warg: loadImage('/sprites/enemies/warg.png'),
+    ogre: loadImage('/sprites/enemies/ogre.png'),
+    hellbat: loadImage('/sprites/enemies/hellbat.png'),
+    wyvern: loadImage('/sprites/enemies/wyvern.png'),
+    drake: loadImage('/sprites/enemies/drake.png'),
+  } satisfies Record<CreatureSprite, HTMLImageElement | null>,
 };

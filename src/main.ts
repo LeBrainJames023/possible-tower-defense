@@ -1,5 +1,6 @@
 import './style.css';
-import { ENEMIES, MAP_H, MAP_W, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
+import { MAP_H, MAP_W, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
+import { ENEMIES } from './game/enemies';
 import { LEVELS, levelsInWorld, waveRoster } from './game/levels';
 import { drawLevelThumb } from './game/levelThumb';
 import { Game } from './game/Game';
@@ -353,7 +354,9 @@ function updateHud(): void {
     ]
       .filter(Boolean)
       .join(', ');
-    selectionTitle.textContent = def.name;
+    const roleTag =
+      def.role === 'champion' ? 'Champion' : def.role === 'boss' ? 'Boss' : def.role === 'special' ? 'Local' : '';
+    selectionTitle.textContent = roleTag ? `${def.name} · ${roleTag}` : def.name;
     selectionStats.textContent = `${def.blurb}\nHP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${(def.speed / TILE).toFixed(2)} tiles/s\nReward ${scaleGold(def.reward, game.mods.gold)}g${effects ? `\nStatus: ${effects}` : ''}`;
     hint.textContent = 'Pause to study packs without pressure.';
   } else {

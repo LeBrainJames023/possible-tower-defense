@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { TOWERS, ENEMY_GAIT } from '../src/game/constants';
+import { TOWERS } from '../src/game/constants';
+import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';

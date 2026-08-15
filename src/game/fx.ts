@@ -1,5 +1,6 @@
 import type { Enemy } from './entities';
 import type { TowerKind } from './constants';
+import { ENEMIES } from './enemies';
 
 const MAX_PARTICLES = 420;
 
@@ -152,11 +153,12 @@ export class FxWorld {
   }
 
   death(e: Enemy): void {
-    const count = e.kind === 'boss' ? 36 : e.kind === 'brute' ? 20 : 12;
-    this.burst(e.pos.x, e.pos.y, e.color, count, e.kind === 'boss' ? 'spark' : 'smoke');
-    this.ring(e.pos.x, e.pos.y, e.color, e.radius * 3.2, e.kind === 'boss' ? 5 : 2.5);
-    if (e.kind === 'boss') this.addShake(6.5);
-    else if (e.kind === 'brute') this.addShake(1.6);
+    const role = ENEMIES[e.kind].role;
+    const count = role === 'boss' ? 36 : role === 'champion' || e.kind === 'brute' ? 20 : 12;
+    this.burst(e.pos.x, e.pos.y, e.color, count, role === 'boss' ? 'spark' : 'smoke');
+    this.ring(e.pos.x, e.pos.y, e.color, e.radius * 3.2, role === 'boss' ? 5 : role === 'champion' ? 3.5 : 2.5);
+    if (role === 'boss') this.addShake(6.5);
+    else if (role === 'champion' || e.kind === 'brute') this.addShake(1.6);
   }
 
   statusTicks(e: Enemy, dt: number): void {

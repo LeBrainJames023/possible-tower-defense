@@ -1,4 +1,5 @@
-import { ENEMIES, TOWERS, WAVES_PER_LEVEL } from './constants';
+import { TOWERS, WAVES_PER_LEVEL } from './constants';
+import { ENEMIES } from './enemies';
 import { buildWave } from './levels';
 
 export type DifficultyId = 'easy' | 'normal' | 'hard';
@@ -63,14 +64,14 @@ export function scaleLives(lives: number, livesMul: number): number {
   return Math.max(1, Math.round(lives * livesMul));
 }
 
-/** Sum of kill bounties if every spawn in the wave dies. */
-export function waveKillGold(levelId: number, wave: number): number {
-  return buildWave(levelId, wave).reduce((sum, g) => sum + ENEMIES[g.kind].reward * g.count, 0);
+/** Sum of kill bounties if every spawn in the wave dies. stage is 1–10, not a global map id. */
+export function waveKillGold(stage: number, wave: number, worldIndex = 1): number {
+  return buildWave(stage, wave, worldIndex).reduce((sum, g) => sum + ENEMIES[g.kind].reward * g.count, 0);
 }
 
-export function waveTotalIncome(levelId: number, wave: number): number {
+export function waveTotalIncome(stage: number, wave: number, worldIndex = 1): number {
   const w = Math.max(1, Math.min(WAVES_PER_LEVEL, wave));
-  return waveKillGold(levelId, w) + waveClearBonus(w);
+  return waveKillGold(stage, w, worldIndex) + waveClearBonus(w);
 }
 
 /** Arrow DPS vs a grunt, used by tests as a sanity rail. */
