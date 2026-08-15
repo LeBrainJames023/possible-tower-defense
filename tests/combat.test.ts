@@ -1,9 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { TOWERS } from '../src/game/constants';
 import { ENEMY_GAIT } from '../src/game/enemies';
-import { Enemy } from '../src/game/entities';
+import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
+import { pickTarget, splashMultiplier } from '../src/game/combat';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
+
+describe('shared combat rules', () => {
+  it('aims at the foe furthest along the path', () => {
+    const sim = new CombatSandbox();
+    const tower = new Tower('arrow', 5, 4, 100, 100);
+    const late = sim.spawn('grunt');
+    const early = sim.spawn('grunt');
+    late.pos = { x: 120, y: 100 };
+    early.pos = { x: 130, y: 100 };
+    late.progress = 0.8;
+    early.progress = 0.2;
+    expect(pickTarget(tower, sim.enemies)?.id).toBe(late.id);
+  });
+
+  it('uses splash falloff so the rim hits softer than the center', () => {
+    expect(splashMultiplier(10, 100)).toBe(1);
+    expect(splashMultiplier(50, 100)).toBe(0.65);
+    expect(splashMultiplier(101, 100)).toBe(0);
+  });
+});
 
 describe('tower combat sandbox', () => {
   it('arrow deals damage and can kill a grunt', () => {

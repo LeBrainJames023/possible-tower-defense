@@ -8,6 +8,7 @@ alwaysApply: true
 - Genre: fixed-path tower defense (NOT maze-building). Towers never on path tiles.
 - Stack: Vite + TypeScript + Canvas 2D. Keep modules under `src/game/` and helpers in `src/shared/`.
 - UX: BCI-first — large buttons, click-to-place, no drag-and-drop, no hover-only controls.
-- Balance data lives in `src/game/constants.ts` and `src/game/levels.ts` — tune there first.
+- Balance data lives in `src/game/constants.ts`, `src/game/enemies.ts`, and `src/game/levels.ts` — tune there first.
+- Hit rules live in `src/game/combat.ts`. Do not reimplement fire/splash/chain in tests.
 - Art is procedural in `src/game/renderer.ts`; log any external assets in `docs/ASSETS.md`.
 - Do not commit secrets; use `.env.example` only for future config.

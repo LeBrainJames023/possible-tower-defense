@@ -19,5 +19,6 @@
 | Campaign / worlds | `docs/CAMPAIGN.md`, `src/game/worlds.ts` |
 | Levels / waves / balance | `src/game/levels.ts`, `src/game/constants.ts`, `src/game/worlds.ts` |
 | Enemy roster / kinds | `src/game/enemies.ts`, `src/game/worldRoster.ts` |
+| Combat / hit rules | `src/game/combat.ts` (Game and tests share this) |
 | Rendering / art | `src/game/renderer.ts` |
 | Universal modes, handoffs | **User Rules** |

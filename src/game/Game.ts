@@ -2,8 +2,6 @@ import {
   TILE,
   TOWERS,
   WAVES_PER_LEVEL,
-  CHAIN_RANGE,
-  PROJECTILE_FEEL,
   MAP_W,
   MAP_H,
   u,
@@ -21,6 +19,7 @@ import {
   type WaveSpawn,
 } from './levels';
 import { Enemy, Tower, Projectile, type BeamFx, type FloatingText } from './entities';
+import { stepCombat, type CombatHooks } from './combat';
 import { Renderer } from './renderer';
 import { FxWorld } from './fx';
 import { AudioBus } from './audio';
@@ -31,30 +30,12 @@ import {
   waveClearBonus,
   type DifficultyId,
 } from './balance';
-import { dist, lerpAngle } from '../shared/math';
+import { dist } from '../shared/math';
 import { clientToMap, identityMapView, type MapView } from '../shared/pointer';
-import type { Vec2 } from '../shared/math';
 import { afterWin, canPlay, isAhead, loadProgress, saveProgress } from './progress';
 import { isWetLevel } from './worlds';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
-
-function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
-  const pts: Vec2[] = [{ x: x1, y: y1 }];
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const len = Math.hypot(dx, dy) || 1;
-  const px = -dy / len;
-  const py = dx / len;
-  const segs = 5;
-  for (let i = 1; i < segs; i++) {
-    const t = i / segs;
-    const off = (Math.random() - 0.5) * u(22);
-    pts.push({ x: x1 + dx * t + px * off, y: y1 + dy * t + py * off });
-  }
-  pts.push({ x: x2, y: y2 });
-  return pts;
-}
 
 export class Game {
   canvas: HTMLCanvasElement;
@@ -418,41 +399,8 @@ export class Game {
     }
     this.collectBounties();
 
-    for (const t of this.towers) {
-      t.cooldown = Math.max(0, t.cooldown - dt);
-      t.recoil = Math.max(0, t.recoil - dt * 6);
-      t.muzzle = Math.max(0, t.muzzle - dt * 8);
-      const tracked = t.targetId != null ? this.enemies.find((e) => e.id === t.targetId) : null;
-      const aimAt = tracked && dist({ x: t.x, y: t.y }, tracked.pos) <= t.range ? tracked : this.pickTarget(t);
-      if (aimAt) {
-        const desired = Math.atan2(aimAt.pos.y - t.y, aimAt.pos.x - t.x);
-        t.aim = lerpAngle(t.aim, desired, 1 - Math.pow(0.0008, dt));
-      }
-      if (t.cooldown > 0) continue;
-      const target = this.pickTarget(t);
-      if (!target) continue;
-      t.cooldown = 1 / t.fireRate;
-      t.targetId = target.id;
-      this.fire(t, target);
-    }
+    stepCombat(this, dt, this.combatHooks());
 
-    for (const p of this.projectiles) {
-      if (p.targetId != null && p.homing > 0) {
-        const tgt = this.enemies.find((e) => e.id === p.targetId);
-        if (tgt) {
-          const k = 1 - Math.pow(1 - p.homing, dt * 8);
-          p.tx += (tgt.pos.x - p.tx) * k;
-          p.ty += (tgt.pos.y - p.ty) * k;
-        }
-      }
-      const hit = p.update(dt);
-      if (hit) this.applyHit(p);
-    }
-    this.projectiles = this.projectiles.filter((p) => p.alive);
-
-    this.beams = this.beams
-      .map((b) => ({ ...b, life: b.life - dt }))
-      .filter((b) => b.life > 0);
     this.floats = this.floats
       .map((f) => ({ ...f, life: f.life - dt, y: f.y - 24 * dt }))
       .filter((f) => f.life > 0);
@@ -496,6 +444,30 @@ export class Game {
     }
   }
 
+  private combatHooks(): CombatHooks {
+    return {
+      damageMul: this.mods.damage,
+      onMuzzle: (t) => {
+        this.fx.muzzle(t.x, t.y, t.aim, t.def.color);
+        this.audio.fire(t.kind);
+      },
+      onChainHop: (e, hop, color) => {
+        this.fx.flash(e.pos.x, e.pos.y, '#fff8d0', 24 - hop * 3, 0.14);
+        this.fx.burst(e.pos.x, e.pos.y, color, 10, 'spark', -8);
+      },
+      onChainDone: () => {
+        this.fx.addShake(1.4);
+        this.audio.impact('lightning');
+        this.collectBounties();
+      },
+      onImpact: (p) => {
+        this.fx.impact(p.x, p.y, p.kind, p.color, p.splash);
+        this.audio.impact(p.kind);
+      },
+      afterHits: () => this.collectBounties(),
+    };
+  }
+
   private collectBounties(): void {
     for (const e of this.enemies) {
       if (!e.alive && !e.reachedEnd) {
@@ -516,118 +488,6 @@ export class Game {
     if (this.selectedEnemyId && !this.enemies.some((e) => e.id === this.selectedEnemyId)) {
       this.selectedEnemyId = null;
     }
-  }
-
-  private pickTarget(t: Tower): Enemy | null {
-    const inRange = this.enemies.filter((e) => dist({ x: t.x, y: t.y }, e.pos) <= t.range);
-    if (!inRange.length) return null;
-    inRange.sort((a, b) => b.progress - a.progress);
-    return inRange[0];
-  }
-
-  private fire(t: Tower, target: Enemy): void {
-    const def = t.def;
-    const status = t.statusScale();
-    t.aim = Math.atan2(target.pos.y - t.y, target.pos.x - t.x);
-    t.recoil = 1;
-    t.muzzle = 1;
-    this.fx.muzzle(t.x, t.y, t.aim, def.color);
-    this.audio.fire(t.kind);
-
-    if (def.chain > 0) {
-      const hit = new Set<number>();
-      let current: Enemy | null = target;
-      let fromX = t.x;
-      let fromY = t.y;
-      let dmg = this.shotDamage(t);
-      for (let i = 0; i < def.chain && current; i++) {
-        hit.add(current.id);
-        const points = jaggedBolt(fromX, fromY, current.pos.x, current.pos.y);
-        this.beams.push({
-          x1: fromX,
-          y1: fromY,
-          x2: current.pos.x,
-          y2: current.pos.y,
-          color: def.color,
-          life: 0.22,
-          maxLife: 0.22,
-          width: 3.2 - i * 0.4,
-          points,
-        });
-        current.takeDamage(dmg, def.pierceArmor);
-        this.fx.flash(current.pos.x, current.pos.y, '#fff8d0', 24 - i * 3, 0.14);
-        this.fx.burst(current.pos.x, current.pos.y, def.color, 10, 'spark', -8);
-        if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
-        if (def.burnDps > 0) current.applyBurn(def.burnDps * status * this.mods.damage, def.burnDuration);
-        if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status * this.mods.damage, def.poisonDuration);
-        fromX = current.pos.x;
-        fromY = current.pos.y;
-        dmg *= 0.72;
-        const next = this.enemies
-          .filter((e) => !hit.has(e.id) && dist(current!.pos, e.pos) < CHAIN_RANGE)
-          .sort((a, b) => dist(current!.pos, a.pos) - dist(current!.pos, b.pos))[0];
-        current = next ?? null;
-      }
-      this.fx.addShake(1.4);
-      this.audio.impact('lightning');
-      this.collectBounties();
-      return;
-    }
-
-    const feel = PROJECTILE_FEEL[t.kind];
-    this.projectiles.push(
-      new Projectile({
-        x: t.x,
-        y: t.y,
-        tx: target.pos.x,
-        ty: target.pos.y,
-        speed: feel.speed,
-        damage: this.shotDamage(t),
-        splash: def.splash,
-        pierceArmor: def.pierceArmor,
-        slow: def.slow,
-        slowDuration: def.slowDuration,
-        burnDps: def.burnDps * status * this.mods.damage,
-        burnDuration: def.burnDuration,
-        poisonDps: def.poisonDps * status * this.mods.damage,
-        poisonDuration: def.poisonDuration,
-        chain: 0,
-        color: def.color,
-        targetId: target.id,
-        trail: t.kind === 'arrow',
-        kind: t.kind,
-        arc: feel.arc,
-        homing: feel.homing,
-      }),
-    );
-  }
-
-  private applyHit(p: Projectile): void {
-    const apply = (e: Enemy, mul = 1) => {
-      e.takeDamage(p.damage * mul, p.pierceArmor);
-      if (p.slow > 0) e.applySlow(p.slow, p.slowDuration);
-      if (p.burnDps > 0) e.applyBurn(p.burnDps * mul, p.burnDuration);
-      if (p.poisonDps > 0) e.applyPoison(p.poisonDps * mul, p.poisonDuration);
-    };
-
-    this.fx.impact(p.x, p.y, p.kind, p.color, p.splash);
-    this.audio.impact(p.kind);
-
-    if (p.splash > 0) {
-      for (const e of this.enemies) {
-        const d = dist({ x: p.x, y: p.y }, e.pos);
-        if (d <= p.splash) apply(e, d < p.splash * 0.4 ? 1 : 0.65);
-      }
-    } else if (p.targetId != null) {
-      const tgt = this.enemies.find((e) => e.id === p.targetId);
-      if (tgt) apply(tgt);
-      else {
-        const near = this.enemies.find((e) => dist({ x: p.x, y: p.y }, e.pos) < u(20));
-        if (near) apply(near);
-      }
-    }
-
-    this.collectBounties();
   }
 
   private draw(): void {
