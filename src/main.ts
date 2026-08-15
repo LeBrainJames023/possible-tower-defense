@@ -1,15 +1,27 @@
 import './style.css';
 import { ENEMIES, MAP_H, MAP_W, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
-import { LEVELS, waveRoster } from './game/levels';
+import { LEVELS, levelsInWorld, waveRoster } from './game/levels';
 import { drawLevelThumb } from './game/levelThumb';
-import { Game, loadProgress, saveProgress } from './game/Game';
+import { Game } from './game/Game';
+import {
+  afterWin,
+  canPlay,
+  isCampaignClear,
+  isCleared,
+  isWorldCleared,
+  isWorldOpen,
+  loadProgress,
+  saveProgress,
+} from './game/progress';
 import { DIFFICULTY, scaleGold, type DifficultyId } from './game/balance';
 import { themeFor } from './game/themes';
+import { WORLDS, worldById, worldByIndex } from './game/worlds';
 import { fitCanvasToHost } from './shared/pointer';
 
 const screens = {
   title: document.getElementById('screen-title')!,
   how: document.getElementById('screen-how')!,
+  worlds: document.getElementById('screen-worlds')!,
   levels: document.getElementById('screen-levels')!,
   game: document.getElementById('screen-game')!,
 };
@@ -35,6 +47,9 @@ const leaveStrip = document.getElementById('leave-strip')!;
 const toastEl = document.getElementById('toast')!;
 const towerShop = document.getElementById('tower-shop')!;
 const levelGrid = document.getElementById('level-grid')!;
+const worldList = document.getElementById('world-list')!;
+const levelsTitle = document.getElementById('levels-title')!;
+const levelsLede = document.getElementById('levels-lede')!;
 const selectionTitle = document.getElementById('selection-title')!;
 const selectionStats = document.getElementById('selection-stats')!;
 const towerActions = document.getElementById('tower-actions')!;
@@ -82,6 +97,7 @@ function syncMuteUi(): void {
 let resultWon = false;
 let toastTimer = 0;
 let activeLevelId = 1;
+let activeWorldIndex = 1;
 let lastGold = -1;
 let lastLives = -1;
 
@@ -118,19 +134,56 @@ function showScreen(name: keyof typeof screens): void {
 }
 
 function ensureProgress(): void {
-  if (!localStorage.getItem('ptd-progress-v1')) saveProgress(1);
+  if (!localStorage.getItem('ptd-progress-v2')) saveProgress(loadProgress());
+}
+
+function renderWorlds(): void {
+  const p = loadProgress();
+  worldList.innerHTML = '';
+  for (const world of WORLDS) {
+    const open = isWorldOpen(p, world.index);
+    const cleared = isWorldCleared(p, world.index);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'world-card';
+    if (cleared) btn.classList.add('cleared');
+    if (!open) btn.classList.add('locked');
+    btn.disabled = !open;
+    const badge = document.createElement('span');
+    badge.className = 'level-badge';
+    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
+    const name = document.createElement('strong');
+    name.textContent = world.name;
+    const blurb = document.createElement('span');
+    blurb.className = 'world-blurb';
+    blurb.textContent = open ? world.blurb : 'Clear the previous world first.';
+    btn.append(badge, name, blurb);
+    btn.style.borderColor = world.theme.ui;
+    btn.addEventListener('click', () => {
+      if (!open) return;
+      activeWorldIndex = world.index;
+      renderLevels();
+      showScreen('levels');
+    });
+    worldList.appendChild(btn);
+  }
 }
 
 function renderLevels(): void {
-  const unlocked = loadProgress();
+  const p = loadProgress();
+  const world = worldByIndex(activeWorldIndex);
+  levelsTitle.textContent = world.name;
+  levelsLede.textContent = `${world.blurb} Ten maps. Beat them in order.`;
   levelGrid.innerHTML = '';
-  for (const level of LEVELS) {
+  for (const level of levelsInWorld(activeWorldIndex)) {
+    const open = canPlay(p, level);
+    const cleared = isCleared(p, level);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'level-card';
-    if (level.id < unlocked) btn.classList.add('cleared');
-    if (level.id > unlocked) btn.classList.add('locked');
-    btn.disabled = level.id > unlocked;
+    if (cleared) btn.classList.add('cleared');
+    if (!open) btn.classList.add('locked');
+    btn.disabled = !open;
     const thumb = document.createElement('canvas');
     thumb.className = 'level-thumb';
     thumb.width = 200;
@@ -140,16 +193,16 @@ function renderLevels(): void {
     if (tctx) drawLevelThumb(tctx, level, thumb.width, thumb.height);
     const badge = document.createElement('span');
     badge.className = 'level-badge';
-    badge.textContent = level.id < unlocked ? 'Cleared' : level.id > unlocked ? 'Locked' : 'Open';
+    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
     const label = document.createElement('strong');
-    label.textContent = `Level ${level.id}`;
+    label.textContent = `Stage ${level.stage}`;
     const name = document.createElement('span');
     name.className = 'level-name';
     name.textContent = level.name;
     const blurb = document.createElement('span');
-    blurb.textContent = level.id > unlocked ? 'Clear the previous map first.' : level.blurb;
+    blurb.textContent = open ? level.blurb : 'Clear the previous map first.';
     btn.append(thumb, badge, label, name, blurb);
-    btn.style.borderColor = themeFor(level.id).ui;
+    btn.style.borderColor = themeFor(level).ui;
     btn.addEventListener('click', () => startLevel(level.id));
     levelGrid.appendChild(btn);
   }
@@ -237,7 +290,7 @@ function updatePauseUi(): void {
 
 function updateHud(): void {
   if (!game.level) return;
-  hudLevel.textContent = String(game.level.id);
+  hudLevel.textContent = `${worldById(game.level.world).name} ${game.level.stage}`;
   hudWave.textContent = `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);
@@ -246,9 +299,9 @@ function updateHud(): void {
   lastGold = game.gold;
   lastLives = game.lives;
   if (game.canStartWave()) {
-    hudNext.textContent = `Next: ${waveRoster(game.level.id, game.waveIndex + 1).join(', ')}`;
+    hudNext.textContent = `Next: ${waveRoster(game.level.stage, game.waveIndex + 1, game.level.worldIndex).join(', ')}`;
   } else if (game.phase === 'wave') {
-    hudNext.textContent = `Now: ${waveRoster(game.level.id, game.waveIndex).join(', ')}`;
+    hudNext.textContent = `Now: ${waveRoster(game.level.stage, game.waveIndex, game.level.worldIndex).join(', ')}`;
   } else {
     hudNext.textContent = 'Line held.';
   }
@@ -296,16 +349,18 @@ function updateHud(): void {
 }
 
 function startLevel(id: number): void {
-  activeLevelId = id;
+  const level = LEVELS.find((l) => l.id === id) ?? LEVELS[0];
+  activeLevelId = level.id;
+  activeWorldIndex = level.worldIndex;
   showScreen('game');
   overlayResult.classList.add('hidden');
   leaveStrip.classList.add('hidden');
   game.audio.unlock();
   lastGold = -1;
   lastLives = -1;
-  game.startLevel(id);
+  game.startLevel(level.id);
   updateHud();
-  showToast(`Level ${id}: ${LEVELS.find((l) => l.id === id)?.name ?? ''} — click grass to build`);
+  showToast(`${worldById(level.world).name} ${level.stage}: ${level.name} — click grass to build`);
 }
 
 game.onHud = updateHud;
@@ -314,13 +369,22 @@ game.onResult = (won) => {
   resultWon = won;
   overlayResult.classList.remove('hidden');
   if (won) {
-    resultTitle.textContent = activeLevelId >= LEVELS.length ? 'Campaign clear!' : 'Level cleared';
-    resultBody.textContent =
-      activeLevelId >= LEVELS.length
-        ? 'You held the last bastion. Indie victory — nicely done.'
-        : `Level ${activeLevelId} survived. Next map unlocked.`;
-    btnResultPrimary.textContent =
-      activeLevelId >= LEVELS.length ? 'Back to levels' : 'Next level';
+    const level = game.level;
+    const next = afterWin(level);
+    if (isCampaignClear(next)) {
+      resultTitle.textContent = 'Campaign clear!';
+      resultBody.textContent = 'You held The Hollow. The magician’s door is shut.';
+      btnResultPrimary.textContent = 'Back to worlds';
+    } else if (next.world > level.worldIndex) {
+      const opened = worldByIndex(next.world);
+      resultTitle.textContent = `${worldById(level.world).name} cleared`;
+      resultBody.textContent = `${opened.name} is open.`;
+      btnResultPrimary.textContent = 'Worlds';
+    } else {
+      resultTitle.textContent = 'Level cleared';
+      resultBody.textContent = `${level.name} survived. Next map unlocked.`;
+      btnResultPrimary.textContent = 'Next map';
+    }
   } else {
     resultTitle.textContent = 'Base fallen';
     resultBody.textContent = 'Enemies leaked through. Rebuild with a wider tower mix.';
@@ -356,6 +420,11 @@ document.querySelectorAll('[data-action]').forEach((el) => {
     const action = (el as HTMLElement).dataset.action;
     if (action === 'title') showScreen('title');
     if (action === 'how') showScreen('how');
+    if (action === 'worlds') {
+      renderWorlds();
+      showScreen('worlds');
+      game.stopLoop();
+    }
     if (action === 'levels') {
       renderLevels();
       showScreen('levels');
@@ -420,12 +489,13 @@ btnBuild.addEventListener('click', () => {
 btnResultPrimary.addEventListener('click', () => {
   overlayResult.classList.add('hidden');
   if (resultWon) {
-    if (activeLevelId >= LEVELS.length) {
-      renderLevels();
-      showScreen('levels');
+    const next = afterWin(game.level);
+    if (isCampaignClear(next) || next.world > game.level.worldIndex) {
+      renderWorlds();
+      showScreen('worlds');
       game.stopLoop();
     } else {
-      startLevel(activeLevelId + 1);
+      startLevel(game.level.id + 1);
     }
   } else {
     startLevel(activeLevelId);

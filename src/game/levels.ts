@@ -1,9 +1,13 @@
 import type { CellKind, EnemyKind } from './constants';
-import { COLS, ENEMIES, ROWS, TILE, WAVES_PER_LEVEL } from './constants';
+import { COLS, ENEMIES, ROWS, STAGES_PER_WORLD, TILE, WAVES_PER_LEVEL } from './constants';
 import type { Vec2 } from '../shared/math';
+import { WORLDS, type WorldId } from './worlds';
 
 export interface LevelDef {
   id: number;
+  world: WorldId;
+  worldIndex: number;
+  stage: number;
   name: string;
   blurb: string;
   /** Grid cells: path waypoints in tile coords */
@@ -11,7 +15,6 @@ export interface LevelDef {
   blocked?: Array<{ c: number; r: number }>;
   /** Multiplier applied to enemy HP for this level */
   hpScale: number;
-  /** Extra gold at start */
   startingGold: number;
   lives: number;
 }
@@ -19,8 +22,20 @@ export interface LevelDef {
 export interface WaveSpawn {
   kind: EnemyKind;
   count: number;
-  interval: number; // seconds between spawns
-  delay?: number; // delay before this group starts
+  interval: number;
+  delay?: number;
+}
+
+type Cell = { c: number; r: number };
+
+interface PathTemplate {
+  names: Record<WorldId, string>;
+  blurb: string;
+  corners: Cell[];
+  blocked?: Cell[];
+  hpScale: number;
+  gold: number;
+  lives: number;
 }
 
 export function buildGrid(level: LevelDef): CellKind[][] {
@@ -66,176 +81,344 @@ export function expandPath(points: Array<{ c: number; r: number }>): Array<{ c: 
   return out;
 }
 
-function L(
-  id: number,
-  name: string,
-  blurb: string,
-  corners: Array<{ c: number; r: number }>,
-  hpScale: number,
-  startingGold: number,
-  lives: number,
-  blocked: Array<{ c: number; r: number }> = [],
-): LevelDef {
-  return {
-    id,
-    name,
-    blurb,
-    pathTiles: expandPath(corners),
-    blocked,
-    hpScale,
-    startingGold,
-    lives,
-  };
+function mapCell(p: Cell, kind: (typeof WORLDS)[number]['transform']): Cell {
+  switch (kind) {
+    case 'id':
+      return { c: p.c, r: p.r };
+    case 'flipX':
+    case 'revX':
+      return { c: COLS - 1 - p.c, r: p.r };
+    case 'flipY':
+      return { c: p.c, r: ROWS - 1 - p.r };
+    case 'flipXY':
+      return { c: COLS - 1 - p.c, r: ROWS - 1 - p.r };
+  }
 }
 
-export const LEVELS: LevelDef[] = [
-  L(1, 'Meadow Gate', 'A gentle S-curve. Learn the loop.', [
-    { c: 0, r: 5 },
-    { c: 6, r: 5 },
-    { c: 6, r: 2 },
-    { c: 13, r: 2 },
-    { c: 13, r: 8 },
-    { c: 19, r: 8 },
-  ], 1, 250, 18, [
-    { c: 3, r: 3 },
-    { c: 4, r: 3 },
-    { c: 10, r: 5 },
-    { c: 16, r: 4 },
-  ]),
-  L(2, 'River Bend', 'Longer travel, tighter corners.', [
-    { c: 0, r: 2 },
-    { c: 4, r: 2 },
-    { c: 4, r: 9 },
-    { c: 10, r: 9 },
-    { c: 10, r: 3 },
-    { c: 16, r: 3 },
-    { c: 16, r: 7 },
-    { c: 19, r: 7 },
-  ], 1.15, 255, 18, [
-    { c: 7, r: 5 },
-    { c: 8, r: 5 },
-    { c: 13, r: 6 },
-  ]),
-  L(3, 'Twin Forks', 'Path hugs the middle — cover both sides.', [
-    { c: 0, r: 6 },
-    { c: 5, r: 6 },
-    { c: 5, r: 1 },
-    { c: 11, r: 1 },
-    { c: 11, r: 10 },
-    { c: 17, r: 10 },
-    { c: 17, r: 4 },
-    { c: 19, r: 4 },
-  ], 1.3, 260, 16, [
-    { c: 8, r: 4 },
-    { c: 14, r: 6 },
-    { c: 2, r: 9 },
-  ]),
-  L(4, 'Stone Spiral', 'Spiral inward pressure.', [
-    { c: 0, r: 1 },
-    { c: 18, r: 1 },
-    { c: 18, r: 10 },
-    { c: 2, r: 10 },
-    { c: 2, r: 3 },
-    { c: 15, r: 3 },
-    { c: 15, r: 8 },
-    { c: 5, r: 8 },
-    { c: 5, r: 5 },
-    { c: 19, r: 5 },
-  ], 1.45, 265, 16),
-  L(5, 'Crossroads', 'Dense mid-map — splash shines.', [
-    { c: 0, r: 4 },
-    { c: 8, r: 4 },
-    { c: 8, r: 9 },
-    { c: 3, r: 9 },
-    { c: 3, r: 1 },
-    { c: 14, r: 1 },
-    { c: 14, r: 7 },
-    { c: 19, r: 7 },
-  ], 1.6, 270, 15, [
-    { c: 6, r: 6 },
-    { c: 11, r: 4 },
-    { c: 16, r: 3 },
-  ]),
-  L(6, 'Ridge Run', 'Fast lane along the ridge.', [
-    { c: 0, r: 10 },
-    { c: 3, r: 10 },
-    { c: 3, r: 2 },
-    { c: 9, r: 2 },
-    { c: 9, r: 8 },
-    { c: 15, r: 8 },
-    { c: 15, r: 2 },
-    { c: 19, r: 2 },
-  ], 1.8, 280, 15),
-  L(7, 'Broken Wall', 'Gaps force awkward placements.', [
-    { c: 0, r: 3 },
-    { c: 6, r: 3 },
-    { c: 6, r: 7 },
-    { c: 2, r: 7 },
-    { c: 2, r: 11 },
-    { c: 12, r: 11 },
-    { c: 12, r: 0 },
-    { c: 19, r: 0 },
-  ], 2.0, 290, 14, [
-    { c: 4, r: 5 },
-    { c: 8, r: 5 },
-    { c: 8, r: 9 },
-    { c: 9, r: 9 },
-    { c: 10, r: 5 },
-    { c: 14, r: 3 },
-    { c: 14, r: 4 },
-    { c: 15, r: 8 },
-  ]),
-  L(8, 'Night Canal', 'Long canal — range management.', [
-    { c: 0, r: 6 },
-    { c: 19, r: 6 },
-    { c: 19, r: 2 },
-    { c: 4, r: 2 },
-    { c: 4, r: 10 },
-    { c: 16, r: 10 },
-    { c: 16, r: 8 },
-    { c: 19, r: 8 },
-  ], 2.2, 300, 14, [
-    { c: 8, r: 4 },
-    { c: 9, r: 4 },
-    { c: 10, r: 8 },
-    { c: 11, r: 8 },
-  ]),
-  L(9, 'Siege March', 'Thick armor arrives early.', [
-    { c: 0, r: 0 },
-    { c: 0, r: 8 },
-    { c: 7, r: 8 },
-    { c: 7, r: 2 },
-    { c: 13, r: 2 },
-    { c: 13, r: 9 },
-    { c: 19, r: 9 },
-  ], 2.45, 310, 13),
-  L(10, 'Last Bastion', 'Final stand — every niche matters.', [
-    { c: 0, r: 5 },
-    { c: 4, r: 5 },
-    { c: 4, r: 1 },
-    { c: 10, r: 1 },
-    { c: 10, r: 10 },
-    { c: 6, r: 10 },
-    { c: 6, r: 3 },
-    { c: 15, r: 3 },
-    { c: 15, r: 8 },
-    { c: 19, r: 8 },
-  ], 2.75, 320, 12, [
-    { c: 8, r: 5 },
-    { c: 12, r: 6 },
-    { c: 17, r: 4 },
-  ]),
+function transformCells(cells: Cell[], kind: (typeof WORLDS)[number]['transform']): Cell[] {
+  const mapped = cells.map((p) => mapCell(p, kind));
+  return kind === 'revX' ? mapped.slice().reverse() : mapped;
+}
+
+/** The ten Forest layouts. Other worlds reuse these shapes, flipped or reversed. */
+const TEMPLATES: PathTemplate[] = [
+  {
+    names: {
+      forest: 'Meadow Gate',
+      desert: 'Dune Gate',
+      ice: 'Frost Gate',
+      fire: 'Ember Gate',
+      hollow: 'Rune Gate',
+    },
+    blurb: 'A gentle S-curve. Learn the loop.',
+    corners: [
+      { c: 0, r: 5 },
+      { c: 6, r: 5 },
+      { c: 6, r: 2 },
+      { c: 13, r: 2 },
+      { c: 13, r: 8 },
+      { c: 19, r: 8 },
+    ],
+    blocked: [
+      { c: 3, r: 3 },
+      { c: 4, r: 3 },
+      { c: 10, r: 5 },
+      { c: 16, r: 4 },
+    ],
+    hpScale: 1,
+    gold: 250,
+    lives: 18,
+  },
+  {
+    names: {
+      forest: 'River Bend',
+      desert: 'Oasis Bend',
+      ice: 'Glacier Bend',
+      fire: 'Magma Bend',
+      hollow: 'Shadow Bend',
+    },
+    blurb: 'Longer travel, tighter corners.',
+    corners: [
+      { c: 0, r: 2 },
+      { c: 4, r: 2 },
+      { c: 4, r: 9 },
+      { c: 10, r: 9 },
+      { c: 10, r: 3 },
+      { c: 16, r: 3 },
+      { c: 16, r: 7 },
+      { c: 19, r: 7 },
+    ],
+    blocked: [
+      { c: 7, r: 5 },
+      { c: 8, r: 5 },
+      { c: 13, r: 6 },
+    ],
+    hpScale: 1.15,
+    gold: 255,
+    lives: 18,
+  },
+  {
+    names: {
+      forest: 'Twin Forks',
+      desert: 'Twin Dunes',
+      ice: 'Twin Floes',
+      fire: 'Twin Caldera',
+      hollow: 'Twin Hex',
+    },
+    blurb: 'Path hugs the middle — cover both sides.',
+    corners: [
+      { c: 0, r: 6 },
+      { c: 5, r: 6 },
+      { c: 5, r: 1 },
+      { c: 11, r: 1 },
+      { c: 11, r: 10 },
+      { c: 17, r: 10 },
+      { c: 17, r: 4 },
+      { c: 19, r: 4 },
+    ],
+    blocked: [
+      { c: 8, r: 4 },
+      { c: 14, r: 6 },
+      { c: 2, r: 9 },
+    ],
+    hpScale: 1.3,
+    gold: 260,
+    lives: 16,
+  },
+  {
+    names: {
+      forest: 'Stone Spiral',
+      desert: 'Sand Spiral',
+      ice: 'Ice Spiral',
+      fire: 'Fire Spiral',
+      hollow: 'Void Spiral',
+    },
+    blurb: 'Spiral inward pressure.',
+    corners: [
+      { c: 0, r: 1 },
+      { c: 18, r: 1 },
+      { c: 18, r: 10 },
+      { c: 2, r: 10 },
+      { c: 2, r: 3 },
+      { c: 15, r: 3 },
+      { c: 15, r: 8 },
+      { c: 5, r: 8 },
+      { c: 5, r: 5 },
+      { c: 19, r: 5 },
+    ],
+    hpScale: 1.45,
+    gold: 265,
+    lives: 16,
+  },
+  {
+    names: {
+      forest: 'Crossroads',
+      desert: 'Crosswinds',
+      ice: 'Crossfrost',
+      fire: 'Crossflame',
+      hollow: 'Crosscurse',
+    },
+    blurb: 'Dense mid-map — splash shines.',
+    corners: [
+      { c: 0, r: 4 },
+      { c: 8, r: 4 },
+      { c: 8, r: 9 },
+      { c: 3, r: 9 },
+      { c: 3, r: 1 },
+      { c: 14, r: 1 },
+      { c: 14, r: 7 },
+      { c: 19, r: 7 },
+    ],
+    blocked: [
+      { c: 6, r: 6 },
+      { c: 11, r: 4 },
+      { c: 16, r: 3 },
+    ],
+    hpScale: 1.6,
+    gold: 270,
+    lives: 15,
+  },
+  {
+    names: {
+      forest: 'Ridge Run',
+      desert: 'Ridge Dunes',
+      ice: 'Ridge Ice',
+      fire: 'Ridge Ash',
+      hollow: 'Ridge Bone',
+    },
+    blurb: 'Fast lane along the ridge.',
+    corners: [
+      { c: 0, r: 10 },
+      { c: 3, r: 10 },
+      { c: 3, r: 2 },
+      { c: 9, r: 2 },
+      { c: 9, r: 8 },
+      { c: 15, r: 8 },
+      { c: 15, r: 2 },
+      { c: 19, r: 2 },
+    ],
+    hpScale: 1.8,
+    gold: 280,
+    lives: 15,
+  },
+  {
+    names: {
+      forest: 'Broken Wall',
+      desert: 'Broken Mesa',
+      ice: 'Broken Shelf',
+      fire: 'Broken Crust',
+      hollow: 'Broken Ward',
+    },
+    blurb: 'Gaps force awkward placements.',
+    corners: [
+      { c: 0, r: 3 },
+      { c: 6, r: 3 },
+      { c: 6, r: 7 },
+      { c: 2, r: 7 },
+      { c: 2, r: 11 },
+      { c: 12, r: 11 },
+      { c: 12, r: 0 },
+      { c: 19, r: 0 },
+    ],
+    blocked: [
+      { c: 4, r: 5 },
+      { c: 8, r: 5 },
+      { c: 8, r: 9 },
+      { c: 9, r: 9 },
+      { c: 10, r: 5 },
+      { c: 14, r: 3 },
+      { c: 14, r: 4 },
+      { c: 15, r: 8 },
+    ],
+    hpScale: 2.0,
+    gold: 290,
+    lives: 14,
+  },
+  {
+    names: {
+      forest: 'Night Canal',
+      desert: 'Dry Canal',
+      ice: 'Night Fjord',
+      fire: 'Lava Canal',
+      hollow: 'Night Vein',
+    },
+    blurb: 'Long canal — range management.',
+    corners: [
+      { c: 0, r: 6 },
+      { c: 19, r: 6 },
+      { c: 19, r: 2 },
+      { c: 4, r: 2 },
+      { c: 4, r: 10 },
+      { c: 16, r: 10 },
+      { c: 16, r: 8 },
+      { c: 19, r: 8 },
+    ],
+    blocked: [
+      { c: 8, r: 4 },
+      { c: 9, r: 4 },
+      { c: 10, r: 8 },
+      { c: 11, r: 8 },
+    ],
+    hpScale: 2.2,
+    gold: 300,
+    lives: 14,
+  },
+  {
+    names: {
+      forest: 'Siege March',
+      desert: 'Siege Caravan',
+      ice: 'Siege Drift',
+      fire: 'Siege Cinder',
+      hollow: 'Siege Cult',
+    },
+    blurb: 'Thick armor arrives early.',
+    corners: [
+      { c: 0, r: 0 },
+      { c: 0, r: 8 },
+      { c: 7, r: 8 },
+      { c: 7, r: 2 },
+      { c: 13, r: 2 },
+      { c: 13, r: 9 },
+      { c: 19, r: 9 },
+    ],
+    hpScale: 2.45,
+    gold: 310,
+    lives: 13,
+  },
+  {
+    names: {
+      forest: 'Last Bastion',
+      desert: 'Last Oasis',
+      ice: 'Last Glacier',
+      fire: 'Last Crucible',
+      hollow: 'Last Spire',
+    },
+    blurb: 'Final stand — every niche matters.',
+    corners: [
+      { c: 0, r: 5 },
+      { c: 4, r: 5 },
+      { c: 4, r: 1 },
+      { c: 10, r: 1 },
+      { c: 10, r: 10 },
+      { c: 6, r: 10 },
+      { c: 6, r: 3 },
+      { c: 15, r: 3 },
+      { c: 15, r: 8 },
+      { c: 19, r: 8 },
+    ],
+    blocked: [
+      { c: 8, r: 5 },
+      { c: 12, r: 6 },
+      { c: 17, r: 4 },
+    ],
+    hpScale: 2.75,
+    gold: 320,
+    lives: 12,
+  },
 ];
 
-/** Build wave composition for a level/wave (1-indexed wave). */
-export function buildWave(levelId: number, wave: number): WaveSpawn[] {
+function buildLevels(): LevelDef[] {
+  const out: LevelDef[] = [];
+  for (const world of WORLDS) {
+    TEMPLATES.forEach((t, i) => {
+      const stage = i + 1;
+      out.push({
+        id: (world.index - 1) * STAGES_PER_WORLD + stage,
+        world: world.id,
+        worldIndex: world.index,
+        stage,
+        name: t.names[world.id],
+        blurb: t.blurb,
+        pathTiles: expandPath(transformCells(t.corners, world.transform)),
+        blocked: transformCells(t.blocked ?? [], world.transform),
+        hpScale: Math.round(t.hpScale * world.hpMul * 100) / 100,
+        startingGold: t.gold + (world.index - 1) * 10,
+        lives: t.lives,
+      });
+    });
+  }
+  return out;
+}
+
+export const LEVELS: LevelDef[] = buildLevels();
+
+export function findLevel(worldIndex: number, stage: number): LevelDef {
+  return LEVELS.find((l) => l.worldIndex === worldIndex && l.stage === stage) ?? LEVELS[0];
+}
+
+export function levelsInWorld(worldIndex: number): LevelDef[] {
+  return LEVELS.filter((l) => l.worldIndex === worldIndex);
+}
+
+/** stage 1–10, worldIndex 1–5. Do not pass global map id 1–50. */
+export function buildWave(stage: number, wave: number, worldIndex = 1): WaveSpawn[] {
   const w = Math.max(1, Math.min(WAVES_PER_LEVEL, wave));
-  const Lvl = levelId;
-  const pressure = 1 + (Lvl - 1) * 0.12 + (w - 1) * 0.08;
+  const st = Math.max(1, Math.min(STAGES_PER_WORLD, stage));
+  const wi = Math.max(1, worldIndex);
+  const pressure = 1 + (st - 1) * 0.12 + (w - 1) * 0.08 + (wi - 1) * 0.18;
 
   const groups: WaveSpawn[] = [];
 
-  // Introduce types gradually
   if (w <= 2) {
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.7 });
   } else if (w === 3) {
@@ -246,37 +429,35 @@ export function buildWave(levelId: number, wave: number): WaveSpawn[] {
     groups.push({ kind: 'grunt', count: Math.round(4 * pressure), interval: 0.6, delay: 2 });
   } else if (w === 5) {
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.55 });
-    groups.push({ kind: 'brute', count: Math.round(2 + Lvl * 0.3), interval: 1.2, delay: 2 });
+    groups.push({ kind: 'brute', count: Math.round(2 + st * 0.3), interval: 1.2, delay: 2 });
   } else if (w === 6) {
     groups.push({ kind: 'scout', count: Math.round(8 * pressure), interval: 0.35 });
     groups.push({ kind: 'swarm', count: Math.round(8 * pressure), interval: 0.25, delay: 1 });
   } else if (w === 7) {
-    groups.push({ kind: 'brute', count: Math.round(3 + Lvl * 0.4), interval: 1.0 });
+    groups.push({ kind: 'brute', count: Math.round(3 + st * 0.4), interval: 1.0 });
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.5, delay: 1.5 });
   } else if (w === 8) {
     groups.push({ kind: 'swarm', count: Math.round(14 * pressure), interval: 0.22 });
     groups.push({ kind: 'scout', count: Math.round(6 * pressure), interval: 0.4, delay: 1 });
-    groups.push({ kind: 'brute', count: Math.round(2 + Lvl * 0.35), interval: 1.1, delay: 3 });
+    groups.push({ kind: 'brute', count: Math.round(2 + st * 0.35), interval: 1.1, delay: 3 });
   } else if (w === 9) {
     groups.push({ kind: 'grunt', count: Math.round(8 * pressure), interval: 0.45 });
-    groups.push({ kind: 'brute', count: Math.round(4 + Lvl * 0.4), interval: 0.9, delay: 1 });
+    groups.push({ kind: 'brute', count: Math.round(4 + st * 0.4), interval: 0.9, delay: 1 });
     groups.push({ kind: 'scout', count: Math.round(8 * pressure), interval: 0.35, delay: 3 });
   } else {
-    // Wave 10 boss + escort
     groups.push({ kind: 'grunt', count: Math.round(6 * pressure), interval: 0.5 });
-    groups.push({ kind: 'brute', count: Math.round(3 + Lvl * 0.5), interval: 0.85, delay: 1.5 });
-    groups.push({ kind: 'boss', count: 1 + (Lvl >= 8 ? 1 : 0), interval: 2.5, delay: 4 });
+    groups.push({ kind: 'brute', count: Math.round(3 + st * 0.5), interval: 0.85, delay: 1.5 });
+    groups.push({ kind: 'boss', count: 1 + (st >= 8 ? 1 : 0), interval: 2.5, delay: 4 });
     groups.push({ kind: 'swarm', count: Math.round(10 * pressure), interval: 0.25, delay: 5 });
   }
 
   return groups;
 }
 
-/** Display names in spawn order, unique — for the wave-start toast. */
-export function waveRoster(levelId: number, wave: number): string[] {
+export function waveRoster(stage: number, wave: number, worldIndex = 1): string[] {
   const names: string[] = [];
   const seen = new Set<string>();
-  for (const g of buildWave(levelId, wave)) {
+  for (const g of buildWave(stage, wave, worldIndex)) {
     const name = ENEMIES[g.kind].name;
     if (!seen.has(name)) {
       seen.add(name);

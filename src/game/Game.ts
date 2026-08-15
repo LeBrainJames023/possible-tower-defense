@@ -33,25 +33,10 @@ import {
 import { dist, lerpAngle } from '../shared/math';
 import { clientToMap, identityMapView, type MapView } from '../shared/pointer';
 import type { Vec2 } from '../shared/math';
+import { afterWin, isAhead, loadProgress, saveProgress } from './progress';
+import { isWetLevel } from './worlds';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
-
-const SAVE_KEY = 'ptd-progress-v1';
-
-export function loadProgress(): number {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return 1;
-    const n = JSON.parse(raw).unlocked as number;
-    return Math.max(1, Math.min(LEVELS.length, n || 1));
-  } catch {
-    return 1;
-  }
-}
-
-export function saveProgress(unlocked: number): void {
-  localStorage.setItem(SAVE_KEY, JSON.stringify({ unlocked }));
-}
 
 function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
   const pts: Vec2[] = [{ x: x1, y: y1 }];
@@ -142,7 +127,7 @@ export class Game {
     this.level = level;
     this.grid = buildGrid(level);
     this.waypoints = pathWaypoints(level);
-    this.renderer.setLevel(level.id);
+    this.renderer.setLevel(level);
     this.gold = scaleGold(level.startingGold, this.mods.gold);
     this.lives = scaleLives(level.lives, this.mods.lives);
     this.waveIndex = 0;
@@ -164,7 +149,7 @@ export class Game {
     this.renderer.spawnHeat = 0;
     this.renderer.keepWound = 0;
     this.fx.seedAmbient(MAP_W, MAP_H);
-    this.audio.setAmbience(level.id === 2 || level.id === 8);
+    this.audio.setAmbience(isWetLevel(level));
     this.audio.setScore('prepare');
     this.onHud?.();
     this.ensureLoop();
@@ -230,7 +215,7 @@ export class Game {
   startWave(): void {
     if (!this.canStartWave()) return;
     const next = this.waveIndex + 1;
-    const groups = buildWave(this.level.id, next);
+    const groups = buildWave(this.level.stage, next, this.level.worldIndex);
     this.spawnQueue = [];
     this.waveTime = 0;
     for (const g of groups) {
@@ -251,7 +236,7 @@ export class Game {
     }
     this.audio.waveStart();
     this.audio.setScore('battle');
-    this.onToast?.(`Wave ${next} — ${waveRoster(this.level.id, next).join(', ')}`);
+    this.onToast?.(`Wave ${next} — ${waveRoster(this.level.stage, next, this.level.worldIndex).join(', ')}`);
     this.onHud?.();
   }
 
@@ -497,9 +482,8 @@ export class Game {
       if (this.waveIndex >= WAVES_PER_LEVEL) {
         this.phase = 'won';
         this.audio.setScore('off');
-        const unlocked = loadProgress();
-        const nextUnlock = Math.min(LEVELS.length, this.level.id + 1);
-        if (nextUnlock > unlocked) saveProgress(nextUnlock);
+        const next = afterWin(this.level);
+        if (isAhead(next, loadProgress())) saveProgress(next);
         this.onResult?.(true);
       } else {
         this.phase = 'prepare';

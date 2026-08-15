@@ -11,7 +11,9 @@ export function u(n: number): number {
 }
 
 export const WAVES_PER_LEVEL = 10;
-export const LEVEL_COUNT = 10;
+export const STAGES_PER_WORLD = 10;
+export const WORLD_COUNT = 5;
+export const LEVEL_COUNT = STAGES_PER_WORLD;
 
 /** Max lightning jump distance between chained foes. */
 export const CHAIN_RANGE = u(108);

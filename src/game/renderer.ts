@@ -6,6 +6,8 @@ import { drawFx, type FxWorld } from './fx';
 import { themeFor, type MapTheme } from './themes';
 import { TEX, texReady } from './assets';
 import { drawLandmarks } from './drawLandmarks';
+import { isWetLevel, type WorldId } from './worlds';
+import type { LevelDef } from './levels';
 
 function hash(c: number, r: number, salt = 0): number {
   const n = Math.sin(c * 12.9898 + r * 78.233 + salt * 4.12) * 43758.5453;
@@ -15,8 +17,10 @@ function hash(c: number, r: number, salt = 0): number {
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
   time = 0;
-  theme: MapTheme = themeFor(1);
+  theme: MapTheme = themeFor('forest');
   levelId = 1;
+  world: WorldId = 'forest';
+  stage = 1;
   /** 1 just after Start wave — arch glows, then fades. */
   spawnHeat = 0;
   /** 1 when a creep leaks — keep flashes wounded. */
@@ -26,9 +30,11 @@ export class Renderer {
     this.ctx = ctx;
   }
 
-  setLevel(id: number): void {
-    this.levelId = id;
-    this.theme = themeFor(id);
+  setLevel(level: LevelDef): void {
+    this.levelId = level.id;
+    this.world = level.world;
+    this.stage = level.stage;
+    this.theme = themeFor(level);
   }
 
   clear(): void {
@@ -89,7 +95,7 @@ export class Renderer {
   }
 
   private wetLevel(): boolean {
-    return this.levelId === 2 || this.levelId === 8;
+    return isWetLevel({ world: this.world, stage: this.stage });
   }
 
   private stampTexture(

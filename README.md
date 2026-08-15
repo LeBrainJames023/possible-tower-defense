@@ -15,7 +15,7 @@ Open the local URL Vite prints (usually `http://localhost:5173`).
 
 ## What’s in the game
 
-- **10 levels**, each with **10 waves** that escalate inside the level
+- **5 worlds × 10 maps** (50 stages), each with **10 waves**. Forest is home; then Desert, Ice, Fire, The Hollow.
 - **6 towers** in a bottom dock: Arrow, Cannon, Ice, Lightning, Fire, Poison
 - Towers **cannot** be placed on the path (or tree decoration tiles)
 - Click enemies/towers to inspect; pause keeps the map visible

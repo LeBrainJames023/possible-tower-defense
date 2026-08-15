@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS, waveRoster } from '../src/game/levels';
-import { WAVES_PER_LEVEL } from '../src/game/constants';
+import { COLS, ROWS, STAGES_PER_WORLD, WAVES_PER_LEVEL, WORLD_COUNT } from '../src/game/constants';
+import { WORLDS } from '../src/game/worlds';
 
 describe('expandPath', () => {
   it('fills orthogonal steps between corners', () => {
@@ -36,6 +37,43 @@ describe('canPlaceOnCell', () => {
       }
     }
     expect(found).toBe(true);
+  });
+});
+
+describe('campaign maps', () => {
+  it('has five worlds of ten stages', () => {
+    expect(LEVELS.length).toBe(WORLD_COUNT * STAGES_PER_WORLD);
+    expect(WORLDS.length).toBe(WORLD_COUNT);
+    expect(LEVELS[0].name).toBe('Meadow Gate');
+    expect(LEVELS[0].world).toBe('forest');
+    expect(LEVELS[10].world).toBe('desert');
+    expect(LEVELS[10].stage).toBe(1);
+    expect(LEVELS[49].world).toBe('hollow');
+    expect(LEVELS[49].stage).toBe(10);
+  });
+
+  it('keeps every path on-grid and orthogonal', () => {
+    for (const level of LEVELS) {
+      expect(level.pathTiles.length).toBeGreaterThan(4);
+      for (const p of level.pathTiles) {
+        expect(p.c).toBeGreaterThanOrEqual(0);
+        expect(p.c).toBeLessThan(COLS);
+        expect(p.r).toBeGreaterThanOrEqual(0);
+        expect(p.r).toBeLessThan(ROWS);
+      }
+      for (let i = 1; i < level.pathTiles.length; i++) {
+        const dc = Math.abs(level.pathTiles[i].c - level.pathTiles[i - 1].c);
+        const dr = Math.abs(level.pathTiles[i].r - level.pathTiles[i - 1].r);
+        expect(dc + dr).toBe(1);
+      }
+    }
+  });
+
+  it('mirrors Forest stage 1 into Desert (flip X)', () => {
+    const forest = LEVELS[0].pathTiles[0];
+    const desert = LEVELS[10].pathTiles[0];
+    expect(desert.c).toBe(COLS - 1 - forest.c);
+    expect(desert.r).toBe(forest.r);
   });
 });
 

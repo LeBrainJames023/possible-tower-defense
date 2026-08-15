@@ -22,7 +22,7 @@
           <p class="eyebrow">Hold the line</p>
           <h1>Possible<br />Tower Defense</h1>
           <p class="lede">
-            Six towers. Ten maps. Build beside the path — never on it.
+            Six towers. Five worlds. Fifty maps. Build beside the path — never on it.
           </p>
           <div class="difficulty-row" role="group" aria-label="Difficulty">
             <button type="button" class="diff-btn" data-diff="easy">
@@ -39,7 +39,7 @@
             </button>
           </div>
           <div class="btn-row">
-            <button type="button" class="btn btn-primary" data-action="levels">Play</button>
+            <button type="button" class="btn btn-primary" data-action="worlds">Play</button>
             <button type="button" class="btn btn-ghost" data-action="how">How to play</button>
           </div>
         </div>
@@ -57,7 +57,18 @@
             <li><strong>Difficulty</strong> — Easy / Normal / Hard on the title screen. Normal is the tuned campaign.</li>
           </ul>
           <div class="btn-row">
-            <button type="button" class="btn btn-primary" data-action="levels">Choose level</button>
+            <button type="button" class="btn btn-primary" data-action="worlds">Choose world</button>
+            <button type="button" class="btn btn-ghost" data-action="title">Back</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="screen-worlds" class="screen">
+        <div class="panel wide">
+          <h2>Campaign</h2>
+          <p class="lede subtle">Five worlds. Ten maps each. Beat a world to open the next.</p>
+          <div id="world-list" class="world-list"></div>
+          <div class="btn-row">
             <button type="button" class="btn btn-ghost" data-action="title">Back</button>
           </div>
         </div>
@@ -65,11 +76,11 @@
 
       <div id="screen-levels" class="screen">
         <div class="panel wide">
-          <h2>Select level</h2>
-          <p class="lede subtle">Levels unlock in order. Difficulty climbs every stage.</p>
+          <h2 id="levels-title">Forest</h2>
+          <p id="levels-lede" class="lede subtle">Ten maps. Beat them in order.</p>
           <div id="level-grid" class="level-grid"></div>
           <div class="btn-row">
-            <button type="button" class="btn btn-ghost" data-action="title">Back</button>
+            <button type="button" class="btn btn-ghost" data-action="worlds">Worlds</button>
           </div>
         </div>
       </div>
@@ -163,7 +174,7 @@
           <p id="result-body" class="lede"></p>
           <div class="btn-row">
             <button type="button" class="btn btn-primary" id="btn-result-primary">Continue</button>
-            <button type="button" class="btn btn-ghost" data-action="levels">Levels</button>
+            <button type="button" class="btn btn-ghost" data-action="worlds">Worlds</button>
           </div>
         </div>
       </div>

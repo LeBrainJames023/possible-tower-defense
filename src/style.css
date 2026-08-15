@@ -218,6 +218,53 @@ h3 {
   font-size: 0.98rem;
 }
 
+.world-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.world-card {
+  min-height: 96px;
+  width: 100%;
+  border-radius: 16px;
+  border: 3px solid var(--line);
+  background: #1a140f;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  padding: 18px 22px;
+  text-align: left;
+}
+
+.world-card .world-blurb {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.98rem;
+}
+
+.world-card .level-badge {
+  margin-bottom: 4px;
+}
+
+.world-card:disabled,
+.world-card.locked {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.world-card.cleared {
+  box-shadow: inset 0 0 0 1px rgba(87, 204, 153, 0.25);
+}
+
 .level-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));

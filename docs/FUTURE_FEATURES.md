@@ -14,6 +14,9 @@ Captured for later — not in this pass:
 - Image-gen enemy sprites — only if we explicitly choose. Style drift and license logging are the traps; not default.
 - Other CC0 creature packs if we find a meaner free set (no paid packs)
 - More targeting modes (closest, strongest)
+- Hand-author unique paths for worlds 2–5 (today they reuse Forest shapes, flipped/reversed)
+- Enemy color tinge per world (same five kinds for now)
+- World props — cactus, ice spike, lava, rune (palette-only backgrounds first)
 - Endless mode after campaign
 - Mobile layout polish beyond basic stacking
 - Tower preview ghosts with DPS estimate

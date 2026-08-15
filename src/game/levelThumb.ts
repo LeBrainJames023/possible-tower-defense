@@ -4,7 +4,7 @@ import type { LevelDef } from './levels';
 
 /** Tiny path preview for level cards. Same grid as the real map. */
 export function drawLevelThumb(ctx: CanvasRenderingContext2D, level: LevelDef, w: number, h: number): void {
-  const theme = themeFor(level.id);
+  const theme = themeFor(level);
   const tw = w / COLS;
   const th = h / ROWS;
   ctx.fillStyle = theme.grassA;

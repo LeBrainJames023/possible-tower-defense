@@ -16,6 +16,7 @@
 | Done checklist | `quality-gates.mdc` |
 | Assets log | `docs/ASSETS.md` |
 | Future ideas | `docs/FUTURE_FEATURES.md` |
-| Levels / waves / balance | `src/game/levels.ts`, `src/game/constants.ts` |
+| Campaign / worlds | `docs/CAMPAIGN.md`, `src/game/worlds.ts` |
+| Levels / waves / balance | `src/game/levels.ts`, `src/game/constants.ts`, `src/game/worlds.ts` |
 | Rendering / art | `src/game/renderer.ts` |
 | Universal modes, handoffs | **User Rules** |
