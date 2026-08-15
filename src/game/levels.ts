@@ -1,6 +1,7 @@
 import type { CellKind, EnemyKind } from './constants';
 import { COLS, ENEMIES, ROWS, STAGES_PER_WORLD, TILE, WAVES_PER_LEVEL } from './constants';
 import type { Vec2 } from '../shared/math';
+import { PATH_OVERRIDES, scatterWorldDecor } from './worldPaths';
 import { WORLDS, type WorldId } from './worlds';
 
 export interface LevelDef {
@@ -382,15 +383,19 @@ function buildLevels(): LevelDef[] {
   for (const world of WORLDS) {
     TEMPLATES.forEach((t, i) => {
       const stage = i + 1;
+      const over = PATH_OVERRIDES[world.id]?.[stage];
+      const corners = over ? over.corners : transformCells(t.corners, world.transform);
+      const authored = over ? (over.blocked ?? []) : transformCells(t.blocked ?? [], world.transform);
+      const pathTiles = expandPath(corners);
       out.push({
         id: (world.index - 1) * STAGES_PER_WORLD + stage,
         world: world.id,
         worldIndex: world.index,
         stage,
-        name: t.names[world.id],
-        blurb: t.blurb,
-        pathTiles: expandPath(transformCells(t.corners, world.transform)),
-        blocked: transformCells(t.blocked ?? [], world.transform),
+        name: over?.name ?? t.names[world.id],
+        blurb: over?.blurb ?? t.blurb,
+        pathTiles,
+        blocked: scatterWorldDecor(world.id, pathTiles, authored),
         hpScale: Math.round(t.hpScale * world.hpMul * 100) / 100,
         startingGold: t.gold + (world.index - 1) * 10,
         lives: t.lives,

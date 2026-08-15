@@ -211,7 +211,7 @@ export class Renderer {
   }
 
   drawSpawnExit(waypoints: Vec2[]): void {
-    drawLandmarks(this.ctx, waypoints, this.theme, this.time, this.spawnHeat, this.keepWound);
+    drawLandmarks(this.ctx, waypoints, this.theme, this.world, this.time, this.spawnHeat, this.keepWound);
   }
 
   drawTower(t: Tower, selected: boolean): void {

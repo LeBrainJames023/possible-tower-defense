@@ -71,3 +71,10 @@ export function isAhead(next: CampaignProgress, current: CampaignProgress): bool
 export function isCampaignClear(p: CampaignProgress): boolean {
   return p.world >= WORLDS.length && p.stage > 10;
 }
+
+/** How many stages in this world are already beaten (0–10). */
+export function worldClearedCount(p: CampaignProgress, worldIndex: number): number {
+  if (worldIndex < p.world) return 10;
+  if (worldIndex > p.world) return 0;
+  return Math.min(10, Math.max(0, p.stage - 1));
+}

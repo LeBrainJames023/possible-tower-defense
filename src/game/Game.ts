@@ -33,7 +33,7 @@ import {
 import { dist, lerpAngle } from '../shared/math';
 import { clientToMap, identityMapView, type MapView } from '../shared/pointer';
 import type { Vec2 } from '../shared/math';
-import { afterWin, isAhead, loadProgress, saveProgress } from './progress';
+import { afterWin, canPlay, isAhead, loadProgress, saveProgress } from './progress';
 import { isWetLevel } from './worlds';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
@@ -482,8 +482,9 @@ export class Game {
       if (this.waveIndex >= WAVES_PER_LEVEL) {
         this.phase = 'won';
         this.audio.setScore('off');
+        const cur = loadProgress();
         const next = afterWin(this.level);
-        if (isAhead(next, loadProgress())) saveProgress(next);
+        if (canPlay(cur, this.level) && isAhead(next, cur)) saveProgress(next);
         this.onResult?.(true);
       } else {
         this.phase = 'prepare';

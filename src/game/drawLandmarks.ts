@@ -1,12 +1,14 @@
 import { PX } from './constants';
 import type { MapTheme } from './themes';
 import type { Vec2 } from '../shared/math';
+import type { WorldId } from './worlds';
 
-/** Stone arch at path start, keep at path end. Sit on path tiles — not on grass. */
+/** Gate at path start, keep at path end. Sit on path tiles — not on grass. */
 export function drawLandmarks(
   ctx: CanvasRenderingContext2D,
   waypoints: Vec2[],
   theme: MapTheme,
+  world: WorldId,
   time: number,
   spawnHeat: number,
   keepWound = 0,
@@ -17,8 +19,8 @@ export function drawLandmarks(
   const inAng = Math.atan2(waypoints[1].y - spawn.y, waypoints[1].x - spawn.x);
   const outAng = Math.atan2(exit.y - waypoints[waypoints.length - 2].y, exit.x - waypoints[waypoints.length - 2].x);
 
-  drawSpawnArch(ctx, spawn.x, spawn.y, inAng, theme, time, spawnHeat);
-  drawExitKeep(ctx, exit.x, exit.y, outAng, theme, time, keepWound);
+  drawSpawnArch(ctx, spawn.x, spawn.y, inAng, theme, world, time, spawnHeat);
+  drawExitKeep(ctx, exit.x, exit.y, outAng, theme, world, time, keepWound);
 }
 
 function drawSpawnArch(
@@ -27,6 +29,7 @@ function drawSpawnArch(
   y: number,
   ang: number,
   theme: MapTheme,
+  world: WorldId,
   time: number,
   heat: number,
 ): void {
@@ -35,9 +38,17 @@ function drawSpawnArch(
   ctx.translate(x, y);
   ctx.rotate(ang);
 
+  const mistA = 0.28 + heat * 0.45;
+  const mistTint: Record<WorldId, string> = {
+    forest: `rgba(180, 220, 255, ${mistA})`,
+    desert: `rgba(232, 180, 60, ${mistA})`,
+    ice: `rgba(180, 230, 255, ${mistA})`,
+    fire: `rgba(255, 100, 40, ${mistA})`,
+    hollow: `rgba(200, 100, 255, ${mistA})`,
+  };
   const mist = ctx.createRadialGradient(0, 0, 4 * PX, 0, 0, 42 * PX * pulse);
-  mist.addColorStop(0, `rgba(180, 220, 255, ${0.28 + heat * 0.45})`);
-  mist.addColorStop(1, 'rgba(180, 220, 255, 0)');
+  mist.addColorStop(0, mistTint[world]);
+  mist.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = mist;
   ctx.beginPath();
   ctx.arc(0, 0, 42 * PX * pulse, 0, Math.PI * 2);
@@ -53,8 +64,30 @@ function drawSpawnArch(
   ctx.strokeStyle = theme.pebble;
   ctx.lineWidth = 5 * PX;
   ctx.beginPath();
-  ctx.moveTo(2 * PX, -22 * PX);
-  ctx.quadraticCurveTo(22 * PX, 0, 2 * PX, 22 * PX);
+  if (world === 'hollow') {
+    ctx.moveTo(4 * PX, -20 * PX);
+    ctx.lineTo(18 * PX, -8 * PX);
+    ctx.lineTo(18 * PX, 8 * PX);
+    ctx.lineTo(4 * PX, 20 * PX);
+  } else if (world === 'fire') {
+    ctx.moveTo(2 * PX, -22 * PX);
+    ctx.lineTo(16 * PX, -10 * PX);
+    ctx.lineTo(10 * PX, 0);
+    ctx.lineTo(18 * PX, 12 * PX);
+    ctx.lineTo(2 * PX, 22 * PX);
+  } else if (world === 'ice') {
+    ctx.moveTo(2 * PX, -24 * PX);
+    ctx.lineTo(20 * PX, 0);
+    ctx.lineTo(2 * PX, 24 * PX);
+  } else if (world === 'desert') {
+    ctx.moveTo(2 * PX, -18 * PX);
+    ctx.lineTo(20 * PX, -6 * PX);
+    ctx.lineTo(20 * PX, 6 * PX);
+    ctx.lineTo(2 * PX, 18 * PX);
+  } else {
+    ctx.moveTo(2 * PX, -22 * PX);
+    ctx.quadraticCurveTo(22 * PX, 0, 2 * PX, 22 * PX);
+  }
   ctx.stroke();
   ctx.strokeStyle = theme.glow;
   ctx.lineWidth = 2.4 * PX;
@@ -69,6 +102,7 @@ function drawExitKeep(
   y: number,
   ang: number,
   theme: MapTheme,
+  world: WorldId,
   time: number,
   wound = 0,
 ): void {
@@ -97,23 +131,52 @@ function drawExitKeep(
 
   ctx.fillStyle = theme.canopyDark;
   ctx.beginPath();
-  ctx.moveTo(-22 * PX, -8 * PX);
-  ctx.lineTo(0, -28 * PX);
-  ctx.lineTo(22 * PX, -8 * PX);
+  if (world === 'desert') {
+    ctx.rect(-22 * PX, -18 * PX, 44 * PX, 10 * PX);
+  } else if (world === 'ice') {
+    ctx.moveTo(-14 * PX, -8 * PX);
+    ctx.lineTo(0, -34 * PX);
+    ctx.lineTo(14 * PX, -8 * PX);
+  } else if (world === 'fire') {
+    ctx.moveTo(-22 * PX, -8 * PX);
+    ctx.lineTo(-8 * PX, -20 * PX);
+    ctx.lineTo(4 * PX, -12 * PX);
+    ctx.lineTo(22 * PX, -22 * PX);
+    ctx.lineTo(22 * PX, -8 * PX);
+  } else if (world === 'hollow') {
+    ctx.rect(-10 * PX, -32 * PX, 20 * PX, 24 * PX);
+  } else {
+    ctx.moveTo(-22 * PX, -8 * PX);
+    ctx.lineTo(0, -28 * PX);
+    ctx.lineTo(22 * PX, -8 * PX);
+  }
   ctx.closePath();
   ctx.fill();
   ctx.fillStyle = theme.canopy;
   ctx.beginPath();
-  ctx.moveTo(-16 * PX, -8 * PX);
-  ctx.lineTo(0, -22 * PX);
-  ctx.lineTo(16 * PX, -8 * PX);
+  if (world === 'desert') {
+    ctx.rect(-16 * PX, -16 * PX, 32 * PX, 8 * PX);
+  } else if (world === 'hollow') {
+    ctx.rect(-7 * PX, -28 * PX, 14 * PX, 16 * PX);
+  } else {
+    ctx.moveTo(-16 * PX, -8 * PX);
+    ctx.lineTo(0, -22 * PX);
+    ctx.lineTo(16 * PX, -8 * PX);
+  }
   ctx.closePath();
   ctx.fill();
 
+  const jewelY: Record<WorldId, number> = {
+    forest: -18,
+    desert: -14,
+    ice: -28,
+    fire: -16,
+    hollow: -26,
+  };
   ctx.fillStyle = '#f4d35e';
   ctx.globalAlpha = 0.55 + Math.sin(time * 4) * 0.2;
   ctx.beginPath();
-  ctx.arc(0, -18 * PX, 3.2 * PX, 0, Math.PI * 2);
+  ctx.arc(0, jewelY[world] * PX, 3.2 * PX, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 1;
 

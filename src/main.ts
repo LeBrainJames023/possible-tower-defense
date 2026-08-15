@@ -12,6 +12,7 @@ import {
   isWorldOpen,
   loadProgress,
   saveProgress,
+  worldClearedCount,
 } from './game/progress';
 import { DIFFICULTY, scaleGold, type DifficultyId } from './game/balance';
 import { themeFor } from './game/themes';
@@ -98,6 +99,8 @@ let resultWon = false;
 let toastTimer = 0;
 let activeLevelId = 1;
 let activeWorldIndex = 1;
+/** Playing a map that is not yet unlocked — win does not save. */
+let lookMode = false;
 let lastGold = -1;
 let lastLives = -1;
 
@@ -147,23 +150,34 @@ function renderWorlds(): void {
     btn.type = 'button';
     btn.className = 'world-card';
     if (cleared) btn.classList.add('cleared');
-    if (!open) btn.classList.add('locked');
-    btn.disabled = !open;
-    const swatch = document.createElement('span');
-    swatch.className = 'world-swatch';
-    swatch.style.background = world.theme.grassA;
+    if (!open) btn.classList.add('look');
+    const thumb = document.createElement('canvas');
+    thumb.className = 'world-thumb';
+    thumb.width = 200;
+    thumb.height = 96;
+    thumb.setAttribute('aria-hidden', 'true');
+    const tctx = thumb.getContext('2d');
+    const preview = levelsInWorld(world.index)[0];
+    if (tctx && preview) drawLevelThumb(tctx, preview, thumb.width, thumb.height);
     const badge = document.createElement('span');
     badge.className = 'level-badge';
-    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
+    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Look';
     const name = document.createElement('strong');
     name.textContent = world.name;
+    const meta = document.createElement('span');
+    meta.className = 'world-meta';
+    meta.textContent = `${worldClearedCount(p, world.index)} / 10`;
     const blurb = document.createElement('span');
     blurb.className = 'world-blurb';
-    blurb.textContent = open ? world.blurb : 'Clear the previous world first.';
-    btn.append(swatch, badge, name, blurb);
+    blurb.textContent = open
+      ? world.blurb
+      : 'Look around — winning here does not unlock the campaign.';
+    const copy = document.createElement('div');
+    copy.className = 'world-copy';
+    copy.append(badge, name, meta, blurb);
+    btn.append(thumb, copy);
     btn.style.borderColor = world.theme.ui;
     btn.addEventListener('click', () => {
-      if (!open) return;
       activeWorldIndex = world.index;
       renderLevels();
       showScreen('levels');
@@ -176,7 +190,10 @@ function renderLevels(): void {
   const p = loadProgress();
   const world = worldByIndex(activeWorldIndex);
   levelsTitle.textContent = world.name;
-  levelsLede.textContent = `${world.blurb} Ten maps. Beat them in order.`;
+  const worldOpen = isWorldOpen(p, activeWorldIndex);
+  levelsLede.textContent = worldOpen
+    ? `${world.blurb} Ten maps. Beat them in order.`
+    : `${world.blurb} Look around — progress saves when this land is open.`;
   levelGrid.innerHTML = '';
   for (const level of levelsInWorld(activeWorldIndex)) {
     const open = canPlay(p, level);
@@ -185,8 +202,7 @@ function renderLevels(): void {
     btn.type = 'button';
     btn.className = 'level-card';
     if (cleared) btn.classList.add('cleared');
-    if (!open) btn.classList.add('locked');
-    btn.disabled = !open;
+    if (!open) btn.classList.add('look');
     const thumb = document.createElement('canvas');
     thumb.className = 'level-thumb';
     thumb.width = 200;
@@ -196,14 +212,14 @@ function renderLevels(): void {
     if (tctx) drawLevelThumb(tctx, level, thumb.width, thumb.height);
     const badge = document.createElement('span');
     badge.className = 'level-badge';
-    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
+    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Look';
     const label = document.createElement('strong');
     label.textContent = `Stage ${level.stage}`;
     const name = document.createElement('span');
     name.className = 'level-name';
     name.textContent = level.name;
     const blurb = document.createElement('span');
-    blurb.textContent = open ? level.blurb : 'Clear the previous map first.';
+    blurb.textContent = open ? level.blurb : 'Look — does not unlock the campaign.';
     btn.append(thumb, badge, label, name, blurb);
     btn.style.borderColor = themeFor(level).ui;
     btn.addEventListener('click', () => startLevel(level.id));
@@ -293,7 +309,7 @@ function updatePauseUi(): void {
 
 function updateHud(): void {
   if (!game.level) return;
-  hudLevel.textContent = `${worldById(game.level.world).name} ${game.level.stage}`;
+  hudLevel.textContent = `${worldById(game.level.world).name} · ${game.level.stage}`;
   hudWave.textContent = `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);
@@ -353,6 +369,7 @@ function updateHud(): void {
 
 function startLevel(id: number): void {
   const level = LEVELS.find((l) => l.id === id) ?? LEVELS[0];
+  lookMode = !canPlay(loadProgress(), level);
   activeLevelId = level.id;
   activeWorldIndex = level.worldIndex;
   showScreen('game');
@@ -363,7 +380,12 @@ function startLevel(id: number): void {
   lastLives = -1;
   game.startLevel(level.id);
   updateHud();
-  showToast(`${worldById(level.world).name} ${level.stage}: ${level.name} — click grass to build`);
+  const where = `${worldById(level.world).name} ${level.stage}: ${level.name}`;
+  showToast(
+    lookMode
+      ? `${where} — look around. This does not unlock the campaign.`
+      : `${where} — click grass to build`,
+  );
 }
 
 game.onHud = updateHud;
@@ -374,7 +396,11 @@ game.onResult = (won) => {
   if (won) {
     const level = game.level;
     const next = afterWin(level);
-    if (isCampaignClear(next)) {
+    if (lookMode) {
+      resultTitle.textContent = 'Look finished';
+      resultBody.textContent = 'Nice hold. This land unlocks when you beat the previous world.';
+      btnResultPrimary.textContent = 'Back to worlds';
+    } else if (isCampaignClear(next)) {
       resultTitle.textContent = 'Campaign clear!';
       resultBody.textContent = 'You held The Hollow. The magician’s door is shut.';
       btnResultPrimary.textContent = 'Back to worlds';
@@ -417,6 +443,14 @@ document.querySelectorAll('[data-diff]').forEach((el) => {
     showToast(`${DIFFICULTY[id].label} — ${DIFFICULTY[id].blurb}`);
   });
 });
+
+function goWorlds(): void {
+  renderWorlds();
+  showScreen('worlds');
+  game.stopLoop();
+}
+
+document.getElementById('btn-play')?.addEventListener('click', goWorlds);
 
 document.querySelectorAll('[data-action]').forEach((el) => {
   el.addEventListener('click', () => {
@@ -493,7 +527,7 @@ btnResultPrimary.addEventListener('click', () => {
   overlayResult.classList.add('hidden');
   if (resultWon) {
     const next = afterWin(game.level);
-    if (isCampaignClear(next) || next.world > game.level.worldIndex) {
+    if (lookMode || isCampaignClear(next) || next.world > game.level.worldIndex) {
       renderWorlds();
       showScreen('worlds');
       game.stopLoop();

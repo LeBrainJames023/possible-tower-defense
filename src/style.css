@@ -226,7 +226,7 @@ h3 {
 }
 
 .world-card {
-  min-height: 96px;
+  min-height: 104px;
   width: 100%;
   border-radius: 16px;
   border: 3px solid var(--line);
@@ -237,36 +237,56 @@ h3 {
   font-size: 1.25rem;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 4px;
-  padding: 18px 22px;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
   text-align: left;
 }
 
-.world-card .world-swatch {
-  display: block;
-  width: 100%;
-  height: 10px;
-  border-radius: 6px;
-  margin-bottom: 6px;
+.world-thumb {
+  width: 168px;
+  height: 80px;
+  flex-shrink: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 168, 130, 0.35);
+  image-rendering: pixelated;
+}
+
+.world-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+}
+
+.world-card .world-meta {
+  color: var(--accent-2);
+  font-weight: 700;
+  font-size: 0.95rem;
 }
 
 .world-card .world-blurb {
   color: var(--muted);
   font-weight: 500;
-  font-size: 0.98rem;
+  font-size: 0.95rem;
 }
 
 .world-card .level-badge {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
-.world-card:disabled,
-.world-card.locked {
-  opacity: 0.72;
-  cursor: not-allowed;
+.world-card.look,
+.level-card.look {
+  opacity: 0.92;
+}
+
+.level-card.look .level-badge,
+.world-card.look .level-badge {
+  background: rgba(232, 180, 60, 0.2);
+  color: #e0b050;
 }
 
 .world-card.cleared {
@@ -356,7 +376,6 @@ h3 {
 .level-card:disabled,
 .level-card.locked {
   opacity: 0.72;
-  cursor: not-allowed;
 }
 
 .level-card.cleared {
@@ -420,7 +439,8 @@ h3 {
   border: 2px solid var(--line);
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
+  white-space: nowrap;
 }
 
 .hud-chip-lives {

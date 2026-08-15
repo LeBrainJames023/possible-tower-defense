@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS } from '../src/game/levels';
-import { afterWin, canPlay, isCampaignClear, isCleared, isWorldOpen } from '../src/game/progress';
+import { afterWin, canPlay, isCampaignClear, isCleared, isWorldOpen, worldClearedCount } from '../src/game/progress';
 
 const forest1 = LEVELS[0];
 const forest10 = LEVELS[9];
@@ -28,5 +28,18 @@ describe('campaign progress', () => {
     expect(canPlay(start, desert1)).toBe(false);
     expect(isWorldOpen(start, 2)).toBe(false);
     expect(isCleared(start, forest1)).toBe(false);
+  });
+
+  it('counts cleared stages inside a world', () => {
+    expect(worldClearedCount({ world: 1, stage: 1 }, 1)).toBe(0);
+    expect(worldClearedCount({ world: 1, stage: 4 }, 1)).toBe(3);
+    expect(worldClearedCount({ world: 2, stage: 1 }, 1)).toBe(10);
+    expect(worldClearedCount({ world: 1, stage: 4 }, 2)).toBe(0);
+  });
+
+  it('does not treat a Look win as campaign progress', () => {
+    const start = { world: 1, stage: 1 };
+    expect(canPlay(start, desert1)).toBe(false);
+    expect(afterWin(desert1)).toEqual({ world: 2, stage: 2 });
   });
 });

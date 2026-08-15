@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS, waveRoster } from '../src/game/levels';
 import { COLS, ROWS, STAGES_PER_WORLD, WAVES_PER_LEVEL, WORLD_COUNT } from '../src/game/constants';
+import { PATH_OVERRIDES } from '../src/game/worldPaths';
 import { WORLDS } from '../src/game/worlds';
 
 describe('expandPath', () => {
@@ -69,11 +70,31 @@ describe('campaign maps', () => {
     }
   });
 
-  it('mirrors Forest stage 1 into Desert (flip X)', () => {
-    const forest = LEVELS[0].pathTiles[0];
-    const desert = LEVELS[10].pathTiles[0];
-    expect(desert.c).toBe(COLS - 1 - forest.c);
-    expect(desert.r).toBe(forest.r);
+  it('authors all ten stages in Desert, Ice, Fire, and Hollow', () => {
+    for (const world of ['desert', 'ice', 'fire', 'hollow'] as const) {
+      for (let stage = 1; stage <= 10; stage++) {
+        expect(PATH_OVERRIDES[world]?.[stage]).toBeTruthy();
+      }
+    }
+    const forest2 = LEVELS[1].pathTiles[0];
+    const desert2 = LEVELS[11].pathTiles[0];
+    expect(desert2.c === COLS - 1 - forest2.c && desert2.r === forest2.r).toBe(false);
+  });
+
+  it('scatters extra props off the path in later worlds', () => {
+    const desert = LEVELS[10];
+    expect((desert.blocked ?? []).length).toBeGreaterThan(3);
+    const path = new Set(desert.pathTiles.map((p) => `${p.c},${p.r}`));
+    for (const b of desert.blocked ?? []) {
+      expect(path.has(`${b.c},${b.r}`)).toBe(false);
+    }
+  });
+
+  it('gives Desert, Ice, Fire, and Hollow their own stage-1 path', () => {
+    expect(LEVELS[10].pathTiles[0]).toEqual({ c: 0, r: 9 });
+    expect(LEVELS[20].pathTiles[0]).toEqual({ c: 0, r: 1 });
+    expect(LEVELS[30].pathTiles[0]).toEqual({ c: 0, r: 11 });
+    expect(LEVELS[40].pathTiles[0]).toEqual({ c: 9, r: 0 });
   });
 });
 
