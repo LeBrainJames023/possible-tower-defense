@@ -17,18 +17,26 @@ export class AudioBus {
   private waterSrc: AudioBufferSourceNode | null = null;
   private bedsPromise: Promise<void> | null = null;
   private wet = false;
+  private score: 'off' | 'prepare' | 'battle' = 'off';
+  private musicGain: GainNode | null = null;
+  private scoreNodes: OscillatorNode[] = [];
+  private musicVol = 0.032;
 
   unlock(): void {
     if (this.muted) return;
     const ctx = this.ensure();
     if (ctx.state === 'suspended') void ctx.resume();
-    void this.loadBeds().then(() => this.startAmbience(this.wet));
+    void this.loadBeds().then(() => {
+      this.startAmbience(this.wet);
+      this.startScore(this.score);
+    });
   }
 
   toggleMute(): boolean {
     this.muted = !this.muted;
     if (this.muted) {
       this.stopAmbience();
+      this.stopScore();
       this.ctx?.suspend();
     } else {
       this.unlock();
@@ -43,6 +51,35 @@ export class AudioBus {
       return;
     }
     void this.loadBeds().then(() => this.startAmbience(this.wet));
+  }
+
+  setScore(mode: 'off' | 'prepare' | 'battle'): void {
+    this.score = mode;
+    this.stopScore();
+    if (this.muted || mode === 'off') return;
+    this.startScore(mode);
+  }
+
+  waveStart(): void {
+    this.noise(0.16, 0.07, 80, 'lowpass');
+    this.tone(92, 0.2, 'sine', 0.06);
+    this.tone(184, 0.14, 'triangle', 0.03, 0.05);
+    this.duck();
+  }
+
+  duck(): void {
+    if (this.muted || !this.musicGain) return;
+    try {
+      const ctx = this.ensure();
+      const g = this.musicGain.gain;
+      const t0 = ctx.currentTime;
+      g.cancelScheduledValues(t0);
+      g.setValueAtTime(Math.max(0.004, g.value), t0);
+      g.linearRampToValueAtTime(this.musicVol * 0.35, t0 + 0.04);
+      g.linearRampToValueAtTime(this.musicVol, t0 + 0.22);
+    } catch {
+      /* audio optional */
+    }
   }
 
   place(): void {
@@ -85,6 +122,7 @@ export class AudioBus {
         this.tone(220, 0.1, 'sine', 0.035, 0, 0.4);
         break;
     }
+    this.duck();
   }
 
   impact(kind: TowerKind): void {
@@ -120,6 +158,7 @@ export class AudioBus {
         this.tone(150, 0.1, 'sine', 0.04, 0, 0.35);
         break;
     }
+    this.duck();
   }
 
   hit(): void {
@@ -191,6 +230,70 @@ export class AudioBus {
     }
     this.windSrc = null;
     this.waterSrc = null;
+  }
+
+  private startScore(mode: 'off' | 'prepare' | 'battle'): void {
+    if (mode === 'off' || this.muted) return;
+    try {
+      const ctx = this.ensure();
+      this.stopScore();
+      this.musicVol = mode === 'prepare' ? 0.03 : 0.046;
+      const master = ctx.createGain();
+      master.gain.value = this.musicVol;
+      master.connect(ctx.destination);
+      this.musicGain = master;
+
+      const parts =
+        mode === 'prepare'
+          ? [
+              { f: 110, type: 'sine' as const, v: 0.5 },
+              { f: 165, type: 'sine' as const, v: 0.28 },
+              { f: 220, type: 'triangle' as const, v: 0.1 },
+            ]
+          : [
+              { f: 82, type: 'sine' as const, v: 0.55 },
+              { f: 123, type: 'triangle' as const, v: 0.18 },
+              { f: 246, type: 'sine' as const, v: 0.08 },
+            ];
+      for (const p of parts) {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = p.type;
+        osc.frequency.value = p.f;
+        g.gain.value = p.v;
+        osc.connect(g);
+        g.connect(master);
+        osc.start();
+        this.scoreNodes.push(osc);
+      }
+      const lfo = ctx.createOscillator();
+      const lfoG = ctx.createGain();
+      lfo.frequency.value = mode === 'prepare' ? 0.11 : 1.45;
+      lfoG.gain.value = this.musicVol * 0.22;
+      lfo.connect(lfoG);
+      lfoG.connect(master.gain);
+      lfo.start();
+      this.scoreNodes.push(lfo);
+    } catch {
+      /* audio optional */
+    }
+  }
+
+  private stopScore(): void {
+    for (const osc of this.scoreNodes) {
+      try {
+        osc.stop();
+      } catch {
+        /* already stopped */
+      }
+    }
+    this.scoreNodes = [];
+    try {
+      this.musicGain?.disconnect();
+    } catch {
+      /* already disconnected */
+    }
+    this.musicGain = null;
   }
 
   private loop(ctx: AudioContext, buf: AudioBuffer, vol: number): AudioBufferSourceNode {

@@ -14,7 +14,7 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/icons/*.png` | **Inkscape** (SVG in `tools/icons/`) | Tower dock swatches instead of flat CSS gradients |
 | `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Low-poly tree billboard on decor tiles |
 | `public/sprites/enemies/*.png` | **Blender** headless (`tools/blender_enemies.py`) importing **Quaternius** CC0 glTF | In-game billboards for the five live kinds (Goblin/Raider/Imp/Troll/Warlord). Extra meshes sit in the gallery for a later 10-creature roster. |
-| Combat beeps / shots | Web Audio in `src/game/audio.ts` | Unchanged procedural hits — still no sample pack |
+| Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
 

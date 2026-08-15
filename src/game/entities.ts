@@ -1,4 +1,4 @@
-import { ENEMIES, TOWERS, type EnemyKind, type TowerKind } from './constants';
+import { ENEMIES, ENEMY_GAIT, TOWERS, type EnemyKind, type TowerKind } from './constants';
 import type { Vec2 } from '../shared/math';
 import { dist, pathTotalLength } from '../shared/math';
 
@@ -31,6 +31,8 @@ export class Enemy {
   facing = 0;
   hitFlash = 0;
   bob = Math.random() * Math.PI * 2;
+  footfall = false;
+  private lastStep = -1;
 
   constructor(kind: EnemyKind, hpScale: number, waypoints: Vec2[]) {
     const def = ENEMIES[kind];
@@ -75,7 +77,12 @@ export class Enemy {
     if (!this.alive) return;
 
     this.hitFlash = Math.max(0, this.hitFlash - dt * 5);
-    this.bob += dt * (this.slowMul < 1 ? 4 : 9);
+    const gait = ENEMY_GAIT[this.kind];
+    const rate = gait.stepHz * (this.slowMul < 1 ? 0.45 : 1);
+    this.bob += dt * rate * Math.PI * 2;
+    const step = Math.floor(this.bob / Math.PI);
+    this.footfall = gait.dust && step !== this.lastStep;
+    this.lastStep = step;
 
     if (this.burnTimer > 0) {
       this.burnTimer -= dt;

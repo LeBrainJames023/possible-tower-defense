@@ -77,24 +77,27 @@
       <div id="screen-game" class="screen">
         <div class="game-shell">
           <header class="hud">
-            <div class="hud-block">
-              <span class="hud-label">Level</span>
-              <span id="hud-level" class="hud-value">1</span>
+            <div class="hud-chips">
+              <div class="hud-chip" title="Level">
+                <span class="hud-ico ico-flag" aria-hidden="true"></span>
+                <span id="hud-level">1</span>
+              </div>
+              <div class="hud-chip" title="Wave">
+                <span class="hud-ico ico-wave" aria-hidden="true"></span>
+                <span id="hud-wave">0 / 10</span>
+              </div>
+              <div class="hud-chip hud-chip-lives" id="chip-lives" title="Lives">
+                <span class="hud-ico ico-heart" aria-hidden="true"></span>
+                <span id="hud-lives">20</span>
+              </div>
+              <div class="hud-chip hud-chip-gold" id="chip-gold" title="Gold">
+                <span class="hud-ico ico-coin" aria-hidden="true"></span>
+                <span id="hud-gold">250</span>
+              </div>
             </div>
-            <div class="hud-block">
-              <span class="hud-label">Wave</span>
-              <span id="hud-wave" class="hud-value">0 / 10</span>
-            </div>
-            <div class="hud-block">
-              <span class="hud-label">Lives</span>
-              <span id="hud-lives" class="hud-value">20</span>
-            </div>
-            <div class="hud-block">
-              <span class="hud-label">Gold</span>
-              <span id="hud-gold" class="hud-value">250</span>
-            </div>
+            <p id="hud-next" class="hud-next">Next: —</p>
             <div class="hud-actions">
-              <button type="button" class="btn btn-primary btn-hud" id="btn-wave">Start wave</button>
+              <button type="button" class="btn btn-go btn-hud" id="btn-wave">Start wave</button>
               <button type="button" class="btn btn-ghost btn-hud" id="btn-speed">Speed 1x</button>
               <button type="button" class="btn btn-ghost btn-hud" id="btn-pause">Pause</button>
               <button type="button" class="btn btn-ghost btn-hud" id="btn-mute">Sound on</button>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { TOWERS } from '../src/game/constants';
-import { canPlaceOnCell, buildGrid, LEVELS } from '../src/game/levels';
+import { TOWERS, ENEMY_GAIT } from '../src/game/constants';
+import { Enemy } from '../src/game/entities';
+import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('tower combat sandbox', () => {
@@ -113,5 +114,24 @@ describe('tower niches', () => {
     expect(TOWERS.fire.burnDps).toBeGreaterThan(0);
     expect(TOWERS.poison.poisonDuration).toBeGreaterThan(TOWERS.fire.burnDuration);
     expect(TOWERS.poison.splash).toBeLessThan(TOWERS.fire.splash);
+  });
+});
+
+describe('enemy gait', () => {
+  it('makes scouts bob faster than brutes without changing speed stats', () => {
+    expect(ENEMY_GAIT.scout.stepHz).toBeGreaterThan(ENEMY_GAIT.brute.stepHz);
+    expect(ENEMY_GAIT.swarm.jitter).toBeGreaterThan(0);
+    const wps = pathWaypoints(LEVELS[0]);
+    const scout = new Enemy('scout', 1, wps);
+    const brute = new Enemy('brute', 1, wps);
+    const s0 = scout.bob;
+    const b0 = brute.bob;
+    scout.speed = 0;
+    brute.speed = 0;
+    scout.update(1, wps);
+    brute.update(1, wps);
+    expect(scout.bob - s0).toBeGreaterThan(brute.bob - b0);
+    expect(scout.progress).toBe(0);
+    expect(brute.progress).toBe(0);
   });
 });

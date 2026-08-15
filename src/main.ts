@@ -1,6 +1,7 @@
 import './style.css';
 import { ENEMIES, MAP_H, MAP_W, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
-import { LEVELS } from './game/levels';
+import { LEVELS, waveRoster } from './game/levels';
+import { drawLevelThumb } from './game/levelThumb';
 import { Game, loadProgress, saveProgress } from './game/Game';
 import { DIFFICULTY, scaleGold, type DifficultyId } from './game/balance';
 import { themeFor } from './game/themes';
@@ -22,6 +23,9 @@ const hudLevel = document.getElementById('hud-level')!;
 const hudWave = document.getElementById('hud-wave')!;
 const hudLives = document.getElementById('hud-lives')!;
 const hudGold = document.getElementById('hud-gold')!;
+const hudNext = document.getElementById('hud-next')!;
+const chipLives = document.getElementById('chip-lives')!;
+const chipGold = document.getElementById('chip-gold')!;
 const hint = document.getElementById('hint')!;
 const btnWave = document.getElementById('btn-wave') as HTMLButtonElement;
 const btnSpeed = document.getElementById('btn-speed') as HTMLButtonElement;
@@ -78,12 +82,21 @@ function syncMuteUi(): void {
 let resultWon = false;
 let toastTimer = 0;
 let activeLevelId = 1;
+let lastGold = -1;
+let lastLives = -1;
 
-function showToast(message: string): void {
+function flashChip(el: HTMLElement, cls: string): void {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+  window.setTimeout(() => el.classList.remove(cls), 450);
+}
+
+function showToast(message: string, ms = 2200): void {
   toastEl.textContent = message;
   toastEl.classList.remove('hidden');
   window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => toastEl.classList.add('hidden'), 2200);
+  toastTimer = window.setTimeout(() => toastEl.classList.add('hidden'), ms);
 }
 
 function showScreen(name: keyof typeof screens): void {
@@ -94,6 +107,7 @@ function showScreen(name: keyof typeof screens): void {
   }
   if (name !== 'game') {
     game.audio.stopAmbience();
+    game.audio.setScore('off');
     overlayResult.classList.add('hidden');
     pauseStrip.classList.add('hidden');
     leaveStrip.classList.add('hidden');
@@ -115,8 +129,26 @@ function renderLevels(): void {
     btn.type = 'button';
     btn.className = 'level-card';
     if (level.id < unlocked) btn.classList.add('cleared');
+    if (level.id > unlocked) btn.classList.add('locked');
     btn.disabled = level.id > unlocked;
-    btn.innerHTML = `<strong>Level ${level.id}</strong><span>${level.name}</span><span>${level.blurb}</span>`;
+    const thumb = document.createElement('canvas');
+    thumb.className = 'level-thumb';
+    thumb.width = 200;
+    thumb.height = 96;
+    thumb.setAttribute('aria-hidden', 'true');
+    const tctx = thumb.getContext('2d');
+    if (tctx) drawLevelThumb(tctx, level, thumb.width, thumb.height);
+    const badge = document.createElement('span');
+    badge.className = 'level-badge';
+    badge.textContent = level.id < unlocked ? 'Cleared' : level.id > unlocked ? 'Locked' : 'Open';
+    const label = document.createElement('strong');
+    label.textContent = `Level ${level.id}`;
+    const name = document.createElement('span');
+    name.className = 'level-name';
+    name.textContent = level.name;
+    const blurb = document.createElement('span');
+    blurb.textContent = level.id > unlocked ? 'Clear the previous map first.' : level.blurb;
+    btn.append(thumb, badge, label, name, blurb);
     btn.style.borderColor = themeFor(level.id).ui;
     btn.addEventListener('click', () => startLevel(level.id));
     levelGrid.appendChild(btn);
@@ -167,10 +199,9 @@ function renderShop(): void {
     btn.className = 'tower-btn';
     btn.dataset.kind = kind;
     btn.innerHTML = `
-      <img class="tower-swatch" src="/icons/${kind}.png" alt="" />
-      <span class="role">${def.role}</span>
+      <img class="tower-portrait" src="/icons/${kind}.png" alt="" />
+      <span class="tower-cost">${def.cost}g</span>
       <strong>${def.name}</strong>
-      <small>${def.cost}g</small>
     `;
     btn.addEventListener('click', () => {
       game.selectedKind = kind;
@@ -191,8 +222,10 @@ function syncShopSelection(): void {
   towerShop.querySelectorAll('.tower-btn').forEach((el) => {
     const btn = el as HTMLButtonElement;
     const kind = btn.dataset.kind as TowerKind;
+    const broke = !!(game.level && game.gold < TOWERS[kind].cost);
     btn.classList.toggle('selected', game.selectedKind === kind);
-    btn.style.opacity = game.level && game.gold < TOWERS[kind].cost ? '0.55' : '1';
+    btn.classList.toggle('broke', broke);
+    btn.classList.toggle('affordable', !broke && !!game.level);
   });
 }
 
@@ -208,6 +241,17 @@ function updateHud(): void {
   hudWave.textContent = `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);
+  if (lastGold >= 0 && game.gold !== lastGold) flashChip(chipGold, 'pulse');
+  if (lastLives >= 0 && game.lives < lastLives) flashChip(chipLives, 'wound');
+  lastGold = game.gold;
+  lastLives = game.lives;
+  if (game.canStartWave()) {
+    hudNext.textContent = `Next: ${waveRoster(game.level.id, game.waveIndex + 1).join(', ')}`;
+  } else if (game.phase === 'wave') {
+    hudNext.textContent = `Now: ${waveRoster(game.level.id, game.waveIndex).join(', ')}`;
+  } else {
+    hudNext.textContent = 'Line held.';
+  }
   btnWave.disabled = !game.canStartWave();
   btnWave.textContent =
     game.waveIndex >= WAVES_PER_LEVEL
@@ -257,6 +301,8 @@ function startLevel(id: number): void {
   overlayResult.classList.add('hidden');
   leaveStrip.classList.add('hidden');
   game.audio.unlock();
+  lastGold = -1;
+  lastLives = -1;
   game.startLevel(id);
   updateHud();
   showToast(`Level ${id}: ${LEVELS.find((l) => l.id === id)?.name ?? ''} — click grass to build`);

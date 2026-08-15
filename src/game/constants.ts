@@ -286,6 +286,25 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   },
 };
 
+/** Walk language only — does not change speed, HP, or bounty. */
+export interface EnemyGait {
+  /** Bob cycles per second. */
+  stepHz: number;
+  bobAmp: number;
+  sway: number;
+  squash: number;
+  jitter: number;
+  dust: boolean;
+}
+
+export const ENEMY_GAIT: Record<EnemyKind, EnemyGait> = {
+  scout: { stepHz: 3.6, bobAmp: 3.4, sway: 2.4, squash: 0.04, jitter: 0, dust: false },
+  grunt: { stepHz: 1.7, bobAmp: 2.1, sway: 0.8, squash: 0.06, jitter: 0, dust: true },
+  swarm: { stepHz: 4.4, bobAmp: 2.6, sway: 1.2, squash: 0.03, jitter: 2.8, dust: false },
+  brute: { stepHz: 0.85, bobAmp: 1.5, sway: 0.4, squash: 0.14, jitter: 0, dust: true },
+  boss: { stepHz: 0.7, bobAmp: 1.1, sway: 0.2, squash: 0.1, jitter: 0, dust: true },
+};
+
 export const TOWER_ORDER: TowerKind[] = [
   'arrow',
   'cannon',

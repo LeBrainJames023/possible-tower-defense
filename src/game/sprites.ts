@@ -1,5 +1,5 @@
 import type { Enemy, Tower } from './entities';
-import { PX } from './constants';
+import { ENEMY_GAIT, PX } from './constants';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
 
@@ -79,8 +79,12 @@ export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, selected: boo
 }
 
 export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boolean, time: number): void {
-  const bob = Math.sin(e.bob) * (e.kind === 'boss' ? 1.2 : 2.2);
-  const x = e.pos.x;
+  const gait = ENEMY_GAIT[e.kind];
+  const bob = Math.sin(e.bob) * gait.bobAmp;
+  const sway = Math.sin(e.bob * 0.5) * gait.sway;
+  const jitter = gait.jitter ? Math.sin(e.bob * 3.4) * gait.jitter + Math.sin(time * 31 + e.id) * gait.jitter * 0.35 : 0;
+  const squash = Math.sin(e.bob) * gait.squash;
+  const x = e.pos.x + sway + jitter;
   const y = e.pos.y + bob;
   const r = e.radius;
 
@@ -96,7 +100,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     const flip = Math.cos(e.facing) < 0 ? -1 : 1;
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(flip, 1);
+    ctx.scale(flip * (1 + squash), 1 - squash);
     ctx.drawImage(img, -w / 2, -h + r * 0.55, w, h);
     if (e.hitFlash > 0.25) {
       ctx.globalCompositeOperation = 'lighter';
@@ -122,44 +126,29 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.stroke();
   }
 
-  if (e.slowMul < 1) {
-    ctx.strokeStyle = 'rgba(154, 228, 247, 0.95)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x, y, r + 4, time * 2, time * 2 + Math.PI * 1.2);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(180, 240, 255, 0.35)';
-    for (let i = 0; i < 3; i++) {
-      const a = time * 2.4 + i * 2.1;
-      ctx.beginPath();
-      ctx.arc(x + Math.cos(a) * (r + 6), y + Math.sin(a) * (r + 6), 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  if (e.burnTimer > 0) {
-    ctx.strokeStyle = 'rgba(255, 107, 74, 0.9)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x, y, r + 6, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  if (e.poisonTimer > 0) {
-    ctx.strokeStyle = 'rgba(123, 227, 138, 0.9)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x, y, r + 8, 0, Math.PI * 2);
-    ctx.stroke();
+  const hurt = e.hp < e.maxHp - 0.4;
+  const by = e.pos.y - (texReady(TEX.enemies[e.kind]) ? r * 2.7 : r) - 14;
+  if (hurt || selected) {
+    const bw = Math.max(28, r * 2.35);
+    const bh = 5;
+    const bx = e.pos.x - bw / 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    roundRect(ctx, bx, by, bw, bh, 2);
+    ctx.fill();
+    const pct = Math.max(0, e.hp / e.maxHp);
+    ctx.fillStyle = pct > 0.45 ? '#57cc99' : pct > 0.2 ? '#f4d35e' : '#ef476f';
+    roundRect(ctx, bx, by, bw * pct, bh, 2);
+    ctx.fill();
   }
 
-  const bw = Math.max(28, r * 2.35);
-  const bh = 5;
-  const bx = e.pos.x - bw / 2;
-  const by = e.pos.y - (texReady(TEX.enemies[e.kind]) ? r * 2.7 : r) - 14;
-  ctx.fillStyle = 'rgba(0,0,0,0.55)';
-  roundRect(ctx, bx, by, bw, bh, 2);
-  ctx.fill();
-  const pct = Math.max(0, e.hp / e.maxHp);
-  ctx.fillStyle = pct > 0.45 ? '#57cc99' : pct > 0.2 ? '#f4d35e' : '#ef476f';
-  roundRect(ctx, bx, by, bw * pct, bh, 2);
-  ctx.fill();
+  const icons: string[] = [];
+  if (e.slowMul < 1) icons.push('#9ae4f7');
+  if (e.burnTimer > 0) icons.push('#ff6b4a');
+  if (e.poisonTimer > 0) icons.push('#7be38a');
+  icons.forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(e.pos.x - (icons.length - 1) * 5 + i * 10, by - 8, 3.2 + Math.sin(time * 6 + i) * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  });
 }

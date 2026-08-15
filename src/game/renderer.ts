@@ -5,6 +5,7 @@ import { drawBeams, drawEnemy, drawProjectile, drawTower } from './sprites';
 import { drawFx, type FxWorld } from './fx';
 import { themeFor, type MapTheme } from './themes';
 import { TEX, texReady } from './assets';
+import { drawLandmarks } from './drawLandmarks';
 
 function hash(c: number, r: number, salt = 0): number {
   const n = Math.sin(c * 12.9898 + r * 78.233 + salt * 4.12) * 43758.5453;
@@ -16,6 +17,10 @@ export class Renderer {
   time = 0;
   theme: MapTheme = themeFor(1);
   levelId = 1;
+  /** 1 just after Start wave — arch glows, then fades. */
+  spawnHeat = 0;
+  /** 1 when a creep leaks — keep flashes wounded. */
+  keepWound = 0;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
@@ -126,7 +131,8 @@ export class Renderer {
 
   private drawGrass(x: number, y: number, c: number, r: number): void {
     const { ctx, theme } = this;
-    ctx.fillStyle = (c + r) % 2 === 0 ? theme.grassA : theme.grassB;
+    const mix = hash(c, r, 2);
+    ctx.fillStyle = mix > 0.55 ? theme.grassA : theme.grassB;
     ctx.fillRect(x, y, TILE, TILE);
     if (texReady(TEX.grass)) this.stampTexture(TEX.grass, x, y, c, r, 0.42, 'multiply');
     ctx.strokeStyle = theme.blade;
@@ -150,14 +156,15 @@ export class Renderer {
 
   private drawDirt(x: number, y: number, c: number, r: number): void {
     const { ctx, theme } = this;
-    ctx.fillStyle = theme.pathEdge;
-    ctx.fillRect(x, y, TILE, TILE);
     ctx.fillStyle = theme.pathMid;
-    ctx.fillRect(x + 4 * PX, y + 4 * PX, TILE - 8 * PX, TILE - 8 * PX);
+    ctx.fillRect(x, y, TILE, TILE);
+    ctx.fillStyle = theme.pathEdge;
+    ctx.globalAlpha = 0.35;
+    ctx.fillRect(x, y, TILE, 3 * PX);
+    ctx.fillRect(x, y + TILE - 3 * PX, TILE, 3 * PX);
+    ctx.globalAlpha = 1;
     if (texReady(TEX.dirt)) this.stampTexture(TEX.dirt, x, y, c, r, 0.5, 'multiply');
     this.stampWater(x, y);
-    ctx.fillStyle = theme.pathLight;
-    ctx.fillRect(x + 12 * PX, y + 13 * PX, TILE - 26 * PX, TILE - 28 * PX);
     ctx.fillStyle = theme.pebble;
     for (let i = 0; i < 6; i++) {
       const hx = hash(c, r, 20 + i);
@@ -236,46 +243,7 @@ export class Renderer {
   }
 
   drawSpawnExit(waypoints: Vec2[]): void {
-    if (waypoints.length < 2) return;
-    const { ctx } = this;
-    const pulse = 0.85 + Math.sin(this.time * 3) * 0.15;
-    const s = waypoints[0];
-    const e = waypoints[waypoints.length - 1];
-
-    const sg = ctx.createRadialGradient(s.x, s.y, 2 * PX, s.x, s.y, 36 * PX * pulse);
-    sg.addColorStop(0, 'rgba(110, 182, 234, 0.95)');
-    sg.addColorStop(1, 'rgba(110, 182, 234, 0)');
-    ctx.fillStyle = sg;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, 36 * PX * pulse, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#dfefff';
-    ctx.lineWidth = 2.2 * PX;
-    ctx.strokeRect(s.x - 10 * PX, s.y - 10 * PX, 20 * PX, 20 * PX);
-    ctx.fillStyle = '#dfefff';
-    ctx.font = `bold ${Math.round(13 * PX)}px DM Sans, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('IN', s.x, s.y - 42 * PX);
-
-    const eg = ctx.createRadialGradient(e.x, e.y, 2 * PX, e.x, e.y, 38 * PX * pulse);
-    eg.addColorStop(0, 'rgba(239, 71, 111, 0.95)');
-    eg.addColorStop(1, 'rgba(239, 71, 111, 0)');
-    ctx.fillStyle = eg;
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, 38 * PX * pulse, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ffb070';
-    ctx.beginPath();
-    ctx.moveTo(e.x, e.y - 14 * PX);
-    ctx.lineTo(e.x + 13 * PX, e.y + 9 * PX);
-    ctx.lineTo(e.x - 13 * PX, e.y + 9 * PX);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#ffd6e0';
-    ctx.lineWidth = 1.6 * PX;
-    ctx.stroke();
-    ctx.fillStyle = '#ffd6e0';
-    ctx.fillText('BASE', e.x, e.y - 44 * PX);
+    drawLandmarks(this.ctx, waypoints, this.theme, this.time, this.spawnHeat, this.keepWound);
   }
 
   drawTower(t: Tower, selected: boolean): void {

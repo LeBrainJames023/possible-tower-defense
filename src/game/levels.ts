@@ -1,5 +1,5 @@
 import type { CellKind, EnemyKind } from './constants';
-import { COLS, ROWS, TILE, WAVES_PER_LEVEL } from './constants';
+import { COLS, ENEMIES, ROWS, TILE, WAVES_PER_LEVEL } from './constants';
 import type { Vec2 } from '../shared/math';
 
 export interface LevelDef {
@@ -270,6 +270,20 @@ export function buildWave(levelId: number, wave: number): WaveSpawn[] {
   }
 
   return groups;
+}
+
+/** Display names in spawn order, unique — for the wave-start toast. */
+export function waveRoster(levelId: number, wave: number): string[] {
+  const names: string[] = [];
+  const seen = new Set<string>();
+  for (const g of buildWave(levelId, wave)) {
+    const name = ENEMIES[g.kind].name;
+    if (!seen.has(name)) {
+      seen.add(name);
+      names.push(name);
+    }
+  }
+  return names;
 }
 
 export function canPlaceOnCell(grid: CellKind[][], c: number, r: number): boolean {

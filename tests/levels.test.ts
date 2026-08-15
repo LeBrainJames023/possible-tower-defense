@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS } from '../src/game/levels';
+import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS, waveRoster } from '../src/game/levels';
 import { WAVES_PER_LEVEL } from '../src/game/constants';
 
 describe('expandPath', () => {
@@ -54,5 +54,11 @@ describe('buildWave', () => {
   it('includes a boss on wave 10', () => {
     const groups = buildWave(1, 10);
     expect(groups.some((g) => g.kind === 'boss')).toBe(true);
+  });
+
+  it('names the wave roster in spawn order', () => {
+    expect(waveRoster(1, 1)).toEqual(['Raider']);
+    expect(waveRoster(1, 3)).toEqual(['Raider', 'Goblin']);
+    expect(waveRoster(1, 10).includes('Warlord')).toBe(true);
   });
 });

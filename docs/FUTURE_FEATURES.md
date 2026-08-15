@@ -2,8 +2,8 @@
 
 Captured for later — not in this pass:
 
-- Music / richer soundscape (wind + water beds exist; per-tower combat SFX are still procedural)
-- Enemy attributes / speed variety — projectile feel should stay readable when scouts and brutes differ more
+- Music — richer campaign loops (we have a quiet procedural prepare/battle pad; still no real score)
+- Enemy attributes / speed variety — gait is visual only; projectile feel should stay readable when scouts and brutes differ more
 - Splash / economy retune — leave current radii until the roster settles (cannon ~1.5 tiles, ice/fire mid, poison tiny, arrow single, lightning chain)
 - Hand-painted Krita/GIMP tile variants
 - Tiled as a visual map editor that exports into `levels.ts` (single source of truth must stay TypeScript)
@@ -25,3 +25,4 @@ Done since MVP:
 - Particle bursts on kills / impacts
 - Easy / Normal / Hard
 - Procedural combat SFX + mute
+- Prepare/battle pad, path landmarks, wave-start sting, enemy gaits, wood/iron chrome

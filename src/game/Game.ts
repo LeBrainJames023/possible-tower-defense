@@ -15,6 +15,7 @@ import {
   canPlaceOnCell,
   LEVELS,
   pathWaypoints,
+  waveRoster,
   type LevelDef,
   type WaveSpawn,
 } from './levels';
@@ -160,8 +161,11 @@ export class Game {
     this.buildCell = null;
     this.clock = 0;
     this.fx.clear();
+    this.renderer.spawnHeat = 0;
+    this.renderer.keepWound = 0;
     this.fx.seedAmbient(MAP_W, MAP_H);
     this.audio.setAmbience(level.id === 2 || level.id === 8);
+    this.audio.setScore('prepare');
     this.onHud?.();
     this.ensureLoop();
   }
@@ -239,6 +243,15 @@ export class Game {
     this.waveActive = true;
     this.phase = 'wave';
     this.waveIndex = next;
+    this.renderer.spawnHeat = 1;
+    const spawn = this.waypoints[0];
+    if (spawn) {
+      this.fx.flash(spawn.x, spawn.y, '#c8e4ff', 48, 0.35);
+      this.fx.ring(spawn.x, spawn.y, '#9ad0f0', 56, 3, 0.45);
+    }
+    this.audio.waveStart();
+    this.audio.setScore('battle');
+    this.onToast?.(`Wave ${next} — ${waveRoster(this.level.id, next).join(', ')}`);
     this.onHud?.();
   }
 
@@ -380,6 +393,8 @@ export class Game {
     }
 
     this.clock += dt;
+    this.renderer.spawnHeat = Math.max(0, this.renderer.spawnHeat - dt * 1.5);
+    this.renderer.keepWound = Math.max(0, this.renderer.keepWound - dt * 1.8);
     this.fx.update(dt, MAP_W, MAP_H);
 
     if (this.waveActive) {
@@ -393,9 +408,18 @@ export class Game {
     for (const e of this.enemies) {
       e.update(dt, this.waypoints);
       this.fx.statusTicks(e, dt);
+      if (e.footfall) {
+        this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.55, '#6a5340', 2, 'smoke', -18);
+      }
       if (e.reachedEnd) {
         this.lives -= e.kind === 'boss' ? 5 : 1;
         this.audio.leak();
+        this.renderer.keepWound = 1;
+        const gate = this.waypoints[this.waypoints.length - 1];
+        if (gate) {
+          this.fx.flash(gate.x, gate.y, '#ef476f', 44, 0.28);
+          this.fx.ring(gate.x, gate.y, '#ef476f', 40, 3, 0.32);
+        }
         this.fx.burst(e.pos.x, e.pos.y, '#ef476f', 10, 'spark');
         this.floats.push({
           x: e.pos.x,
@@ -454,6 +478,7 @@ export class Game {
       this.waveActive = false;
       if (this.phase === 'wave' || this.phase === 'prepare') {
         this.phase = 'lost';
+        this.audio.setScore('off');
         this.onResult?.(false);
         this.onHud?.();
       }
@@ -471,12 +496,14 @@ export class Game {
       this.gold += bonus;
       if (this.waveIndex >= WAVES_PER_LEVEL) {
         this.phase = 'won';
+        this.audio.setScore('off');
         const unlocked = loadProgress();
         const nextUnlock = Math.min(LEVELS.length, this.level.id + 1);
         if (nextUnlock > unlocked) saveProgress(nextUnlock);
         this.onResult?.(true);
       } else {
         this.phase = 'prepare';
+        this.audio.setScore('prepare');
         this.onToast?.(`Wave ${this.waveIndex} cleared! +${bonus}g bonus`);
       }
       this.onHud?.();
@@ -493,7 +520,7 @@ export class Game {
         this.floats.push({
           x: e.pos.x,
           y: e.pos.y - 10,
-          text: `+${payout}`,
+          text: `+${payout}g`,
           color: '#f4d35e',
           life: 0.7,
         });
@@ -648,7 +675,7 @@ export class Game {
       focus,
       canPlace,
       this.selectedKind,
-      true,
+      !!this.buildCell,
     );
     this.renderer.drawSpawnExit(this.waypoints);
     for (const t of this.towers) {
