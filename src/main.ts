@@ -1,9 +1,10 @@
 import './style.css';
 import { MAP_H, MAP_W, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
-import { ENEMIES } from './game/enemies';
+import { ENEMIES, type EnemyKind } from './game/enemies';
 import { LEVELS, levelsInWorld, waveRoster } from './game/levels';
 import { drawLevelThumb } from './game/levelThumb';
 import { Game } from './game/Game';
+import { Tower } from './game/entities';
 import {
   afterWin,
   canPlay,
@@ -16,6 +17,7 @@ import {
   worldClearedCount,
 } from './game/progress';
 import { DIFFICULTY, scaleGold, type DifficultyId } from './game/balance';
+import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
 import { WORLDS, worldById, worldByIndex } from './game/worlds';
 import { fitCanvasToHost } from './shared/pointer';
@@ -29,6 +31,10 @@ const screens = {
 };
 
 const overlayResult = document.getElementById('overlay-result')!;
+const overlayIntro = document.getElementById('overlay-intro')!;
+const introEyebrow = document.getElementById('intro-eyebrow')!;
+const introName = document.getElementById('intro-name')!;
+const introBody = document.getElementById('intro-body')!;
 const resultTitle = document.getElementById('result-title')!;
 const resultBody = document.getElementById('result-body')!;
 const btnResultPrimary = document.getElementById('btn-result-primary') as HTMLButtonElement;
@@ -46,6 +52,7 @@ const btnSpeed = document.getElementById('btn-speed') as HTMLButtonElement;
 const btnPause = document.getElementById('btn-pause') as HTMLButtonElement;
 const pauseStrip = document.getElementById('pause-strip')!;
 const leaveStrip = document.getElementById('leave-strip')!;
+const restartStrip = document.getElementById('restart-strip')!;
 const toastEl = document.getElementById('toast')!;
 const towerShop = document.getElementById('tower-shop')!;
 const levelGrid = document.getElementById('level-grid')!;
@@ -74,6 +81,7 @@ function layoutPlayfield(): void {
 }
 
 new ResizeObserver(() => layoutPlayfield()).observe(gameBody);
+new ResizeObserver(() => layoutPlayfield()).observe(screens.game);
 window.addEventListener('resize', layoutPlayfield);
 
 const DIFF_KEY = 'ptd-difficulty-v1';
@@ -104,6 +112,7 @@ let activeWorldIndex = 1;
 let lookMode = false;
 let lastGold = -1;
 let lastLives = -1;
+let introQueue: EnemyKind[] = [];
 
 function flashChip(el: HTMLElement, cls: string): void {
   el.classList.remove(cls);
@@ -129,6 +138,7 @@ function showScreen(name: keyof typeof screens): void {
     game.audio.stopAmbience();
     game.audio.setScore('off');
     overlayResult.classList.add('hidden');
+    overlayIntro.classList.add('hidden');
     pauseStrip.classList.add('hidden');
     leaveStrip.classList.add('hidden');
     toastEl.classList.add('hidden');
@@ -162,7 +172,7 @@ function renderWorlds(): void {
     if (tctx && preview) drawLevelThumb(tctx, preview, thumb.width, thumb.height);
     const badge = document.createElement('span');
     badge.className = 'level-badge';
-    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Look';
+    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
     const name = document.createElement('strong');
     name.textContent = world.name;
     const meta = document.createElement('span');
@@ -172,7 +182,7 @@ function renderWorlds(): void {
     blurb.className = 'world-blurb';
     blurb.textContent = open
       ? world.blurb
-      : 'Look around — winning here does not unlock the campaign.';
+      : 'Peek at the maps. Beat the previous world to play here.';
     const copy = document.createElement('div');
     copy.className = 'world-copy';
     copy.append(badge, name, meta, blurb);
@@ -194,7 +204,7 @@ function renderLevels(): void {
   const worldOpen = isWorldOpen(p, activeWorldIndex);
   levelsLede.textContent = worldOpen
     ? `${world.blurb} Ten maps. Beat them in order.`
-    : `${world.blurb} Look around — progress saves when this land is open.`;
+    : `${world.blurb} Peek only — beat the previous world to play these maps.`;
   levelGrid.innerHTML = '';
   for (const level of levelsInWorld(activeWorldIndex)) {
     const open = canPlay(p, level);
@@ -213,17 +223,23 @@ function renderLevels(): void {
     if (tctx) drawLevelThumb(tctx, level, thumb.width, thumb.height);
     const badge = document.createElement('span');
     badge.className = 'level-badge';
-    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Look';
+    badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
     const label = document.createElement('strong');
     label.textContent = `Stage ${level.stage}`;
     const name = document.createElement('span');
     name.className = 'level-name';
     name.textContent = level.name;
     const blurb = document.createElement('span');
-    blurb.textContent = open ? level.blurb : 'Look — does not unlock the campaign.';
+    blurb.textContent = open ? level.blurb : 'Locked — beat the previous world to play.';
     btn.append(thumb, badge, label, name, blurb);
     btn.style.borderColor = themeFor(level).ui;
-    btn.addEventListener('click', () => startLevel(level.id));
+    btn.addEventListener('click', () => {
+      if (!open) {
+        showToast('Beat the previous world to play here. Worlds takes you back.');
+        return;
+      }
+      startLevel(level.id);
+    });
     levelGrid.appendChild(btn);
   }
 }
@@ -236,7 +252,6 @@ function syncOverlay(): void {
   const inspect = !!(tower || enemy);
   mapOverlay.classList.toggle('hidden', !building && !inspect);
   buildPanel.classList.toggle('hidden', !building);
-  buildPanel.classList.toggle('is-confirm', confirming);
   inspectPanel.classList.toggle('hidden', !inspect);
   buildDetail.classList.toggle('hidden', !confirming);
   if (confirming && game.selectedKind) {
@@ -244,7 +259,6 @@ function syncOverlay(): void {
   } else {
     buildTitle.textContent = 'Build';
   }
-  requestAnimationFrame(layoutPlayfield);
 }
 
 function closeBuildMenu(): void {
@@ -273,16 +287,22 @@ function renderShop(): void {
     btn.dataset.kind = kind;
     btn.innerHTML = `
       <img class="tower-portrait" src="/icons/${kind}.png" alt="" />
-      <span class="tower-cost">${def.cost}g</span>
       <strong>${def.name}</strong>
+      <span class="tower-cost">${def.cost}g</span>
     `;
     btn.addEventListener('click', () => {
       game.selectedKind = kind;
       syncShopSelection();
       const rangeTiles = (def.range / TILE).toFixed(1);
-      buildDetailText.textContent = `${def.description}\n${def.cost}g · Range ${rangeTiles} tiles · ${def.fireRate.toFixed(1)}/s`;
+      buildDetailText.textContent = [
+        def.description,
+        `Damage ${def.damage} · Range ${rangeTiles} tiles · ${def.fireRate.toFixed(1)}/s`,
+        def.splash > 0 ? `Splash ${(def.splash / TILE).toFixed(1)} tiles` : def.chain > 0 ? `Chain ${def.chain}` : 'Single target',
+      ]
+        .filter(Boolean)
+        .join('\n');
       btnBuild.disabled = !!(game.level && game.gold < def.cost);
-      btnBuild.textContent = game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build ${def.name}`;
+      btnBuild.textContent = game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build · ${def.cost}g`;
       syncOverlay();
       game.audio.ui();
     });
@@ -302,10 +322,73 @@ function syncShopSelection(): void {
   });
 }
 
+function hideConfirmStrips(): void {
+  leaveStrip.classList.add('hidden');
+  restartStrip.classList.add('hidden');
+}
+
+function showIntroCard(kind: EnemyKind): void {
+  const def = ENEMIES[kind];
+  introEyebrow.textContent = introRoleLabel(kind);
+  introName.textContent = def.name;
+  introBody.textContent = def.blurb;
+  overlayIntro.classList.remove('hidden');
+}
+
+function showNextIntro(): void {
+  const kind = introQueue[0];
+  if (!kind) {
+    overlayIntro.classList.add('hidden');
+    return;
+  }
+  showIntroCard(kind);
+}
+
+function queueLevelIntros(level: (typeof LEVELS)[number]): void {
+  introQueue = introKindsForLevel(level);
+  showNextIntro();
+}
+
 function updatePauseUi(): void {
   const paused = game.phase === 'paused';
   pauseStrip.classList.toggle('hidden', !paused);
   btnPause.textContent = paused ? 'Paused' : 'Pause';
+  if (!paused) restartStrip.classList.add('hidden');
+}
+
+function plus(cur: number, next: number, digits = 0): string {
+  const d = next - cur;
+  const shown = digits ? cur.toFixed(digits) : String(cur);
+  if (Math.abs(d) < (digits ? 0.05 : 0.5)) return shown;
+  const delta = digits ? d.toFixed(digits) : String(Math.round(d));
+  return `${shown}  (+${delta})`;
+}
+
+function towerInspectText(t: Tower): string {
+  const curD = Math.round(game.shotDamage(t));
+  const curR = t.range / TILE;
+  const curRate = t.fireRate;
+  const lines = [`${t.def.role} tower`, t.def.description];
+  if (t.level >= 3) {
+    lines.push(
+      `Damage ${curD}`,
+      `Range ${curR.toFixed(1)} tiles`,
+      `Rate ${curRate.toFixed(1)}/s`,
+      `Sell ${t.sellValue()}g`,
+    );
+  } else {
+    const next = t.level + 1;
+    const nextD = Math.round(t.damageAt(next) * game.mods.damage);
+    const nextR = t.rangeAt(next) / TILE;
+    const nextRate = t.fireRateAt(next);
+    lines.push(
+      `Damage ${plus(curD, nextD)}`,
+      `Range ${plus(curR, nextR, 1)} tiles`,
+      `Rate ${plus(curRate, nextRate, 1)}/s`,
+      `Next ${t.upgradeCost()}g · Sell ${t.sellValue()}g`,
+    );
+  }
+  return lines.join('\n');
 }
 
 function updateHud(): void {
@@ -339,11 +422,12 @@ function updateHud(): void {
   if (tower) {
     towerActions.classList.remove('hidden');
     selectionTitle.textContent = `${tower.def.name} · Lv ${tower.level}`;
-    selectionStats.textContent = `${tower.def.role} tower\n${tower.def.description}\nDamage ${Math.round(game.shotDamage(tower))} · Range ${(tower.range / TILE).toFixed(1)} tiles · Rate ${tower.fireRate.toFixed(1)}/s\nUpgrade ${tower.level >= 3 ? 'MAX' : tower.upgradeCost() + 'g'} · Sell ${tower.sellValue()}g`;
+    selectionStats.textContent = towerInspectText(tower);
     const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
     up.disabled = tower.level >= 3 || game.gold < tower.upgradeCost();
-    up.textContent = tower.level >= 3 ? 'Max level' : `Upgrade (${tower.upgradeCost()}g)`;
-    hint.textContent = 'Upgrade, sell, or close.';
+    up.textContent = tower.level >= 3 ? 'Max' : `Upgrade ${tower.upgradeCost()}g`;
+    hint.textContent =
+      tower.level >= 3 ? 'Range ring is maxed. Sell or close.' : 'Solid ring is now. Outer ring is after upgrade.';
   } else if (enemy) {
     towerActions.classList.add('hidden');
     const def = ENEMIES[enemy.kind];
@@ -357,7 +441,7 @@ function updateHud(): void {
     const roleTag =
       def.role === 'champion' ? 'Champion' : def.role === 'boss' ? 'Boss' : def.role === 'special' ? 'Local' : '';
     selectionTitle.textContent = roleTag ? `${def.name} · ${roleTag}` : def.name;
-    selectionStats.textContent = `${def.blurb}\nHP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${(def.speed / TILE).toFixed(2)} tiles/s\nReward ${scaleGold(def.reward, game.mods.gold)}g${effects ? `\nStatus: ${effects}` : ''}`;
+    selectionStats.textContent = `${def.blurb}\n${def.flying ? 'Flying — Cannon cannot hit.\n' : ''}HP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${(def.speed / TILE).toFixed(2)} tiles/s\nReward ${scaleGold(def.reward, game.mods.gold)}g${effects ? `\nStatus: ${effects}` : ''}`;
     hint.textContent = 'Pause to study packs without pressure.';
   } else {
     towerActions.classList.add('hidden');
@@ -372,23 +456,24 @@ function updateHud(): void {
 
 function startLevel(id: number): void {
   const level = LEVELS.find((l) => l.id === id) ?? LEVELS[0];
-  lookMode = !canPlay(loadProgress(), level);
+  if (!canPlay(loadProgress(), level)) {
+    showToast('Beat the previous world to play here. Worlds takes you back.');
+    return;
+  }
+  lookMode = false;
   activeLevelId = level.id;
   activeWorldIndex = level.worldIndex;
   showScreen('game');
   overlayResult.classList.add('hidden');
-  leaveStrip.classList.add('hidden');
+  hideConfirmStrips();
   game.audio.unlock();
   lastGold = -1;
   lastLives = -1;
   game.startLevel(level.id);
   updateHud();
+  queueLevelIntros(level);
   const where = `${worldById(level.world).name} ${level.stage}: ${level.name}`;
-  showToast(
-    lookMode
-      ? `${where} — look around. This does not unlock the campaign.`
-      : `${where} — click grass to build`,
-  );
+  showToast(`${where} — click grass to build`);
 }
 
 game.onHud = updateHud;
@@ -474,19 +559,37 @@ document.querySelectorAll('[data-action]').forEach((el) => {
 });
 
 btnWave.addEventListener('click', () => game.startWave());
+document.getElementById('btn-intro-got-it')!.addEventListener('click', () => {
+  const shown = introQueue.shift();
+  if (shown) markKindsSeen([shown]);
+  showNextIntro();
+});
 btnPause.addEventListener('click', () => {
   game.togglePause();
-  leaveStrip.classList.add('hidden');
+  hideConfirmStrips();
   updateHud();
 });
 document.getElementById('btn-resume')!.addEventListener('click', () => {
   if (game.phase === 'paused') game.togglePause();
+  hideConfirmStrips();
   updateHud();
+});
+document.getElementById('btn-restart')!.addEventListener('click', () => {
+  leaveStrip.classList.add('hidden');
+  restartStrip.classList.remove('hidden');
+});
+document.getElementById('btn-restart-cancel')!.addEventListener('click', () => {
+  restartStrip.classList.add('hidden');
+});
+document.getElementById('btn-restart-confirm')!.addEventListener('click', () => {
+  hideConfirmStrips();
+  startLevel(activeLevelId);
 });
 document.getElementById('btn-leave')!.addEventListener('click', () => {
   if (game.phase !== 'paused' && (game.phase === 'wave' || game.phase === 'prepare')) {
     game.togglePause();
   }
+  restartStrip.classList.add('hidden');
   leaveStrip.classList.remove('hidden');
   updateHud();
 });

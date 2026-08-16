@@ -1,5 +1,6 @@
 import { TOWERS, type TowerKind } from './constants';
-import { ENEMIES, ENEMY_GAIT, type EnemyKind } from './enemies';
+import { ENEMIES, ENEMY_GAIT, spriteFlip, type EnemyKind } from './enemies';
+import { sellValueFor, upgradeCostFor } from './balance';
 import type { Vec2 } from '../shared/math';
 import { dist, pathTotalLength } from '../shared/math';
 
@@ -19,6 +20,7 @@ export class Enemy {
   radius: number;
   color: string;
   colorDark: string;
+  flying: boolean;
   progress = 0;
   alive = true;
   reachedEnd = false;
@@ -30,6 +32,8 @@ export class Enemy {
   poisonTimer = 0;
   pos: Vec2 = { x: 0, y: 0 };
   facing = 0;
+  /** 1 = authored left, -1 = mirrored for travel right. */
+  flip = 1;
   hitFlash = 0;
   bob = Math.random() * Math.PI * 2;
   footfall = false;
@@ -46,7 +50,15 @@ export class Enemy {
     this.radius = def.radius;
     this.color = def.color;
     this.colorDark = def.colorDark;
+    this.flying = def.flying;
     this.pos = { ...waypoints[0] };
+    if (waypoints.length >= 2) {
+      const dx = waypoints[1].x - waypoints[0].x;
+      const dy = waypoints[1].y - waypoints[0].y;
+      const len = Math.hypot(dx, dy) || 1;
+      this.facing = Math.atan2(dy, dx);
+      this.flip = spriteFlip(dx / len, 1);
+    }
   }
 
   applySlow(amount: number, duration: number): void {
@@ -127,7 +139,10 @@ export class Enemy {
         };
         const dx = this.pos.x - prev.x;
         const dy = this.pos.y - prev.y;
-        if (dx * dx + dy * dy > 0.01) this.facing = Math.atan2(dy, dx);
+        if (dx * dx + dy * dy > 0.01) {
+          this.facing = Math.atan2(dy, dx);
+          this.flip = spriteFlip(Math.cos(this.facing), this.flip);
+        }
         return;
       }
       travel -= seg;
@@ -163,15 +178,27 @@ export class Tower {
   }
 
   get damage(): number {
-    return this.def.damage * Math.pow(this.def.upgradeMul, this.level - 1);
+    return this.damageAt(this.level);
   }
 
   get range(): number {
-    return this.def.range * (1 + (this.level - 1) * 0.08);
+    return this.rangeAt(this.level);
   }
 
   get fireRate(): number {
-    return this.def.fireRate * (1 + (this.level - 1) * 0.1);
+    return this.fireRateAt(this.level);
+  }
+
+  damageAt(level: number): number {
+    return this.def.damage * Math.pow(this.def.upgradeMul, level - 1);
+  }
+
+  rangeAt(level: number): number {
+    return this.def.range * (1 + (level - 1) * 0.08);
+  }
+
+  fireRateAt(level: number): number {
+    return this.def.fireRate * (1 + (level - 1) * 0.1);
   }
 
   statusScale(): number {
@@ -179,13 +206,11 @@ export class Tower {
   }
 
   upgradeCost(): number {
-    return Math.round(this.def.upgradeCost * Math.pow(1.35, this.level - 1));
+    return upgradeCostFor(this.def.cost, this.level);
   }
 
   sellValue(): number {
-    const base = this.def.cost;
-    const upgrades = this.def.upgradeCost * (this.level - 1) * 0.7;
-    return Math.round((base + upgrades) * 0.65);
+    return sellValueFor(this.def.cost, this.level);
   }
 }
 

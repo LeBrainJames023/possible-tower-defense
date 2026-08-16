@@ -28,12 +28,14 @@ import {
   scaleGold,
   scaleLives,
   waveClearBonus,
+  waveHpMul,
   type DifficultyId,
 } from './balance';
-import { dist } from '../shared/math';
+import { dist, pathTotalLength } from '../shared/math';
 import { clientToMap, identityMapView, type MapView } from '../shared/pointer';
 import { afterWin, canPlay, isAhead, loadProgress, saveProgress } from './progress';
 import { isWetLevel } from './worlds';
+import { scheduleWave } from './spawnSchedule';
 
 export type GamePhase = 'prepare' | 'wave' | 'paused' | 'won' | 'lost';
 
@@ -198,15 +200,12 @@ export class Game {
     if (!this.canStartWave()) return;
     const next = this.waveIndex + 1;
     const groups = buildWave(this.level.stage, next, this.level.worldIndex);
-    this.spawnQueue = [];
+    this.spawnQueue = scheduleWave(groups, pathTotalLength(this.waypoints), {
+      worldIndex: this.level.worldIndex,
+      stage: this.level.stage,
+      wave: next,
+    });
     this.waveTime = 0;
-    for (const g of groups) {
-      const base = g.delay ?? 0;
-      for (let i = 0; i < g.count; i++) {
-        this.spawnQueue.push({ kind: g.kind, at: base + i * g.interval });
-      }
-    }
-    this.spawnQueue.sort((a, b) => a.at - b.at);
     this.waveActive = true;
     this.phase = 'wave';
     this.waveIndex = next;
@@ -368,7 +367,9 @@ export class Game {
       this.waveTime += dt;
       while (this.spawnQueue.length && this.spawnQueue[0].at <= this.waveTime) {
         const s = this.spawnQueue.shift()!;
-        this.enemies.push(new Enemy(s.kind, this.level.hpScale * this.mods.hp, this.waypoints));
+        this.enemies.push(
+          new Enemy(s.kind, this.level.hpScale * this.mods.hp * waveHpMul(this.waveIndex), this.waypoints),
+        );
       }
     }
 
@@ -480,7 +481,7 @@ export class Game {
           y: e.pos.y - 10,
           text: `+${payout}g`,
           color: '#f4d35e',
-          life: 0.7,
+          life: 1.15,
         });
       }
     }

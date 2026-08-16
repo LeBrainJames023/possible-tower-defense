@@ -237,7 +237,7 @@ export class Renderer {
   drawFloating(texts: FloatingText[]): void {
     const { ctx } = this;
     ctx.textAlign = 'center';
-    ctx.font = `bold ${Math.round(16 * PX)}px DM Sans, sans-serif`;
+    ctx.font = `bold ${Math.round(18 * PX)}px DM Sans, sans-serif`;
     for (const t of texts) {
       ctx.globalAlpha = Math.min(1, t.life);
       ctx.fillStyle = t.color;

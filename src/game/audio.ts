@@ -97,29 +97,34 @@ export class AudioBus {
     this.lastShot = now;
     switch (kind) {
       case 'arrow':
-        this.noise(0.05, 0.05, 2800);
-        this.tone(1100, 0.04, 'triangle', 0.035);
+        this.noise(0.045, 0.04, 2400, 'highpass');
+        this.tone(980, 0.035, 'triangle', 0.04, 0, 0.35);
+        this.tone(240, 0.03, 'sine', 0.018, 0.01);
         break;
       case 'cannon':
-        this.noise(0.08, 0.07, 110, 'lowpass');
-        this.tone(64, 0.12, 'sine', 0.07);
+        this.noise(0.07, 0.055, 90, 'lowpass');
+        this.tone(72, 0.1, 'sine', 0.055, 0, 0.4);
+        this.tone(38, 0.08, 'triangle', 0.03, 0.02);
         break;
       case 'ice':
-        this.noise(0.07, 0.03, 3600);
-        this.tone(1480, 0.08, 'sine', 0.035, 0, 1.45);
+        this.noise(0.05, 0.028, 4200, 'highpass');
+        this.tone(1680, 0.07, 'sine', 0.04, 0, 1.6);
+        this.tone(2100, 0.04, 'triangle', 0.02, 0.02, 1.3);
         break;
       case 'lightning':
-        this.noise(0.028, 0.07, 2400);
-        this.tone(2100, 0.03, 'sawtooth', 0.04);
-        this.tone(420, 0.05, 'square', 0.02, 0.018);
+        this.noise(0.022, 0.08, 2600);
+        this.tone(2400, 0.025, 'sawtooth', 0.045, 0, 0.2);
+        this.tone(380, 0.04, 'square', 0.022, 0.012);
         break;
       case 'fire':
-        this.noise(0.1, 0.05, 220, 'lowpass');
-        this.crackle(0.028, 4);
+        this.noise(0.09, 0.055, 620, 'bandpass');
+        this.crackle(0.03, 5);
+        this.tone(190, 0.06, 'sawtooth', 0.02, 0, 0.5);
         break;
       case 'poison':
-        this.noise(0.09, 0.04, 280, 'lowpass');
-        this.tone(220, 0.1, 'sine', 0.035, 0, 0.4);
+        this.noise(0.07, 0.04, 320, 'lowpass');
+        this.tone(180, 0.09, 'sine', 0.04, 0, 0.28);
+        this.tone(90, 0.07, 'sine', 0.02, 0.03, 0.5);
         break;
     }
     this.duck();
@@ -128,34 +133,35 @@ export class AudioBus {
   impact(kind: TowerKind): void {
     switch (kind) {
       case 'arrow':
-        this.noise(0.035, 0.04, 1100);
-        this.tone(190, 0.045, 'triangle', 0.03);
+        this.noise(0.03, 0.035, 1400);
+        this.tone(210, 0.04, 'triangle', 0.028, 0, 0.45);
         break;
       case 'cannon':
-        this.noise(0.28, 0.09, 70, 'lowpass');
-        this.tone(48, 0.26, 'sine', 0.08);
-        this.tone(92, 0.12, 'triangle', 0.03, 0.05);
-        this.noise(0.16, 0.04, 180, 'lowpass', 0.06);
+        this.noise(0.3, 0.1, 65, 'lowpass');
+        this.tone(46, 0.28, 'sine', 0.09);
+        this.tone(88, 0.14, 'triangle', 0.032, 0.05);
+        this.noise(0.14, 0.045, 200, 'lowpass', 0.05);
         break;
       case 'ice':
-        this.noise(0.08, 0.045, 4200);
-        this.tone(1760, 0.05, 'triangle', 0.04);
-        this.tone(2400, 0.04, 'sine', 0.025, 0.02, 1.2);
-        this.tone(880, 0.07, 'sine', 0.02, 0.04);
+        this.noise(0.07, 0.05, 4800, 'highpass');
+        this.tone(1860, 0.05, 'triangle', 0.042, 0, 0.7);
+        this.tone(2480, 0.04, 'sine', 0.028, 0.015, 1.1);
+        this.tone(740, 0.06, 'sine', 0.018, 0.03);
         break;
       case 'lightning':
-        this.noise(0.04, 0.055, 1800);
-        this.tone(1600, 0.03, 'square', 0.035);
-        this.tone(280, 0.06, 'sawtooth', 0.02, 0.02);
+        this.noise(0.035, 0.06, 2000);
+        this.tone(1750, 0.028, 'square', 0.038, 0, 0.15);
+        this.tone(260, 0.055, 'sawtooth', 0.022, 0.018);
         break;
       case 'fire':
-        this.noise(0.1, 0.05, 140, 'lowpass');
-        this.tone(70, 0.1, 'sine', 0.04);
-        this.crackle(0.032, 6, 0.02);
+        this.noise(0.11, 0.06, 380, 'bandpass');
+        this.tone(64, 0.12, 'sine', 0.04);
+        this.crackle(0.034, 7, 0.015);
         break;
       case 'poison':
-        this.noise(0.1, 0.05, 240, 'lowpass');
-        this.tone(150, 0.1, 'sine', 0.04, 0, 0.35);
+        this.noise(0.09, 0.055, 200, 'lowpass');
+        this.tone(130, 0.11, 'sine', 0.045, 0, 0.25);
+        this.tone(70, 0.08, 'sine', 0.025, 0.04, 0.4);
         break;
     }
     this.duck();

@@ -13,6 +13,8 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
   ctx.rotate(ang);
   ctx.scale(PX, PX);
 
+  if (p.kind !== 'lightning') drawStreak(ctx, p.kind, p.color, p.age);
+
   switch (p.kind) {
     case 'arrow':
       drawArrow(ctx, p.color);
@@ -21,6 +23,7 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
       drawCannonball(ctx, p.color, p.age);
       break;
     case 'ice':
+      ctx.rotate(p.age * 8);
       drawIceShard(ctx, p.color, p.age);
       break;
     case 'fire':
@@ -29,6 +32,9 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
     case 'poison':
       drawVenom(ctx, p.color, p.age);
       break;
+    case 'lightning':
+      drawSpark(ctx, p.color, p.age);
+      break;
     default:
       ctx.fillStyle = p.color;
       ctx.beginPath();
@@ -36,6 +42,70 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
       ctx.fill();
   }
   ctx.restore();
+}
+
+function drawStreak(ctx: CanvasRenderingContext2D, kind: Projectile['kind'], color: string, age: number): void {
+  const a = 0.22 + Math.sin(age * 18) * 0.08;
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = a;
+  ctx.lineCap = 'round';
+  if (kind === 'arrow') {
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-22, 0);
+    ctx.lineTo(-8, 0);
+    ctx.stroke();
+  } else if (kind === 'cannon') {
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-16, 2);
+    ctx.lineTo(-6, 0);
+    ctx.stroke();
+    ctx.globalAlpha = a * 0.5;
+    ctx.fillStyle = '#6a5340';
+    ctx.beginPath();
+    ctx.arc(-14, 3, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (kind === 'ice') {
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-18, 0);
+    ctx.lineTo(-4, 0);
+    ctx.stroke();
+  } else if (kind === 'fire') {
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(-20, 0);
+    ctx.lineTo(-2, 0);
+    ctx.stroke();
+  } else if (kind === 'poison') {
+    ctx.lineWidth = 3;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.moveTo(-14, 2);
+    ctx.lineTo(-3, 0);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawSpark(ctx: CanvasRenderingContext2D, color: string, age: number): void {
+  ctx.strokeStyle = '#fff8d0';
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(-8, Math.sin(age * 40) * 3);
+  ctx.lineTo(-2, -4);
+  ctx.lineTo(2, 3);
+  ctx.lineTo(9, 0);
+  ctx.stroke();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(0, 0, 2.4, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawArrow(ctx: CanvasRenderingContext2D, color: string): void {
@@ -108,10 +178,16 @@ function drawCannonball(ctx: CanvasRenderingContext2D, color: string, age: numbe
   ctx.arc(-2.4, -2.6, 2.2, 0, Math.PI * 2);
   ctx.fill();
 
+  ctx.strokeStyle = '#3a2010';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(5.4, -4.6);
+  ctx.lineTo(9.2, -8.4);
+  ctx.stroke();
   const spark = 0.4 + Math.sin(age * 28) * 0.4;
   ctx.fillStyle = `rgba(255, 180, 60, ${spark})`;
   ctx.beginPath();
-  ctx.arc(5.2, -4.2, 1.6, 0, Math.PI * 2);
+  ctx.arc(9.4, -8.6, 1.8, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -202,6 +278,9 @@ function drawVenom(ctx: CanvasRenderingContext2D, color: string, age: number): v
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.ellipse(-5.5, 5 + Math.sin(age * 10), 1.4, 2.1, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(-8.5, 2 + Math.sin(age * 13 + 1), 1.1, 1.7, 0, 0, Math.PI * 2);
   ctx.fill();
 }
 

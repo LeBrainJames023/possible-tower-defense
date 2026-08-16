@@ -42,7 +42,6 @@ export interface TowerDef {
   burnDuration: number;
   poisonDps: number;
   poisonDuration: number;
-  upgradeCost: number;
   upgradeMul: number;
 }
 
@@ -82,14 +81,13 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     burnDuration: 0,
     poisonDps: 0,
     poisonDuration: 0,
-    upgradeCost: 50,
     upgradeMul: 1.42,
   },
   cannon: {
     kind: 'cannon',
     name: 'Cannon',
     cost: 125,
-    description: 'Mortar splash, shreds armor',
+    description: 'Mortar splash, shreds armor. Cannot hit flyers.',
     role: 'AoE',
     color: '#e8893a',
     colorDark: '#6b2a08',
@@ -105,7 +103,6 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     burnDuration: 0,
     poisonDps: 0,
     poisonDuration: 0,
-    upgradeCost: 90,
     upgradeMul: 1.36,
   },
   ice: {
@@ -128,7 +125,6 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     burnDuration: 0,
     poisonDps: 0,
     poisonDuration: 0,
-    upgradeCost: 70,
     upgradeMul: 1.28,
   },
   lightning: {
@@ -151,7 +147,6 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     burnDuration: 0,
     poisonDps: 0,
     poisonDuration: 0,
-    upgradeCost: 105,
     upgradeMul: 1.36,
   },
   fire: {
@@ -174,7 +169,6 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     burnDuration: 2.5,
     poisonDps: 0,
     poisonDuration: 0,
-    upgradeCost: 80,
     upgradeMul: 1.34,
   },
   poison: {
@@ -197,7 +191,6 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     burnDuration: 0,
     poisonDps: 14,
     poisonDuration: 4.4,
-    upgradeCost: 75,
     upgradeMul: 1.32,
   },
 };

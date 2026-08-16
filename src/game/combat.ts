@@ -38,8 +38,14 @@ function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
   return pts;
 }
 
+export function canTarget(t: Tower, e: Enemy): boolean {
+  if (!e.alive) return false;
+  if (t.kind === 'cannon' && e.flying) return false;
+  return true;
+}
+
 export function pickTarget(t: Tower, enemies: Enemy[]): Enemy | null {
-  const inRange = enemies.filter((e) => e.alive && dist({ x: t.x, y: t.y }, e.pos) <= t.range);
+  const inRange = enemies.filter((e) => canTarget(t, e) && dist({ x: t.x, y: t.y }, e.pos) <= t.range);
   if (!inRange.length) return null;
   inRange.sort((a, b) => b.progress - a.progress);
   return inRange[0];
@@ -132,7 +138,7 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
       chain: 0,
       color: def.color,
       targetId: target.id,
-      trail: t.kind === 'arrow',
+      trail: t.kind === 'arrow' || t.kind === 'fire' || t.kind === 'ice' || t.kind === 'poison' || t.kind === 'cannon',
       kind: t.kind,
       arc: feel.arc,
       homing: feel.homing,
@@ -146,14 +152,17 @@ export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {
   if (p.splash > 0) {
     for (const e of enemies) {
       if (!e.alive) continue;
+      if (p.kind === 'cannon' && e.flying) continue;
       const mul = splashMultiplier(dist({ x: p.x, y: p.y }, e.pos), p.splash);
       if (mul > 0) applyPayload(e, p, mul, hooks);
     }
   } else if (p.targetId != null) {
     const tgt = enemies.find((e) => e.alive && e.id === p.targetId);
-    if (tgt) applyPayload(tgt, p, 1, hooks);
+    if (tgt && !(p.kind === 'cannon' && tgt.flying)) applyPayload(tgt, p, 1, hooks);
     else {
-      const near = enemies.find((e) => e.alive && dist({ x: p.x, y: p.y }, e.pos) < u(20));
+      const near = enemies.find(
+        (e) => e.alive && !(p.kind === 'cannon' && e.flying) && dist({ x: p.x, y: p.y }, e.pos) < u(20),
+      );
       if (near) applyPayload(near, p, 1, hooks);
     }
   }
@@ -166,7 +175,7 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
     t.cooldown = Math.max(0, t.cooldown - dt);
     t.recoil = Math.max(0, t.recoil - dt * 6);
     t.muzzle = Math.max(0, t.muzzle - dt * 8);
-    const tracked = t.targetId != null ? world.enemies.find((e) => e.alive && e.id === t.targetId) : null;
+    const tracked = t.targetId != null ? world.enemies.find((e) => canTarget(t, e) && e.id === t.targetId) : null;
     const aimAt = tracked && dist({ x: t.x, y: t.y }, tracked.pos) <= t.range ? tracked : pickTarget(t, world.enemies);
     if (aimAt) {
       const desired = Math.atan2(aimAt.pos.y - t.y, aimAt.pos.x - t.x);

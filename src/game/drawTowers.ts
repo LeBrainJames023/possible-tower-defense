@@ -87,6 +87,29 @@ function aura(ctx: CanvasRenderingContext2D, color: string, r: number, time: num
   ctx.fill();
 }
 
+function spokeWheel(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string): void {
+  ctx.fillStyle = '#3a2a1c';
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, r * 0.18);
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.72, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3;
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(a) * r * 0.7, y + Math.sin(a) * r * 0.7);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#ffe9a0';
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function pad(ctx: CanvasRenderingContext2D, scale: number): void {
   ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.beginPath();
@@ -120,16 +143,16 @@ export function drawTowerBody(
       drawFieldGun(ctx, def.color, def.colorDark, t.aim, scale, recoil, time);
       break;
     case 'ice':
-      drawCrystalSpire(ctx, def.color, def.colorDark, time, scale);
+      drawCrystalSpire(ctx, def.color, def.colorDark, time, scale, t.aim);
       break;
     case 'lightning':
-      drawRunePylons(ctx, def.color, time, scale);
+      drawRunePylons(ctx, def.color, time, scale, t.aim);
       break;
     case 'fire':
-      drawBrazier(ctx, def.color, time, scale);
+      drawBrazier(ctx, def.color, time, scale, t.aim);
       break;
     case 'poison':
-      drawAlchemyVat(ctx, def.color, def.colorDark, time, scale);
+      drawAlchemyVat(ctx, def.color, def.colorDark, time, scale, t.aim);
       break;
   }
 }
@@ -147,20 +170,34 @@ function drawBallista(
   wood(ctx, -18 * scale, -12 * scale, 7 * scale, 16 * scale);
   wood(ctx, 11 * scale, -12 * scale, 7 * scale, 16 * scale);
   goldBand(ctx, -15 * scale, -8 * scale, 30 * scale, 2.4 * scale);
+  ctx.strokeStyle = '#5a3a22';
+  ctx.lineWidth = 1.6 * PX;
+  ctx.beginPath();
+  ctx.arc(-15 * scale, 2 * scale, 3.2 * scale, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.save();
   ctx.rotate(aim);
   ctx.translate(-recoil, 0);
   ctx.strokeStyle = '#ffe9a0';
   ctx.shadowColor = color;
   ctx.shadowBlur = 6 * PX;
-  ctx.lineWidth = 2 * PX;
+  ctx.lineWidth = 2.4 * PX;
   ctx.beginPath();
-  ctx.moveTo(-14 * scale, -6 * scale);
-  ctx.quadraticCurveTo(0, -14 * scale, 14 * scale, -6 * scale);
+  ctx.moveTo(-14 * scale, -7 * scale);
+  ctx.quadraticCurveTo(0, -16 * scale, 14 * scale, -7 * scale);
   ctx.stroke();
   ctx.shadowBlur = 0;
+  ctx.fillStyle = '#5a3a22';
+  ctx.fillRect(-4 * scale, -9 * scale, 18 * scale, 3.2 * scale);
   ctx.fillStyle = '#e8f4ff';
-  ctx.fillRect(-2 * scale, -8 * scale, 16 * scale, 2.4 * scale);
+  ctx.fillRect(-2 * scale, -8.6 * scale, 16 * scale, 2.2 * scale);
+  ctx.fillStyle = '#8a2018';
+  ctx.beginPath();
+  ctx.moveTo(14 * scale, -10 * scale);
+  ctx.lineTo(22 * scale, -7 * scale);
+  ctx.lineTo(14 * scale, -4 * scale);
+  ctx.closePath();
+  ctx.fill();
   crystal(ctx, 16 * scale, -12 * scale, 3 * scale, 9 * scale, '#fff4c8', color);
   ctx.restore();
 }
@@ -175,17 +212,8 @@ function drawFieldGun(
   time: number,
 ): void {
   aura(ctx, color, 18 * scale, time);
-  ctx.fillStyle = '#4a3a28';
-  ctx.beginPath();
-  ctx.arc(-10 * scale, 8 * scale, 6 * scale, 0, Math.PI * 2);
-  ctx.arc(10 * scale, 8 * scale, 6 * scale, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#ffe9a0';
-  ctx.lineWidth = 1.4 * PX;
-  ctx.beginPath();
-  ctx.arc(-10 * scale, 8 * scale, 4 * scale, 0, Math.PI * 2);
-  ctx.arc(10 * scale, 8 * scale, 4 * scale, 0, Math.PI * 2);
-  ctx.stroke();
+  spokeWheel(ctx, -11 * scale, 9 * scale, 6.5 * scale, '#ffe9a0');
+  spokeWheel(ctx, 11 * scale, 9 * scale, 6.5 * scale, '#ffe9a0');
   wood(ctx, -13 * scale, 0, 26 * scale, 7 * scale);
   ctx.save();
   ctx.rotate(aim);
@@ -219,12 +247,34 @@ function drawCrystalSpire(
   dark: string,
   time: number,
   scale: number,
+  aim: number,
 ): void {
   aura(ctx, color, 22 * scale, time);
   crystal(ctx, 0, -22 * scale, 6 * scale, 28 * scale, '#e8f8ff', dark);
   crystal(ctx, -8 * scale, -12 * scale, 4 * scale, 18 * scale, color, dark);
   crystal(ctx, 8 * scale, -10 * scale, 4 * scale, 16 * scale, '#ffffff', color);
   goldBand(ctx, -7 * scale, 4 * scale, 14 * scale, 2.2 * scale);
+  for (let i = 0; i < 3; i++) {
+    const a = time * 1.8 + i * 2.1;
+    ctx.fillStyle = `rgba(200,244,255,${0.45 + Math.sin(a) * 0.25})`;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * 11 * scale, -6 * scale + Math.sin(a * 1.4) * 4 * scale, 1.6 * scale, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.save();
+  ctx.rotate(aim);
+  ctx.fillStyle = '#e8fbff';
+  ctx.beginPath();
+  ctx.moveTo(18 * scale, 0);
+  ctx.lineTo(6 * scale, 4.2 * scale);
+  ctx.lineTo(8 * scale, 0);
+  ctx.lineTo(6 * scale, -4.2 * scale);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.2 * PX;
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawRunePylons(
@@ -232,6 +282,7 @@ function drawRunePylons(
   color: string,
   time: number,
   scale: number,
+  aim: number,
 ): void {
   aura(ctx, color, 20 * scale, time);
   steel(ctx, -16 * scale, -10 * scale, 6 * scale, 22 * scale, 2);
@@ -240,6 +291,14 @@ function drawRunePylons(
   goldBand(ctx, 9 * scale, 0, 8 * scale, 2 * scale);
   crystal(ctx, -13 * scale, -22 * scale, 3.2 * scale, 12 * scale, '#fff8d0', color);
   crystal(ctx, 13 * scale, -22 * scale, 3.2 * scale, 12 * scale, '#fff8d0', color);
+  ctx.fillStyle = `rgba(255,248,208,${0.35 + Math.sin(time * 8) * 0.25})`;
+  ctx.beginPath();
+  ctx.arc(0, -8 * scale, 5 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(0, -8 * scale, 2.4 * scale, 0, Math.PI * 2);
+  ctx.fill();
   ctx.strokeStyle = color;
   ctx.globalAlpha = 0.55 + Math.sin(time * 10) * 0.35;
   ctx.shadowColor = color;
@@ -253,6 +312,16 @@ function drawRunePylons(
   ctx.stroke();
   ctx.shadowBlur = 0;
   ctx.globalAlpha = 1;
+  ctx.save();
+  ctx.rotate(aim);
+  ctx.strokeStyle = '#fff8d0';
+  ctx.lineWidth = 1.6 * PX;
+  ctx.beginPath();
+  ctx.moveTo(4 * scale, -2 * scale);
+  ctx.lineTo(10 * scale, 1 * scale);
+  ctx.lineTo(16 * scale, -1 * scale);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawBrazier(
@@ -260,10 +329,15 @@ function drawBrazier(
   color: string,
   time: number,
   scale: number,
+  aim: number,
 ): void {
   aura(ctx, color, 22 * scale, time);
   steel(ctx, -13 * scale, 0, 26 * scale, 11 * scale, 4);
   goldBand(ctx, -11 * scale, 5 * scale, 22 * scale, 2.2 * scale);
+  ctx.fillStyle = '#5a3418';
+  ctx.fillRect(-7 * scale, 1 * scale, 4 * scale, 8 * scale);
+  ctx.fillRect(-1 * scale, 0, 3.5 * scale, 9 * scale);
+  ctx.fillRect(4 * scale, 1.5 * scale, 4 * scale, 7 * scale);
   ctx.fillStyle = '#e8c878';
   ctx.beginPath();
   ctx.moveTo(-12 * scale, 0);
@@ -274,6 +348,8 @@ function drawBrazier(
   ctx.lineTo(8 * scale, 0);
   ctx.fill();
   const f = 1 + Math.sin(time * 11) * 0.1 + Math.sin(time * 17) * 0.06;
+  ctx.save();
+  ctx.rotate(aim * 0.18);
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(-6 * scale, 6 * scale);
@@ -286,6 +362,7 @@ function drawBrazier(
   ctx.quadraticCurveTo(7 * scale, 0, 0, -10 * scale * f);
   ctx.quadraticCurveTo(-7 * scale, 0, 2 * scale, 4 * scale);
   ctx.fill();
+  ctx.restore();
   ctx.fillStyle = '#3a241c';
   ctx.beginPath();
   ctx.ellipse(0, 4 * scale, 8 * scale, 3 * scale, 0, 0, Math.PI * 2);
@@ -298,6 +375,7 @@ function drawAlchemyVat(
   dark: string,
   time: number,
   scale: number,
+  aim: number,
 ): void {
   aura(ctx, color, 20 * scale, time);
   wood(ctx, -12 * scale, 6 * scale, 24 * scale, 6 * scale);
@@ -314,10 +392,20 @@ function drawAlchemyVat(
   ctx.beginPath();
   ctx.ellipse(0, -6 * scale, 7 * scale, 4 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
+  for (let i = 0; i < 3; i++) {
+    const b = (time * 2.4 + i * 1.7) % 1;
+    ctx.fillStyle = `rgba(200,255,170,${0.55 - b * 0.4})`;
+    ctx.beginPath();
+    ctx.arc((-4 + i * 4) * scale, (4 - b * 14) * scale, (1.4 - b * 0.4) * scale, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.save();
+  ctx.rotate(aim);
   ctx.fillStyle = '#c8c0b4';
-  ctx.fillRect(8 * scale, -4 * scale, 8 * scale, 2.4 * scale);
+  ctx.fillRect(8 * scale, -3 * scale, 10 * scale, 2.4 * scale);
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(16 * scale, 6 * scale + Math.sin(time * 4) * 1.4 * scale, 1.6 * scale, 0, Math.PI * 2);
+  ctx.ellipse(18 * scale, 5 * scale + Math.sin(time * 5) * 1.6 * scale, 2 * scale, 3.2 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
 }

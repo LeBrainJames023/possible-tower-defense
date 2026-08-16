@@ -3,7 +3,7 @@ import { TOWERS } from '../src/game/constants';
 import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
-import { pickTarget, splashMultiplier } from '../src/game/combat';
+import { pickTarget, splashMultiplier, canTarget } from '../src/game/combat';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('shared combat rules', () => {
@@ -17,6 +17,33 @@ describe('shared combat rules', () => {
     late.progress = 0.8;
     early.progress = 0.2;
     expect(pickTarget(tower, sim.enemies)?.id).toBe(late.id);
+  });
+
+  it('cannon cannot lock or splash flyers; arrows can', () => {
+    const cannon = new Tower('cannon', 6, 5, 100, 100);
+    const arrow = new Tower('arrow', 6, 5, 100, 100);
+    const sim = new CombatSandbox();
+    const flyer = sim.spawn('swarm');
+    const grunt = sim.spawn('grunt');
+    flyer.pos = { x: 120, y: 100 };
+    grunt.pos = { x: 130, y: 100 };
+    flyer.progress = 0.9;
+    grunt.progress = 0.2;
+    expect(flyer.flying).toBe(true);
+    expect(canTarget(cannon, flyer)).toBe(false);
+    expect(pickTarget(cannon, sim.enemies)?.id).toBe(grunt.id);
+    expect(pickTarget(arrow, sim.enemies)?.id).toBe(flyer.id);
+
+    const splash = new CombatSandbox();
+    splash.freezeEnemies = true;
+    splash.place('cannon', 6, 5);
+    const air = splash.spawn('swarm', 1);
+    const ground = splash.spawn('grunt', 1);
+    air.pos = { x: splash.towers[0].x + 30, y: splash.towers[0].y };
+    ground.pos = { x: splash.towers[0].x + 40, y: splash.towers[0].y };
+    splash.run(2.5);
+    expect(ground.hp).toBeLessThan(ground.maxHp);
+    expect(air.hp).toBe(air.maxHp);
   });
 
   it('uses splash falloff so the rim hits softer than the center', () => {
