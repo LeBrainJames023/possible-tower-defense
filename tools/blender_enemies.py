@@ -16,8 +16,6 @@ from mathutils import Vector
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CACHE = os.path.join(ROOT, "tools", "cache", "quaternius")
 OUT_DIR = os.path.join(ROOT, "public", "sprites", "enemies")
-if "--" in sys.argv:
-    OUT_DIR = sys.argv[sys.argv.index("--") + 1]
 
 ROSTER = [
     ("goblin", "Big/glTF/Tribal.gltf"),
@@ -314,46 +312,110 @@ def mesh_bounds():
     return mn, mx
 
 
-def setup_camera_and_lights(air: bool = False):
+# live = in-game billboard. punch/hero = quality-ladder rebakes (same mesh).
+RUNGS = {
+    "live": {
+        "ortho_g": 1.78,
+        "ortho_a": 2.05,
+        "res": (640, 800),
+        "sun": 5.4,
+        "fill": 36,
+        "rim": 70,
+        "cam_g": (0.72, -0.88, 0.62),
+        "cam_a": (0.95, -1.2, 0.28),
+        "look_z": 0.04,
+        "samples": 16,
+    },
+    "punch": {
+        "ortho_g": 1.38,
+        "ortho_a": 1.58,
+        "res": (768, 960),
+        "sun": 7.4,
+        "fill": 24,
+        "rim": 125,
+        "cam_g": (0.55, -0.74, 0.46),
+        "cam_a": (0.72, -0.98, 0.20),
+        "look_z": 0.08,
+        "samples": 32,
+    },
+    "hero": {
+        "ortho_g": 1.08,
+        "ortho_a": 1.22,
+        "res": (960, 1200),
+        "sun": 8.8,
+        "fill": 18,
+        "rim": 170,
+        "cam_g": (0.42, -0.58, 0.34),
+        "cam_a": (0.55, -0.78, 0.14),
+        "look_z": 0.14,
+        "samples": 48,
+    },
+}
+
+
+def parse_cli():
+    args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
+    out = OUT_DIR
+    rung = "live"
+    i = 0
+    while i < len(args):
+        if args[i] == "--rung" and i + 1 < len(args):
+            rung = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--out" and i + 1 < len(args):
+            out = args[i + 1]
+            i += 2
+            continue
+        if not args[i].startswith("-"):
+            out = args[i]
+        i += 1
+    if rung not in RUNGS:
+        raise SystemExit(f"unknown rung {rung}; use {', '.join(RUNGS)}")
+    return rung, out
+
+
+def setup_camera_and_lights(air: bool = False, rung: str = "live"):
+    prof = RUNGS[rung]
     mn, mx = mesh_bounds()
     center = (mn + mx) * 0.5
     size = max((mx - mn).x, (mx - mn).y, (mx - mn).z, 0.01)
     dist = size * 2.2
+    cam_mul = prof["cam_a"] if air else prof["cam_g"]
 
     cam_data = bpy.data.cameras.new("cam")
     cam_data.type = "ORTHO"
-    cam_data.ortho_scale = size * (2.05 if air else 1.78)
+    cam_data.ortho_scale = size * (prof["ortho_a"] if air else prof["ortho_g"])
     cam = bpy.data.objects.new("cam", cam_data)
-    cam.location = center + Vector(
-        (dist * 0.95, -dist * 1.2, dist * 0.28) if air else (dist * 0.72, -dist * 0.88, dist * 0.62)
-    )
+    cam.location = center + Vector((dist * cam_mul[0], dist * cam_mul[1], dist * cam_mul[2]))
     bpy.context.scene.collection.objects.link(cam)
     bpy.context.scene.camera = cam
 
     track = cam.constraints.new("TRACK_TO")
     empty = bpy.data.objects.new("look", None)
-    empty.location = center + Vector((0, 0, size * 0.04))
+    empty.location = center + Vector((0, 0, size * prof["look_z"]))
     bpy.context.scene.collection.objects.link(empty)
     track.target = empty
     track.track_axis = "TRACK_NEGATIVE_Z"
     track.up_axis = "UP_Y"
 
     sun_data = bpy.data.lights.new("sun", "SUN")
-    sun_data.energy = 5.4
-    sun_data.angle = 0.08
+    sun_data.energy = prof["sun"]
+    sun_data.angle = 0.06 if rung != "live" else 0.08
     sun = bpy.data.objects.new("sun", sun_data)
-    sun.rotation_euler = (radians(48), radians(6), radians(32))
+    sun.rotation_euler = (radians(52 if rung == "hero" else 48), radians(6), radians(28))
     bpy.context.scene.collection.objects.link(sun)
 
     fill_data = bpy.data.lights.new("fill", "AREA")
-    fill_data.energy = 36
+    fill_data.energy = prof["fill"]
     fill_data.size = size * 2.2
+    fill_data.color = (0.55, 0.68, 0.95) if rung == "hero" else (1, 1, 1)
     fill = bpy.data.objects.new("fill", fill_data)
     fill.location = center + Vector((-dist * 0.85, dist * 0.4, dist * 0.55))
     bpy.context.scene.collection.objects.link(fill)
 
     rim_data = bpy.data.lights.new("rim", "AREA")
-    rim_data.energy = 70
+    rim_data.energy = prof["rim"]
     rim_data.size = size * 1.8
     rim_data.color = (1.0, 0.78, 0.55)
     rim = bpy.data.objects.new("rim", rim_data)
@@ -364,10 +426,11 @@ def setup_camera_and_lights(air: bool = False):
         bpy.context.scene.eevee.use_shadows = True
 
 
-def setup_render(out_path: str):
+def setup_render(out_path: str, rung: str = "live"):
+    prof = RUNGS[rung]
     scene = bpy.context.scene
-    scene.render.resolution_x = 640
-    scene.render.resolution_y = 800
+    scene.render.resolution_x = prof["res"][0]
+    scene.render.resolution_y = prof["res"][1]
     scene.render.film_transparent = True
     scene.render.filepath = out_path
     scene.render.image_settings.file_format = "PNG"
@@ -376,6 +439,8 @@ def setup_render(out_path: str):
     if engine not in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items.keys():
         engine = "BLENDER_EEVEE"
     scene.render.engine = engine
+    if hasattr(scene.eevee, "taa_render_samples"):
+        scene.eevee.taa_render_samples = prof["samples"]
     world = bpy.data.worlds.new("world")
     scene.world = world
     world.use_nodes = True
@@ -384,11 +449,12 @@ def setup_render(out_path: str):
     bg.inputs[1].default_value = 0.18
 
 
-def bake_one(slot: str, rel: str):
+def bake_one(slot: str, rel: str, rung: str = "live", out_dir: str | None = None):
     path = os.path.join(CACHE, rel)
     if not os.path.isfile(path):
         raise FileNotFoundError(path)
     look = LOOKS[slot]
+    dest = out_dir or OUT_DIR
     reset_scene()
     import_model(path)
     drop_stray_meshes()
@@ -396,18 +462,19 @@ def bake_one(slot: str, rel: str):
     dress_all(slot)
     add_tusks(look["tusks"])
     add_fur(look["fur"])
-    setup_camera_and_lights(bool(look.get("air")))
-    out = os.path.join(OUT_DIR, f"{slot}.png")
-    setup_render(out)
+    setup_camera_and_lights(bool(look.get("air")), rung)
+    out = os.path.join(dest, f"{slot}.png")
+    setup_render(out, rung)
     bpy.ops.render.render(write_still=True)
     print(f"wrote {out}")
 
 
 def main():
-    os.makedirs(OUT_DIR, exist_ok=True)
+    rung, dest = parse_cli()
+    os.makedirs(dest, exist_ok=True)
     for slot, rel in ROSTER:
-        print(f"== {slot} ← {rel} ==")
-        bake_one(slot, rel)
+        print(f"== {slot} ← {rel} [{rung}] ==")
+        bake_one(slot, rel, rung, dest)
 
 
 if __name__ == "__main__":

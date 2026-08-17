@@ -14,6 +14,7 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/icons/*.png` | **Inkscape** (SVG in `tools/icons/`) | Tower dock swatches instead of flat CSS gradients |
 | `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Low-poly tree billboard on decor tiles |
 | `public/sprites/enemies/*.png` | **Blender** headless (`tools/blender_enemies.py`) importing **Quaternius** CC0 glTF | Billboards for the base five plus leftover bodies (warg, ogre, hellbat, wyvern, drake) reused as world specials / champions / bosses. Unique art later. |
+| `public/sprites/enemy-bodies/{slot}/*.png` | **Blender** (`tools/blender_enemy_bodies.py`) from extra Quaternius packs (Easy Enemy, Animated Monster, unused Ultimate Monsters) | Three new-body options per job for the picker. Not wired into the match until you pick. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.

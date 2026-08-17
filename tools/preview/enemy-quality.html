@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enemy body picks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0b0d;
+        --panel: #16141a;
+        --line: #3a342c;
+        --text: #f3ece3;
+        --muted: #a89888;
+        --accent: #e07040;
+        --gold: #e8c878;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'DM Sans', system-ui, sans-serif;
+      }
+      body {
+        padding: 18px 18px 220px;
+      }
+      h1 {
+        font-family: 'Syne', system-ui, sans-serif;
+        font-size: 1.7rem;
+        margin: 0 0 6px;
+      }
+      .lede {
+        color: var(--muted);
+        margin: 0 0 22px;
+        max-width: 52rem;
+        line-height: 1.45;
+      }
+      .kind {
+        margin: 0 0 28px;
+      }
+      .kind h2 {
+        font-family: 'Syne', system-ui, sans-serif;
+        font-size: 1.15rem;
+        margin: 0 0 6px;
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .role {
+        color: var(--muted);
+        margin: 0 0 10px;
+        font-size: 0.92rem;
+      }
+      .lane {
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 2px solid var(--line);
+      }
+      .lane.ground {
+        background: #2a3a20;
+        border-color: #5a7a40;
+      }
+      .lane.air {
+        background: #203848;
+        border-color: #5a90b0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      @media (max-width: 900px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        appearance: none;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 10px;
+        color: inherit;
+        cursor: pointer;
+        padding: 12px;
+        min-height: 320px;
+        text-align: left;
+        font: inherit;
+      }
+      .card:focus-visible,
+      .card.picked {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(224, 112, 64, 0.35);
+      }
+      .card img {
+        width: 100%;
+        height: 280px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: linear-gradient(#1a2830, #142018);
+      }
+      .name {
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+      .blurb {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.35;
+      }
+      #tray {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        background: #16141af2;
+        border: 3px solid var(--line);
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: start;
+        z-index: 5;
+      }
+      #tray-text {
+        margin: 0;
+        white-space: pre-wrap;
+        font-size: 1rem;
+        line-height: 1.45;
+        min-height: 4.5rem;
+      }
+      #tray strong {
+        color: var(--gold);
+      }
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .actions button {
+        appearance: none;
+        min-height: 52px;
+        min-width: 160px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: 3px solid var(--line);
+        background: #2a221c;
+        color: var(--text);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .actions button.primary {
+        background: #6a3018;
+        border-color: var(--accent);
+      }
+      .actions button:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(224, 112, 64, 0.35);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Enemy body picks</h1>
+    <p class="lede">
+      Three new bodies per job — not the toys already in the game, and not three lights on the same
+      mesh. If none of a row feel cooler, skip it. Click a card. Copy the box when you are done.
+    </p>
+    <div id="gallery"></div>
+    <div id="tray">
+      <pre id="tray-text"><strong>Your picks</strong>
+Click a card under each creature.</pre>
+      <div class="actions">
+        <button type="button" class="primary" id="copy">Copy picks</button>
+        <button type="button" id="clear">Clear picks</button>
+      </div>
+    </div>
+    <script>
+      const KINDS = [
+        {
+          id: 'goblin',
+          title: 'Goblin — scout',
+          lane: 'ground',
+          role: 'Fast and fragile.',
+          looks: [
+            { id: 'ninja', name: 'Ninja', blurb: 'Masked runner. Small, mean, readable.' },
+            { id: 'rat', name: 'Rat', blurb: 'Vermin scout. Low to the path.' },
+            { id: 'alien', name: 'Alien', blurb: 'Weird small humanoid. Not the tribal mask.' },
+          ],
+        },
+        {
+          id: 'raider',
+          title: 'Raider — grunt',
+          lane: 'ground',
+          role: 'Standard infantry.',
+          looks: [
+            { id: 'skeleton', name: 'Skeleton', blurb: 'Bone infantry. Reads as a soldier.' },
+            { id: 'snake', name: 'Angry snake', blurb: 'Hooded serpent. Different silhouette.' },
+            { id: 'monkroose', name: 'Monkroose', blurb: 'Hulking animal-man. Not the green orc.' },
+          ],
+        },
+        {
+          id: 'imp',
+          title: 'Imp — swarm',
+          lane: 'air',
+          role: 'Tiny packs. Cannon cannot lock flyers.',
+          looks: [
+            { id: 'wasp', name: 'Wasp', blurb: 'Real flyer. Stinger, wings.' },
+            { id: 'bat', name: 'Bat', blurb: 'Actual bat — not the horned demon.' },
+            { id: 'slime', name: 'Slime', blurb: 'Blob swarm. Ground-ish, but a new body.' },
+          ],
+        },
+        {
+          id: 'warg',
+          title: 'Warg — hunter',
+          lane: 'ground',
+          role: 'Fast medium beast.',
+          looks: [
+            { id: 'spider', name: 'Spider', blurb: 'Eight-leg hunter. Not the wolf.' },
+            { id: 'rat', name: 'Rat', blurb: 'Bigger vermin read.' },
+            { id: 'snake', name: 'Snake', blurb: 'Long hunter. Punishes the path.' },
+          ],
+        },
+        {
+          id: 'troll',
+          title: 'Troll — tank',
+          lane: 'ground',
+          role: 'Slow, fat HP.',
+          looks: [
+            { id: 'dino', name: 'Dino', blurb: 'Heavy biped. Tank silhouette.' },
+            { id: 'mushroom', name: 'Mushroom king', blurb: 'Fat crown. Reads as a brute.' },
+            { id: 'cactoro', name: 'Cactoro', blurb: 'Spiny desert tank.' },
+          ],
+        },
+        {
+          id: 'ogre',
+          title: 'Ogre — bruiser',
+          lane: 'ground',
+          role: 'Later-level heavy.',
+          looks: [
+            { id: 'dino', name: 'Dino', blurb: 'Same heavy body, bruiser job.' },
+            { id: 'alien', name: 'Alien', blurb: 'Tall weird bruiser.' },
+            { id: 'monkroose', name: 'Monkroose', blurb: 'Animal brute.' },
+          ],
+        },
+        {
+          id: 'warlord',
+          title: 'Warlord — boss',
+          lane: 'ground',
+          role: 'Wave closer.',
+          looks: [
+            { id: 'skeleton', name: 'Skeleton', blurb: 'Bone war-boss.' },
+            { id: 'ninja', name: 'Ninja', blurb: 'If you want a smaller, sharper closer.' },
+            { id: 'mushroom', name: 'Mushroom king', blurb: 'Crowned boss read.' },
+          ],
+        },
+        {
+          id: 'hellbat',
+          title: 'Hellbat — air scout',
+          lane: 'air',
+          role: 'Fast flyer.',
+          looks: [
+            { id: 'bat', name: 'Bat', blurb: 'The bat we should have had.' },
+            { id: 'wasp', name: 'Wasp', blurb: 'Insect scout.' },
+            { id: 'birb', name: 'Birb', blurb: 'Beaked flyer. Skip if too cute.' },
+          ],
+        },
+        {
+          id: 'wyvern',
+          title: 'Wyvern — air hunter',
+          lane: 'air',
+          role: 'Medium flyer.',
+          looks: [
+            { id: 'dragon', name: 'Old dragon', blurb: 'Different dragon than the orange one in-game.' },
+            { id: 'wasp', name: 'Wasp', blurb: 'If you want insect air, not lizard.' },
+            { id: 'bat', name: 'Bat', blurb: 'Bigger bat hunter.' },
+          ],
+        },
+        {
+          id: 'drake',
+          title: 'Drake — air boss',
+          lane: 'air',
+          role: 'Late flyer / boss body.',
+          looks: [
+            { id: 'dragon', name: 'Old dragon', blurb: 'Stockier classic dragon.' },
+            { id: 'alien', name: 'Alien', blurb: 'Weird closer. Not a dragon.' },
+            { id: 'mushroom', name: 'Mushroom king', blurb: 'Grounded boss look if air-drake feels wrong.' },
+          ],
+        },
+      ];
+
+      const picks = {};
+      const gallery = document.getElementById('gallery');
+      const trayText = document.getElementById('tray-text');
+      const copyBtn = document.getElementById('copy');
+      const clearBtn = document.getElementById('clear');
+
+      function dump() {
+        const lines = KINDS.map((k) => {
+          const look = picks[k.id];
+          return look ? `${k.id}: ${look}` : `${k.id}: —`;
+        });
+        const chosen = Object.keys(picks).length;
+        return `Enemy body picks (${chosen}/10)\n${lines.join('\n')}`;
+      }
+
+      function sync() {
+        trayText.innerHTML = `<strong>Your picks</strong>\n${dump().split('\n').slice(1).join('\n')}`;
+      }
+
+      for (const kind of KINDS) {
+        const section = document.createElement('section');
+        section.className = 'kind';
+        section.innerHTML = `<h2><span class="lane ${kind.lane}">${kind.lane.toUpperCase()}</span> ${kind.title}</h2>
+          <p class="role">${kind.role}</p>`;
+        const row = document.createElement('div');
+        row.className = 'row';
+        for (const look of kind.looks) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'card';
+          btn.innerHTML = `<img src="/sprites/enemy-bodies/${kind.id}/${look.id}.png?v=bodies2" alt="${kind.title} ${look.name}" />
+            <div class="name">${look.name}</div>
+            <div class="blurb">${look.blurb}</div>`;
+          btn.addEventListener('click', () => {
+            picks[kind.id] = look.id;
+            row.querySelectorAll('.card').forEach((el) => el.classList.remove('picked'));
+            btn.classList.add('picked');
+            sync();
+          });
+          row.append(btn);
+        }
+        section.append(row);
+        gallery.append(section);
+      }
+
+      copyBtn.addEventListener('click', async () => {
+        const text = dump();
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = 'Copied';
+        } catch {
+          copyBtn.textContent = 'Copy failed — select the box';
+        }
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy picks';
+        }, 1600);
+      });
+
+      clearBtn.addEventListener('click', () => {
+        for (const k of Object.keys(picks)) delete picks[k];
+        document.querySelectorAll('.card.picked').forEach((el) => el.classList.remove('picked'));
+        sync();
+      });
+
+      sync();
+    </script>
+  </body>
+</html>
