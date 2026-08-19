@@ -32,16 +32,24 @@ function drawPortalBillboard(
   heat: number,
   tint: string,
 ): void {
-  const pulse = 1 + heat * 0.12;
+  const pulse = 1 + heat * 0.28;
   const h = 58 * PX * pulse;
   const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
-  const glow = ctx.createRadialGradient(x, y, 4 * PX, x, y, 38 * PX * pulse);
+  const glowR = (38 + heat * 22) * PX * pulse;
+  const glow = ctx.createRadialGradient(x, y, 4 * PX, x, y, glowR);
   glow.addColorStop(0, tint);
   glow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.arc(x, y, 38 * PX * pulse, 0, Math.PI * 2);
+  ctx.arc(x, y, glowR, 0, Math.PI * 2);
   ctx.fill();
+  if (heat > 0.2) {
+    ctx.strokeStyle = `rgba(255, 120, 140, ${0.25 + heat * 0.55})`;
+    ctx.lineWidth = 4 * PX;
+    ctx.beginPath();
+    ctx.arc(x, y, (28 + heat * 16) * PX, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.drawImage(img, x - w / 2, y - h + 16 * PX, w, h);
 }
 
@@ -134,7 +142,14 @@ function drawExitKeep(
 ): void {
   const pulse = 0.8 + Math.sin(time * 2.4) * 0.12 + wound * 0.35;
   if (texReady(TEX.portalOut)) {
-    drawPortalBillboard(ctx, x, y, TEX.portalOut, wound, `rgba(239, 71, 111, ${0.35 + wound * 0.45})`);
+    drawPortalBillboard(
+      ctx,
+      x,
+      y,
+      TEX.portalOut,
+      Math.max(wound, 0.12),
+      `rgba(239, 71, 111, ${0.38 + wound * 0.55})`,
+    );
     return;
   }
   ctx.save();

@@ -367,7 +367,7 @@ export class Game {
 
     this.clock += dt;
     this.renderer.spawnHeat = Math.max(0, this.renderer.spawnHeat - dt * 1.5);
-    this.renderer.keepWound = Math.max(0, this.renderer.keepWound - dt * 1.8);
+    this.renderer.keepWound = Math.max(0, this.renderer.keepWound - dt * 1.05);
     this.fx.update(dt, MAP_W, MAP_H);
 
     if (this.waveActive) {
@@ -390,10 +390,11 @@ export class Game {
         this.lives -= leakLives(e.kind);
         this.audio.leak();
         this.renderer.keepWound = 1;
+        this.fx.addShake(5);
         const gate = this.waypoints[this.waypoints.length - 1];
         if (gate) {
-          this.fx.flash(gate.x, gate.y, '#ef476f', 44, 0.28);
-          this.fx.ring(gate.x, gate.y, '#ef476f', 40, 3, 0.32);
+          this.fx.flash(gate.x, gate.y, '#ef476f', 64, 0.45);
+          this.fx.ring(gate.x, gate.y, '#ef476f', 56, 5, 0.45);
         }
         this.fx.burst(e.pos.x, e.pos.y, '#ef476f', 10, 'spark');
         this.floats.push({
@@ -542,6 +543,7 @@ export class Game {
     this.renderer.drawBeams(this.beams);
     this.renderer.drawParticles(this.fx);
     this.renderer.drawFloating(this.floats);
+    this.renderer.drawAtmosphere();
     if (this.phase === 'paused') this.renderer.drawPausedBanner();
     this.ctx.restore();
   }

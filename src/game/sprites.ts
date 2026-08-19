@@ -323,18 +323,23 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.stroke();
   }
 
-  const hurt = e.hp < e.maxHp - 0.4;
-  const by = y - (texReady(TEX.creatures[creatureFor(e.kind)]) ? r * 2.7 : r) - 14;
-  if (hurt || selected) {
-    const bw = Math.max(28, r * 2.35);
-    const bh = 5;
+  const hurt = e.hp < e.maxHp - 0.2;
+  const showBar = selected || hurt || e.hitFlash > 0.12;
+  const by = y - (texReady(TEX.creatures[creatureFor(e.kind)]) ? r * 2.7 : r) - 16;
+  if (showBar) {
+    const bw = Math.max(32, r * 2.5);
+    const bh = 7;
     const bx = e.pos.x - bw / 2;
-    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, bx - 1, by - 1, bw + 2, bh + 2, 3);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
     roundRect(ctx, bx, by, bw, bh, 2);
     ctx.fill();
     const pct = Math.max(0, e.hp / e.maxHp);
     ctx.fillStyle = pct > 0.45 ? '#57cc99' : pct > 0.2 ? '#f4d35e' : '#ef476f';
-    roundRect(ctx, bx, by, bw * pct, bh, 2);
+    roundRect(ctx, bx, by, Math.max(2, bw * pct), bh, 2);
     ctx.fill();
   }
 

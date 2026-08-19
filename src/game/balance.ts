@@ -35,7 +35,7 @@ export const WAVE_HP_GROWTH = 1.05;
 export const DIFFICULTY: Record<DifficultyId, DifficultyMods> = {
   easy: {
     label: 'Easy',
-    blurb: '+25% gold & lives, you hit harder, foes are squishier',
+    blurb: 'More gold and lives. Room to learn.',
     gold: 1.25,
     damage: 1.12,
     hp: 0.88,
@@ -43,7 +43,7 @@ export const DIFFICULTY: Record<DifficultyId, DifficultyMods> = {
   },
   normal: {
     label: 'Normal',
-    blurb: 'The intended campaign balance',
+    blurb: 'The intended campaign.',
     gold: 1,
     damage: 1,
     hp: 1,
@@ -51,7 +51,7 @@ export const DIFFICULTY: Record<DifficultyId, DifficultyMods> = {
   },
   hard: {
     label: 'Hard',
-    blurb: '−20% gold & lives, foes tougher, your shots sting less',
+    blurb: 'Tighter gold. Foes press the line.',
     gold: 0.8,
     damage: 0.88,
     hp: 1.12,

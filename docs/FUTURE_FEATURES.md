@@ -18,7 +18,8 @@ Captured for later — not in this pass:
 - Tiled as a visual map editor that exports into `levels.ts` (single source of truth must stay TypeScript)
 - MagicaVoxel / Blender sprite sheets for extra props
 - Flying vs ground targeting (Kingdom Rush style: cannon cannot lock air; arrows/lightning can)
-- Unique art for world specials / champions / bosses (today they reuse Quaternius bodies as placeholders)
+- Unique art for world specials / champions / bosses (painted keepers are in; four-way walks still preview-only)
+- Image-gen landscape set — entrance portal, trees, grass/path, cannon gun split. Code already waits for the files.
 - On-death tricks (magma pop, wisp chill) and flyers once the roster feels right
 - Enemy sprite polish — per-creature cleanup, or image-gen if we explicitly choose. Placeholders are good enough to play.
 - Image-gen enemy sprites — only if we explicitly choose. Style drift and license logging are the traps; not default.
@@ -32,8 +33,14 @@ Captured for later — not in this pass:
 
 Done since MVP:
 
-- Speed control (1x / 2x)
+- Speed control (1x / 2x / 3x)
 - Particle bursts on kills / impacts
-- Easy / Normal / Hard
+- Easy / Normal / Hard (green / gold / red on the title)
 - Procedural combat SFX + mute
-- Prepare/battle pad, path landmarks, wave-start sting, enemy gaits, wood/iron chrome
+- Prepare/battle pad, path landmarks, wave-start sting, enemy gaits
+- Painted enemies + towers + shots in the live match; Forest exit portal
+- On-map 2×3 build tray, compact upgrade/sell, HUD chips, match vignette
+
+Parked until image gen is open again:
+
+- Entrance portal, cannon barrel/base split, forest tree set, grass/path tiles

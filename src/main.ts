@@ -100,6 +100,7 @@ function loadDifficulty(): DifficultyId {
 function applyDifficulty(id: DifficultyId): void {
   game.difficulty = id;
   localStorage.setItem(DIFF_KEY, id);
+  document.documentElement.dataset.diff = id;
   document.querySelectorAll('.diff-btn').forEach((el) => {
     el.classList.toggle('selected', (el as HTMLElement).dataset.diff === id);
   });
@@ -520,6 +521,7 @@ function startLevel(id: number): void {
   activeLevelId = level.id;
   activeWorldIndex = level.worldIndex;
   showScreen('game');
+  screens.game.dataset.world = level.world;
   overlayResult.classList.add('hidden');
   hideConfirmStrips();
   game.audio.unlock();

@@ -40,8 +40,8 @@ export const WORLDS: WorldDef[] = [
     theme: {
       sky0: '#14261c',
       sky1: '#0c1814',
-      grassA: '#2a5a38',
-      grassB: '#234e31',
+      grassA: '#1e4a3c',
+      grassB: '#173e34',
       blade: 'rgba(120, 190, 110, 0.35)',
       pathEdge: '#3a2a1c',
       pathMid: '#6a5340',

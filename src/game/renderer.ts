@@ -261,6 +261,27 @@ export class Renderer {
     }
   }
 
+  drawAtmosphere(): void {
+    const { ctx, theme } = this;
+    const w = COLS * TILE;
+    const h = ROWS * TILE;
+    const veil = ctx.createRadialGradient(w * 0.5, h * 0.46, h * 0.28, w * 0.5, h * 0.5, h * 0.82);
+    veil.addColorStop(0, 'rgba(0,0,0,0)');
+    veil.addColorStop(1, 'rgba(4, 10, 12, 0.42)');
+    ctx.fillStyle = veil;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = `${theme.glow}`;
+    ctx.globalAlpha = 0.18;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalAlpha = 1;
+    if (this.keepWound > 0.06) {
+      const a = Math.min(0.72, this.keepWound * 0.55);
+      ctx.strokeStyle = `rgba(239, 71, 111, ${a})`;
+      ctx.lineWidth = 16 * PX;
+      ctx.strokeRect(8 * PX, 8 * PX, w - 16 * PX, h - 16 * PX);
+    }
+  }
+
   drawPausedBanner(): void {
     const { ctx } = this;
     ctx.fillStyle = 'rgba(7, 16, 24, 0.45)';
