@@ -1,5 +1,6 @@
 /** Optional baked images. Missing files just mean we keep procedural art. */
 
+import type { TowerKind } from './constants';
 import type { CreatureSprite } from './enemies';
 
 export function loadImage(src: string): HTMLImageElement | null {
@@ -31,4 +32,25 @@ export const TEX = {
     wyvern: loadImage('/sprites/enemies/wyvern.png'),
     drake: loadImage('/sprites/enemies/drake.png'),
   } satisfies Record<CreatureSprite, HTMLImageElement | null>,
+  towers: {
+    arrow: loadImage('/sprites/towers/arrow.png'),
+    cannon: loadImage('/sprites/towers/cannon.png'),
+    ice: loadImage('/sprites/towers/ice.png'),
+    lightning: loadImage('/sprites/towers/lightning.png'),
+    fire: loadImage('/sprites/towers/fire.png'),
+    poison: loadImage('/sprites/towers/poison.png'),
+  } satisfies Record<TowerKind, HTMLImageElement | null>,
+  towerParts: {
+    arrowBase: loadImage('/sprites/towers/arrow-base.png'),
+    arrowTurret: loadImage('/sprites/towers/arrow-turret.png'),
+    cannonGun: loadImage('/sprites/towers/cannon-gun.png'),
+  },
+  projectiles: {
+    arrow: loadImage('/sprites/projectiles/arrow.png'),
+    cannon: loadImage('/sprites/projectiles/cannon.png'),
+    ice: loadImage('/sprites/projectiles/ice.png'),
+    lightning: loadImage('/sprites/projectiles/lightning.png'),
+    fire: loadImage('/sprites/projectiles/fire.png'),
+    poison: loadImage('/sprites/projectiles/poison.png'),
+  } satisfies Record<TowerKind, HTMLImageElement | null>,
 };

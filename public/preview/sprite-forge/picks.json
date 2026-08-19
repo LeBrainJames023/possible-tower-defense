@@ -1,0 +1,19 @@
+{
+  "towers": {
+    "arrow": "a",
+    "cannon": "a",
+    "ice": "a",
+    "lightning": "a",
+    "fire": "a",
+    "poison": "a"
+  },
+  "projectiles": {
+    "arrow": "a",
+    "cannon": "b",
+    "ice": "a",
+    "lightning": "a",
+    "fire": "a",
+    "poison": "a"
+  },
+  "notes": "Towers all A and these shots are wired into the live match. Enemies not yet."
+}

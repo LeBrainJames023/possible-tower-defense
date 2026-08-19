@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enemy facings</title>
+    <style>
+      :root {
+        --bg: #0b0b0d;
+        --panel: #16141a;
+        --line: #3a342c;
+        --text: #f3ece3;
+        --muted: #a89888;
+        --gold: #e8c878;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        padding: 20px;
+      }
+      h1 {
+        margin: 0 0 8px;
+      }
+      p {
+        color: var(--muted);
+        max-width: 46rem;
+        line-height: 1.45;
+      }
+      a {
+        color: var(--gold);
+      }
+      .kind {
+        margin: 0 0 28px;
+      }
+      .kind h2 {
+        color: var(--gold);
+        margin: 0 0 10px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .cell {
+        flex: 1 1 140px;
+        max-width: 200px;
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 14px;
+        padding: 8px;
+      }
+      .cell img {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: #1a1020;
+        border-radius: 8px;
+      }
+      .cell span {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Four-way facings</h1>
+    <p>
+      Not in the live game. Down = toward you, Left, Right, Up = walking away. Towers to pick:
+      <a href="./towers.html">tower page</a>.
+    </p>
+    <div id="list"></div>
+    <script>
+      const KINDS = [
+        'goblin',
+        'orc',
+        'troll',
+        'imp',
+        'warlord',
+        'warg',
+        'ogre',
+        'hellbat',
+        'wyvern',
+        'drake',
+      ];
+      const DIRS = [
+        { file: 'walk-1.png', label: 'Down (toward you)' },
+        { file: 'walk-2.png', label: 'Left' },
+        { file: 'walk-3.png', label: 'Right' },
+        { file: 'walk-4.png', label: 'Up (away)' },
+      ];
+      const list = document.getElementById('list');
+      KINDS.forEach((kind) => {
+        const sec = document.createElement('section');
+        sec.className = 'kind';
+        sec.innerHTML = `<h2>${kind}</h2><div class="row"></div>`;
+        const row = sec.querySelector('.row');
+        DIRS.forEach((d) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.innerHTML = `<img src="./facings/${kind}/${d.file}" alt="${kind} ${d.label}" /><span>${d.label}</span>`;
+          row.append(cell);
+        });
+        list.append(sec);
+      });
+    </script>
+  </body>
+</html>

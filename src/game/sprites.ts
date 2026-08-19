@@ -1,8 +1,64 @@
 import type { Enemy, Tower } from './entities';
-import { PX } from './constants';
+import { PX, type TowerKind } from './constants';
 import { ENEMY_GAIT, creatureFor, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
+
+const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison'];
+
+function billboardHeight(t: Tower): number {
+  return 58 * PX * (1 + (t.level - 1) * 0.08);
+}
+
+function drawFeetBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElement, h: number, feetY: number): void {
+  const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  ctx.drawImage(img, -w / 2, -h + feetY, w, h);
+}
+
+function drawCenteredBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElement, h: number): void {
+  const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+}
+
+/** Painted stills. Ice/fire/lightning/poison never rotate. Arrow ballista and cannon barrel follow aim. */
+function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: number): boolean {
+  const h = billboardHeight(t);
+  const feet = 12 * PX;
+  const { arrowBase, arrowTurret, cannonGun } = TEX.towerParts;
+
+  if (t.kind === 'arrow' && texReady(arrowBase) && texReady(arrowTurret)) {
+    drawFeetBillboard(ctx, arrowBase, h, feet);
+    ctx.save();
+    ctx.translate(0, -h * 0.56 + feet);
+    ctx.rotate(t.aim + Math.PI);
+    ctx.translate(recoil * 1.1, 0);
+    drawCenteredBillboard(ctx, arrowTurret, h * 0.52);
+    ctx.restore();
+    return true;
+  }
+
+  if (t.kind === 'cannon' && texReady(cannonGun)) {
+    ctx.fillStyle = 'rgba(0,0,0,0.32)';
+    ctx.beginPath();
+    ctx.ellipse(0, 11 * PX, 17 * PX, 5 * PX, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.save();
+    ctx.translate(0, 2 * PX);
+    ctx.rotate(t.aim + Math.PI);
+    ctx.translate(recoil * 1.25, 0);
+    drawCenteredBillboard(ctx, cannonGun, h * 0.78);
+    ctx.restore();
+    return true;
+  }
+
+  const body = TEX.towers[t.kind];
+  if (STATIC_TOWERS.includes(t.kind) && texReady(body)) {
+    drawFeetBillboard(ctx, body, h, feet);
+    return true;
+  }
+
+  return false;
+}
 
 export { drawBeams, drawProjectile } from './drawProjectiles';
 
@@ -136,7 +192,9 @@ export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, selected: boo
 
   ctx.save();
   ctx.translate(x, y);
-  drawTowerBody(ctx, t, time, scale, recoil);
+  if (!drawPaintedTower(ctx, t, recoil)) {
+    drawTowerBody(ctx, t, time, scale, recoil);
+  }
   ctx.restore();
 
   if (t.muzzle > 0.05) {

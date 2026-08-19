@@ -1,12 +1,33 @@
 import type { BeamFx, Projectile } from './entities';
 import { PX } from './constants';
+import { TEX, texReady } from './assets';
 
 /** In-flight shots. Splash rings live in fx.ts and use each tower's splash radius. */
+const SHOT_SIZE: Record<Projectile['kind'], number> = {
+  arrow: 22,
+  cannon: 34,
+  ice: 26,
+  lightning: 28,
+  fire: 30,
+  poison: 28,
+};
+
 export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): void {
   const x = p.x;
   const y = p.visualY();
   const ang = Math.atan2(p.vy, p.vx || 1);
   const flick = 0.65 + Math.sin(p.age * 22) * 0.35;
+  const shot = TEX.projectiles[p.kind];
+  if (texReady(shot)) {
+    const h = SHOT_SIZE[p.kind] * PX;
+    const w = h * (shot.naturalWidth / Math.max(1, shot.naturalHeight));
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(ang + Math.PI);
+    ctx.drawImage(shot, -w / 2, -h / 2, w, h);
+    ctx.restore();
+    return;
+  }
 
   ctx.save();
   ctx.translate(x, y);
@@ -319,6 +340,21 @@ export function drawBeams(ctx: CanvasRenderingContext2D, beams: BeamFx[]): void 
     ctx.beginPath();
     ctx.arc(b.x1, b.y1, 3.2 * PX, 0, Math.PI * 2);
     ctx.fill();
+
+    const bolt = TEX.projectiles.lightning;
+    if (texReady(bolt)) {
+      const mx = (b.x1 + b.x2) / 2;
+      const my = (b.y1 + b.y2) / 2;
+      const ang = Math.atan2(b.y2 - b.y1, b.x2 - b.x1);
+      const h = 26 * PX;
+      const w = h * (bolt.naturalWidth / Math.max(1, bolt.naturalHeight));
+      ctx.save();
+      ctx.translate(mx, my);
+      ctx.rotate(ang + Math.PI);
+      ctx.globalAlpha = a;
+      ctx.drawImage(bolt, -w / 2, -h / 2, w, h);
+      ctx.restore();
+    }
   }
   ctx.globalAlpha = 1;
 }
