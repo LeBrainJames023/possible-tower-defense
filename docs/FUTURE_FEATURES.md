@@ -19,7 +19,6 @@ Captured for later — not in this pass:
 - MagicaVoxel / Blender sprite sheets for extra props
 - Flying vs ground targeting (Kingdom Rush style: cannon cannot lock air; arrows/lightning can)
 - Unique art for world specials / champions / bosses (painted keepers are in; four-way walks still preview-only)
-- Image-gen landscape set — entrance portal, trees, grass/path, cannon gun split. Code already waits for the files.
 - On-death tricks (magma pop, wisp chill) and flyers once the roster feels right
 - Enemy sprite polish — per-creature cleanup, or image-gen if we explicitly choose. Placeholders are good enough to play.
 - Image-gen enemy sprites — only if we explicitly choose. Style drift and license logging are the traps; not default.
@@ -38,9 +37,6 @@ Done since MVP:
 - Easy / Normal / Hard (green / gold / red on the title)
 - Procedural combat SFX + mute
 - Prepare/battle pad, path landmarks, wave-start sting, enemy gaits
-- Painted enemies + towers + shots in the live match; Forest exit portal
+- Painted enemies + towers + shots in the live match; Forest entrance and exit portals
+- Forest tree set + mixed grass/path tiles; cannon carriage stays, barrel turns
 - On-map 2×3 build tray, compact upgrade/sell, HUD chips, match vignette
-
-Parked until image gen is open again:
-
-- Entrance portal, cannon barrel/base split, forest tree set, grass/path tiles

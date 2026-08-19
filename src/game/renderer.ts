@@ -215,14 +215,17 @@ export class Renderer {
   drawPathGlow(waypoints: Vec2[]): void {
     if (waypoints.length < 2) return;
     const { ctx, theme } = this;
+    const painted = this.world === 'forest' && TEX.pathTiles.some(texReady);
     ctx.strokeStyle = theme.glow;
-    ctx.lineWidth = 32 * PX;
+    ctx.lineWidth = (painted ? 18 : 32) * PX;
+    ctx.globalAlpha = painted ? 0.35 : 1;
     ctx.lineCap = 'butt';
     ctx.lineJoin = 'miter';
     ctx.beginPath();
     ctx.moveTo(waypoints[0].x, waypoints[0].y);
     for (let i = 1; i < waypoints.length; i++) ctx.lineTo(waypoints[i].x, waypoints[i].y);
     ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   drawSpawnExit(waypoints: Vec2[]): void {

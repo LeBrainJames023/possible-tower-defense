@@ -20,11 +20,12 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/preview/sprite-forge/facings/{creature}/` | Cursor image gen + Sprite Forge 2×2 split | Four path facings (down / left / right / up). Not wired in. |
 | `public/preview/sprite-forge/towers/{kind}/{a,b}/` | Same pipeline | Two painted options per tower. Live match uses all **A**. |
 | `public/preview/sprite-forge/projectiles/{kind}/{a,b}/` | Same pipeline | Shot options. Live match: Arrow A, Cannon B, Ice A, Lightning A, Fire A, Poison A. |
-| `public/sprites/towers/*.png` | Cursor image gen + Sprite Forge | Live tower stills. Arrow = empty base + rotating ballista. Cannon barrel/base split in progress. Ice/fire/lightning/poison stay still. |
+| `public/sprites/towers/*.png` | Cursor image gen + Sprite Forge | Live tower stills. Arrow = empty base + rotating ballista. Cannon = still carriage + rotating barrel. Ice/fire/lightning/poison stay still. |
 | `public/sprites/projectiles/*.png` | Same pipeline | Live shots matching the picks above. |
-| `public/sprites/landmarks/portal-out.png` | Cursor image gen + Sprite Forge | Exit rift on Forest maps. Entrance portal still drawing. |
-| `public/sprites/trees/*.png` | Same pipeline | Forest tree set (oak, pine, apple, willow, dogwood). Draws when files exist. |
-| `public/sprites/terrain/*.png` | Same pipeline | Forest grass/path tile variants. Draws when files exist. |
+| `public/sprites/landmarks/portal-in.png` | Cursor image gen + Sprite Forge | Forest entrance rift. |
+| `public/sprites/landmarks/portal-out.png` | Same pipeline | Forest exit rift. |
+| `public/sprites/trees/*.png` | Same pipeline | Oak, pine, apple, willow, dogwood on Forest decor tiles. |
+| `public/sprites/terrain/*.png` | Same pipeline | Four grass + four worn path tiles, mixed per cell. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
@@ -42,4 +43,4 @@ Enemy meshes are CC0 from [Quaternius](https://quaternius.com/): Ultimate Monste
 | **MagicaVoxel** | Great for 3D voxel props; this game is 2D billboards. Blender covered the one 3D bake. |
 | **Krita / GIMP / LibreSprite / Audacity** | Hand-paint / hand-edit tools. The batch cousins (ImageMagick, sox, ffmpeg) did the repeatable work. |
 
-Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, and **enemy** sprites use the painted keepers. Forest exit portal is painted; remaining landscape drawings continue as they land. No paid packs.
+Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, **enemy**, Forest **portals**, **trees**, and **grass/path** tiles use the painted keepers. No paid packs.

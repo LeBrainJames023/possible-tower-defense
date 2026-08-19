@@ -1,5 +1,5 @@
 import type { Enemy, Tower } from './entities';
-import { PX, type TowerKind } from './constants';
+import { PX, TILE, type TowerKind } from './constants';
 import { ENEMY_GAIT, creatureFor, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
@@ -7,11 +7,16 @@ import { TEX, texReady } from './assets';
 const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison'];
 
 function billboardHeight(t: Tower): number {
-  return 58 * PX * (1 + (t.level - 1) * 0.08);
+  return 70 * PX * (1 + (t.level - 1) * 0.08);
 }
 
 function drawFeetBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElement, h: number, feetY: number): void {
-  const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  let w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  if (w > TILE) {
+    const s = TILE / w;
+    w = TILE;
+    h *= s;
+  }
   ctx.drawImage(img, -w / 2, -h + feetY, w, h);
 }
 
@@ -47,7 +52,7 @@ function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: numbe
       ctx.fill();
     }
     ctx.save();
-    ctx.translate(0, texReady(cannonBase) ? -h * 0.34 + feet : 2 * PX);
+    ctx.translate(0, texReady(cannonBase) ? -h * 0.22 + feet : 2 * PX);
     ctx.rotate(t.aim + Math.PI);
     ctx.translate(recoil * 1.25, 0);
     drawCenteredBillboard(ctx, cannonGun, texReady(cannonBase) ? h * 0.42 : h * 0.78);
@@ -178,7 +183,7 @@ export function drawTower(
 ): void {
   const def = t.def;
   const { x, y } = t;
-  const scale = PX * 1.1 * (1 + (t.level - 1) * 0.08);
+  const scale = PX * 1.32 * (1 + (t.level - 1) * 0.08);
   const recoil = t.recoil * 5 * PX;
 
   if (selected) {
