@@ -3,7 +3,7 @@ import { TOWERS } from '../src/game/constants';
 import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
-import { pickTarget, splashMultiplier, canTarget } from '../src/game/combat';
+import { pickTarget, splashMultiplier, canTarget, enemyAimPoint } from '../src/game/combat';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('shared combat rules', () => {
@@ -44,6 +44,28 @@ describe('shared combat rules', () => {
     splash.run(2.5);
     expect(ground.hp).toBeLessThan(ground.maxHp);
     expect(air.hp).toBe(air.maxHp);
+  });
+
+  it('spawns shots from the tower crown, not the tile center', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const ice = sim.place('ice', 6, 5);
+    const grunt = sim.spawn('grunt', 1);
+    grunt.pos = { x: ice.x + 40, y: ice.y };
+    grunt.progress = 0.4;
+    sim.step(1 / 30);
+    const shot = sim.projectiles[0];
+    expect(shot).toBeTruthy();
+    expect(shot.oy).toBeLessThan(ice.y - 30);
+  });
+
+  it('aims higher on a boss than on a raider', () => {
+    const sim = new CombatSandbox();
+    const grunt = sim.spawn('grunt');
+    const boss = sim.spawn('boss');
+    grunt.pos = { x: 200, y: 200 };
+    boss.pos = { x: 200, y: 200 };
+    expect(enemyAimPoint(boss).y).toBeLessThan(enemyAimPoint(grunt).y);
   });
 
   it('uses splash falloff so the rim hits softer than the center', () => {

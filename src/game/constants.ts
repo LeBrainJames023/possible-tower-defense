@@ -10,6 +10,13 @@ export function u(n: number): number {
   return n * PX;
 }
 
+/** Painted tower billboard height (feet at the tile). Width is capped to one tile when drawing. */
+export const TOWER_BILLBOARD = 70;
+export const TOWER_FEET = 12 * PX;
+export function towerPaintHeight(level: number): number {
+  return TOWER_BILLBOARD * PX * (1 + (level - 1) * 0.08);
+}
+
 export const WAVES_PER_LEVEL = 10;
 export const STAGES_PER_WORLD = 10;
 export const WORLD_COUNT = 5;

@@ -457,7 +457,8 @@ export class Game {
     return {
       damageMul: this.mods.damage,
       onMuzzle: (t) => {
-        this.fx.muzzle(t.x, t.y, t.aim, t.def.color);
+        const m = t.muzzlePoint();
+        this.fx.muzzle(m.x, m.y, t.aim, t.def.color);
         this.audio.fire(t.kind);
       },
       onChainHop: (e, hop, color) => {

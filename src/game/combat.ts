@@ -1,4 +1,5 @@
 import { CHAIN_RANGE, PROJECTILE_FEEL, u } from './constants';
+import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
@@ -57,6 +58,17 @@ export function splashMultiplier(distance: number, splash: number): number {
   return distance < splash * 0.4 ? 1 : 0.65;
 }
 
+/** Where the shot is flying toward — chest on fodder, nearer the eyes on bosses. */
+export function enemyAimPoint(e: Enemy): Vec2 {
+  const role = ENEMIES[e.kind].role;
+  let k = 0.85;
+  if (e.flying) k = 1.7;
+  else if (role === 'boss') k = 2.35;
+  else if (role === 'champion') k = 1.75;
+  else if (role === 'special') k = 1.15;
+  return { x: e.pos.x, y: e.pos.y - e.radius * k };
+}
+
 function hurt(e: Enemy, raw: number, pierce: boolean, hooks: CombatHooks): void {
   e.takeDamage(raw, pierce);
   hooks.onDamage?.(e, raw);
@@ -77,7 +89,9 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
   const def = t.def;
   const damageMul = hooks.damageMul ?? 1;
   const status = t.statusScale();
-  t.aim = Math.atan2(target.pos.y - t.y, target.pos.x - t.x);
+  const muzzle = t.muzzlePoint();
+  const aim = enemyAimPoint(target);
+  t.aim = Math.atan2(aim.y - muzzle.y, aim.x - muzzle.x);
   t.recoil = 1;
   t.muzzle = 1;
   hooks.onMuzzle?.(t);
@@ -85,29 +99,30 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
   if (def.chain > 0) {
     const hit = new Set<number>();
     let current: Enemy | null = target;
-    let fromX = t.x;
-    let fromY = t.y;
+    let fromX = muzzle.x;
+    let fromY = muzzle.y;
     let dmg = shotDamage(t, damageMul);
     for (let i = 0; i < def.chain && current; i++) {
       hit.add(current.id);
+      const hop = enemyAimPoint(current);
       world.beams.push({
         x1: fromX,
         y1: fromY,
-        x2: current.pos.x,
-        y2: current.pos.y,
+        x2: hop.x,
+        y2: hop.y,
         color: def.color,
         life: 0.22,
         maxLife: 0.22,
         width: 3.2 - i * 0.4,
-        points: jaggedBolt(fromX, fromY, current.pos.x, current.pos.y),
+        points: jaggedBolt(fromX, fromY, hop.x, hop.y),
       });
       hurt(current, dmg, def.pierceArmor, hooks);
       hooks.onChainHop?.(current, i, def.color);
       if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
       if (def.burnDps > 0) current.applyBurn(def.burnDps * status * damageMul, def.burnDuration);
       if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status * damageMul, def.poisonDuration);
-      fromX = current.pos.x;
-      fromY = current.pos.y;
+      fromX = hop.x;
+      fromY = hop.y;
       dmg *= 0.72;
       current =
         world.enemies
@@ -119,12 +134,14 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
   }
 
   const feel = PROJECTILE_FEEL[t.kind];
+  const spawn = t.muzzlePoint();
+  const lock = enemyAimPoint(target);
   world.projectiles.push(
     new Projectile({
-      x: t.x,
-      y: t.y,
-      tx: target.pos.x,
-      ty: target.pos.y,
+      x: spawn.x,
+      y: spawn.y,
+      tx: lock.x,
+      ty: lock.y,
       speed: feel.speed,
       damage: shotDamage(t, damageMul),
       splash: def.splash,
@@ -150,10 +167,12 @@ export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {
   hooks.onImpact?.(p);
 
   if (p.splash > 0) {
+    const tgt = p.targetId != null ? enemies.find((e) => e.id === p.targetId) : undefined;
+    const origin = tgt?.pos ?? { x: p.x, y: p.y };
     for (const e of enemies) {
       if (!e.alive) continue;
       if (p.kind === 'cannon' && e.flying) continue;
-      const mul = splashMultiplier(dist({ x: p.x, y: p.y }, e.pos), p.splash);
+      const mul = splashMultiplier(dist(origin, e.pos), p.splash);
       if (mul > 0) applyPayload(e, p, mul, hooks);
     }
   } else if (p.targetId != null) {
@@ -178,7 +197,9 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
     const tracked = t.targetId != null ? world.enemies.find((e) => canTarget(t, e) && e.id === t.targetId) : null;
     const aimAt = tracked && dist({ x: t.x, y: t.y }, tracked.pos) <= t.range ? tracked : pickTarget(t, world.enemies);
     if (aimAt) {
-      const desired = Math.atan2(aimAt.pos.y - t.y, aimAt.pos.x - t.x);
+      const muzzle = t.muzzlePoint();
+      const lock = enemyAimPoint(aimAt);
+      const desired = Math.atan2(lock.y - muzzle.y, lock.x - muzzle.x);
       t.aim = lerpAngle(t.aim, desired, 1 - Math.pow(0.0008, dt));
     }
     if (t.cooldown > 0) continue;
@@ -196,8 +217,9 @@ export function stepProjectiles(world: CombatWorld, dt: number, hooks: CombatHoo
       const tgt = world.enemies.find((e) => e.alive && e.id === p.targetId);
       if (tgt) {
         const k = 1 - Math.pow(1 - p.homing, dt * 8);
-        p.tx += (tgt.pos.x - p.tx) * k;
-        p.ty += (tgt.pos.y - p.ty) * k;
+        const lock = enemyAimPoint(tgt);
+        p.tx += (lock.x - p.tx) * k;
+        p.ty += (lock.y - p.ty) * k;
       }
     }
     if (p.update(dt)) applyHit(p, world.enemies, hooks);

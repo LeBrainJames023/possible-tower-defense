@@ -1,5 +1,5 @@
 import type { Enemy, Tower } from './entities';
-import { PX, TILE, type TowerKind } from './constants';
+import { PX, TILE, TOWER_FEET, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMY_GAIT, creatureFor, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
@@ -7,7 +7,7 @@ import { TEX, texReady } from './assets';
 const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison'];
 
 function billboardHeight(t: Tower): number {
-  return 70 * PX * (1 + (t.level - 1) * 0.08);
+  return towerPaintHeight(t.level);
 }
 
 function drawFeetBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElement, h: number, feetY: number): void {
@@ -28,7 +28,7 @@ function drawCenteredBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElem
 /** Painted stills. Ice/fire/lightning/poison never rotate. Arrow ballista and cannon barrel follow aim. */
 function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: number): boolean {
   const h = billboardHeight(t);
-  const feet = 12 * PX;
+  const feet = TOWER_FEET;
   const { arrowBase, arrowTurret, cannonGun, cannonBase } = TEX.towerParts;
 
   if (t.kind === 'arrow' && texReady(arrowBase) && texReady(arrowTurret)) {
@@ -213,11 +213,12 @@ export function drawTower(
   ctx.restore();
 
   if (t.muzzle > 0.05) {
+    const m = t.muzzlePoint();
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(m.x, m.y);
     ctx.rotate(t.aim);
     ctx.globalAlpha = t.muzzle;
-    const kick = 16 * scale - recoil;
+    const kick = 6 * scale;
     if (t.kind === 'arrow' || t.kind === 'cannon') {
       ctx.fillStyle = '#fff6d0';
       ctx.beginPath();

@@ -1,4 +1,4 @@
-import { TOWERS, type TowerKind } from './constants';
+import { TOWER_FEET, TOWERS, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMIES, ENEMY_GAIT, spriteFlip, type EnemyKind } from './enemies';
 import { sellValueFor, upgradeCostFor } from './balance';
 import type { Vec2 } from '../shared/math';
@@ -211,6 +211,27 @@ export class Tower {
 
   sellValue(): number {
     return sellValueFor(this.def.cost, this.level);
+  }
+
+  /**
+   * Shot spawn: crown of still towers, turret/barrel of arrow + cannon.
+   * Tile (x, y) is the feet — shots used to appear from the middle of the square.
+   */
+  muzzlePoint(): Vec2 {
+    const h = towerPaintHeight(this.level);
+    const feet = TOWER_FEET;
+    let lift = h * 0.78 - feet;
+    let along = 0;
+    if (this.kind === 'arrow') {
+      lift = h * 0.56 - feet;
+      along = h * 0.26;
+    } else if (this.kind === 'cannon') {
+      lift = h * 0.28 - feet;
+      along = h * 0.2;
+    }
+    const c = Math.cos(this.aim);
+    const s = Math.sin(this.aim);
+    return { x: this.x + c * along, y: this.y - lift + s * along };
   }
 }
 

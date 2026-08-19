@@ -14,6 +14,8 @@ Captured for later — not in this pass:
 - Music — richer campaign loops (we have a quiet procedural prepare/battle pad; still no real score)
 - Enemy attributes / speed variety — gait is visual only; projectile feel should stay readable when scouts and brutes differ more
 - Splash / economy retune — after play + verbs, not before (cannon ~1.5 tiles, ice/fire mid, poison tiny, arrow single, lightning chain)
+- **Kill gold vs later worlds** — bounties are flat per kind today. World HP climbs (1.18x → 1.68x) but a Raider still pays 15g, which is why the campaign sim starved on wave 1–2 of late maps. When we retune: a small world/stage bounty mul so harder foes drop a little more, not a second economy.
+- **Level-3 branch** — after Lv3, pick one of two directions and make that tower a little better (Kingdom Rush-style). Do this before inventing a 4th numeric level. Needs a path id on the tower, two upgrade cards, and sell that refunds the branch. Not in this pass.
 - Hand-painted Krita/GIMP tile variants
 - Tiled as a visual map editor that exports into `levels.ts` (single source of truth must stay TypeScript)
 - MagicaVoxel / Blender sprite sheets for extra props
