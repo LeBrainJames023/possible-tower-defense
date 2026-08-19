@@ -15,6 +15,8 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Low-poly tree billboard on decor tiles |
 | `public/sprites/enemies/*.png` | **Blender** headless (`tools/blender_enemies.py`) importing **Quaternius** CC0 glTF | Billboards for the base five plus leftover bodies (warg, ogre, hellbat, wyvern, drake) reused as world specials / champions / bosses. Unique art later. |
 | `public/sprites/enemy-bodies/{slot}/*.png` | **Blender** (`tools/blender_enemy_bodies.py`) from extra Quaternius packs (Easy Enemy, Animated Monster, unused Ultimate Monsters) | Three new-body options per job for the picker. Not wired into the match until you pick. |
+| `public/preview/sprite-forge/raider/{a,b,c}/` | **Cursor image gen** + **Agent Sprite Forge** (`generate2dsprite.py` magenta key) | Human raider stills. Parked — quality was good, species was wrong. |
+| `public/preview/sprite-forge/monsters/{goblin,orc,troll,ghoul,gnome,wyvern,imp,warg}/` | Same pipeline | Mythic enemy identity stills. Not wired into the match until keepers are locked. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
@@ -32,4 +34,4 @@ Enemy meshes are CC0 from [Quaternius](https://quaternius.com/): Ultimate Monste
 | **MagicaVoxel** | Great for 3D voxel props; this game is 2D billboards. Blender covered the one 3D bake. |
 | **Krita / GIMP / LibreSprite / Audacity** | Hand-paint / hand-edit tools. The batch cousins (ImageMagick, sox, ffmpeg) did the repeatable work. |
 
-No AI-generated image files and no paid packs.
+Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live match sprites are still the Quaternius bakes until a keeper is locked. No paid packs.

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raider picks</title>
+    <style>
+      :root {
+        --bg: #0b0b0d;
+        --panel: #16141a;
+        --line: #3a342c;
+        --text: #f3ece3;
+        --muted: #a89888;
+        --gold: #e8c878;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        padding: 20px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.8rem;
+      }
+      p {
+        color: var(--muted);
+        max-width: 40rem;
+        line-height: 1.45;
+        margin: 0 0 22px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .card {
+        flex: 1 1 260px;
+        min-height: 44px;
+        margin: 0;
+        padding: 12px;
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 16px;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+      }
+      .card:focus,
+      .card.picked {
+        border-color: var(--gold);
+        outline: 3px solid var(--gold);
+      }
+      .card img {
+        display: block;
+        width: 100%;
+        max-width: 320px;
+        height: auto;
+        background: #1a1020;
+        border-radius: 10px;
+      }
+      .card strong {
+        display: block;
+        margin: 10px 0 4px;
+        font-size: 1.2rem;
+      }
+      .card span {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Raider try-ons</h1>
+    <p>
+      Not in the live game. Click the one you like (or none). Then tell me A, B, or C in chat — or
+      say throw them out.
+    </p>
+    <div class="row">
+      <button type="button" class="card" data-id="A">
+        <img src="./raider/a/clean.png" alt="Raider A, axe and torn cloak" />
+        <strong>A — axe</strong>
+        <span>Torn cloak, scar. Everyday wave fodder.</span>
+      </button>
+      <button type="button" class="card" data-id="B">
+        <img src="./raider/b/clean.png" alt="Raider B, sword and shield" />
+        <strong>B — sword &amp; shield</strong>
+        <span>Hooded scavenger, round buckler.</span>
+      </button>
+      <button type="button" class="card" data-id="C">
+        <img src="./raider/c/clean.png" alt="Raider C, helmet and cleaver" />
+        <strong>C — cleaver</strong>
+        <span>Helmet, heavy enforcer.</span>
+      </button>
+    </div>
+    <script>
+      const cards = document.querySelectorAll('.card');
+      cards.forEach((card) => {
+        card.addEventListener('click', () => {
+          cards.forEach((other) => other.classList.toggle('picked', other === card));
+        });
+      });
+    </script>
+  </body>
+</html>
