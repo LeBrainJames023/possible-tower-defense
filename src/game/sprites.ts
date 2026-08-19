@@ -24,7 +24,7 @@ function drawCenteredBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElem
 function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: number): boolean {
   const h = billboardHeight(t);
   const feet = 12 * PX;
-  const { arrowBase, arrowTurret, cannonGun } = TEX.towerParts;
+  const { arrowBase, arrowTurret, cannonGun, cannonBase } = TEX.towerParts;
 
   if (t.kind === 'arrow' && texReady(arrowBase) && texReady(arrowTurret)) {
     drawFeetBillboard(ctx, arrowBase, h, feet);
@@ -38,15 +38,19 @@ function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: numbe
   }
 
   if (t.kind === 'cannon' && texReady(cannonGun)) {
-    ctx.fillStyle = 'rgba(0,0,0,0.32)';
-    ctx.beginPath();
-    ctx.ellipse(0, 11 * PX, 17 * PX, 5 * PX, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (texReady(cannonBase)) {
+      drawFeetBillboard(ctx, cannonBase, h * 0.92, feet);
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,0.32)';
+      ctx.beginPath();
+      ctx.ellipse(0, 11 * PX, 17 * PX, 5 * PX, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.save();
-    ctx.translate(0, 2 * PX);
+    ctx.translate(0, texReady(cannonBase) ? -h * 0.34 + feet : 2 * PX);
     ctx.rotate(t.aim + Math.PI);
     ctx.translate(recoil * 1.25, 0);
-    drawCenteredBillboard(ctx, cannonGun, h * 0.78);
+    drawCenteredBillboard(ctx, cannonGun, texReady(cannonBase) ? h * 0.42 : h * 0.78);
     ctx.restore();
     return true;
   }
@@ -165,17 +169,23 @@ function drawRankStar(ctx: CanvasRenderingContext2D, x: number, y: number, outer
   ctx.stroke();
 }
 
-export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, selected: boolean, time: number): void {
+export function drawTower(
+  ctx: CanvasRenderingContext2D,
+  t: Tower,
+  selected: boolean,
+  time: number,
+  upgradePreview = false,
+): void {
   const def = t.def;
   const { x, y } = t;
   const scale = PX * 1.1 * (1 + (t.level - 1) * 0.08);
   const recoil = t.recoil * 5 * PX;
 
   if (selected) {
-    drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2 * PX, '55');
-    if (t.level < 3) {
-      drawRangeRing(ctx, x, y, t.rangeAt(t.level + 1), def.color, false, [3 * PX, 5 * PX], 2.4 * PX, 'aa');
+    if (upgradePreview && t.level < 3) {
+      drawRangeRing(ctx, x, y, t.rangeAt(t.level + 1), '#f4d35e', true, [], 3 * PX, 'cc');
     }
+    drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2.2 * PX, '99');
   }
 
   if (t.level >= 3) {

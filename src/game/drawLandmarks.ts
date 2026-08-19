@@ -2,6 +2,7 @@ import { PX } from './constants';
 import type { MapTheme } from './themes';
 import type { Vec2 } from '../shared/math';
 import type { WorldId } from './worlds';
+import { TEX, texReady } from './assets';
 
 /** Gate at path start, keep at path end. Sit on path tiles — not on grass. */
 export function drawLandmarks(
@@ -23,6 +24,27 @@ export function drawLandmarks(
   drawExitKeep(ctx, exit.x, exit.y, outAng, theme, world, time, keepWound);
 }
 
+function drawPortalBillboard(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  img: HTMLImageElement,
+  heat: number,
+  tint: string,
+): void {
+  const pulse = 1 + heat * 0.12;
+  const h = 58 * PX * pulse;
+  const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  const glow = ctx.createRadialGradient(x, y, 4 * PX, x, y, 38 * PX * pulse);
+  glow.addColorStop(0, tint);
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x, y, 38 * PX * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.drawImage(img, x - w / 2, y - h + 16 * PX, w, h);
+}
+
 function drawSpawnArch(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -34,6 +56,10 @@ function drawSpawnArch(
   heat: number,
 ): void {
   const pulse = 0.7 + Math.sin(time * 3.2) * 0.15 + heat * 0.55;
+  if (texReady(TEX.portalIn)) {
+    drawPortalBillboard(ctx, x, y, TEX.portalIn, heat, `rgba(120, 200, 255, ${0.28 + heat * 0.4})`);
+    return;
+  }
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(ang);
@@ -107,6 +133,10 @@ function drawExitKeep(
   wound = 0,
 ): void {
   const pulse = 0.8 + Math.sin(time * 2.4) * 0.12 + wound * 0.35;
+  if (texReady(TEX.portalOut)) {
+    drawPortalBillboard(ctx, x, y, TEX.portalOut, wound, `rgba(239, 71, 111, ${0.35 + wound * 0.45})`);
+    return;
+  }
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(ang);

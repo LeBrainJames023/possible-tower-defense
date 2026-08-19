@@ -149,6 +149,12 @@ export class Renderer {
 
   private drawGrass(x: number, y: number, c: number, r: number): void {
     const { ctx, theme } = this;
+    const tiles = TEX.grassTiles.filter(texReady);
+    if (this.world === 'forest' && tiles.length) {
+      const img = tiles[Math.floor(hash(c, r, 2) * tiles.length) % tiles.length];
+      ctx.drawImage(img, x, y, TILE, TILE);
+      return;
+    }
     const mix = hash(c, r, 2);
     ctx.fillStyle = mix > 0.55 ? theme.grassA : theme.grassB;
     ctx.fillRect(x, y, TILE, TILE);
@@ -165,6 +171,15 @@ export class Renderer {
 
   private drawDirt(x: number, y: number, c: number, r: number): void {
     const { ctx, theme } = this;
+    const tiles = TEX.pathTiles.filter(texReady);
+    if (this.world === 'forest' && tiles.length) {
+      const img = tiles[Math.floor(hash(c, r, 5) * tiles.length) % tiles.length];
+      const bleed = 5 * PX;
+      ctx.drawImage(img, x - bleed, y - bleed, TILE + bleed * 2, TILE + bleed * 2);
+      this.stampWater(x, y);
+      drawWorldPath(ctx, theme, this.world, x, y, this.time);
+      return;
+    }
     ctx.fillStyle = theme.pathMid;
     ctx.fillRect(x, y, TILE, TILE);
     ctx.fillStyle = theme.pathEdge;
@@ -214,8 +229,8 @@ export class Renderer {
     drawLandmarks(this.ctx, waypoints, this.theme, this.world, this.time, this.spawnHeat, this.keepWound);
   }
 
-  drawTower(t: Tower, selected: boolean): void {
-    drawTower(this.ctx, t, selected, this.time);
+  drawTower(t: Tower, selected: boolean, upgradePreview = false): void {
+    drawTower(this.ctx, t, selected, this.time, upgradePreview);
   }
 
   drawEnemy(e: Enemy, selected: boolean): void {

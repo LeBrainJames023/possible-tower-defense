@@ -12,16 +12,19 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sfx/wind.mp3` | **sox** brown-noise bed → **ffmpeg** mp3 | Quiet looping wind under combat SFX |
 | `public/sfx/water.mp3` | **sox** beating tones + pink noise → **ffmpeg** mp3 | Stream bed; louder on the two “wet” maps |
 | `public/icons/*.png` | **Inkscape** (SVG in `tools/icons/`) | Tower dock swatches instead of flat CSS gradients |
-| `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Low-poly tree billboard on decor tiles |
-| `public/sprites/enemies/*.png` | **Blender** headless (`tools/blender_enemies.py`) importing **Quaternius** CC0 glTF | Billboards for the base five plus leftover bodies (warg, ogre, hellbat, wyvern, drake) reused as world specials / champions / bosses. Unique art later. |
+| `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Fallback tree if painted forest trees are missing. |
+| `public/sprites/enemies/*.png` | **Cursor image gen** + Sprite Forge (copied from `preview/sprite-forge/monsters/`) | Live match now uses the painted keepers. Orc still → Raider. Ghoul/Gnome still extras. |
 | `public/sprites/enemy-bodies/{slot}/*.png` | **Blender** (`tools/blender_enemy_bodies.py`) from extra Quaternius packs (Easy Enemy, Animated Monster, unused Ultimate Monsters) | Three new-body options per job for the picker. Not wired into the match until you pick. |
 | `public/preview/sprite-forge/raider/{a,b,c}/` | **Cursor image gen** + **Agent Sprite Forge** (`generate2dsprite.py` magenta key) | Human raider stills. Parked — quality was good, species was wrong. |
-| `public/preview/sprite-forge/monsters/{goblin,orc,troll,ghoul,gnome,wyvern,imp,warg,warlord,ogre,hellbat,drake}/` | Same pipeline | Mythic enemy identity stills. Not wired into the match until keepers are locked. |
+| `public/preview/sprite-forge/monsters/{goblin,orc,troll,ghoul,gnome,wyvern,imp,warg,warlord,ogre,hellbat,drake}/` | Same pipeline | Mythic enemy identity stills. Keepers are now the live sprites. |
 | `public/preview/sprite-forge/facings/{creature}/` | Cursor image gen + Sprite Forge 2×2 split | Four path facings (down / left / right / up). Not wired in. |
 | `public/preview/sprite-forge/towers/{kind}/{a,b}/` | Same pipeline | Two painted options per tower. Live match uses all **A**. |
 | `public/preview/sprite-forge/projectiles/{kind}/{a,b}/` | Same pipeline | Shot options. Live match: Arrow A, Cannon B, Ice A, Lightning A, Fire A, Poison A. |
-| `public/sprites/towers/*.png` | Cursor image gen + Sprite Forge | Live tower stills. Arrow = empty base + rotating ballista. Cannon = rotating gun on a pad. Ice/fire/lightning/poison stay still. |
+| `public/sprites/towers/*.png` | Cursor image gen + Sprite Forge | Live tower stills. Arrow = empty base + rotating ballista. Cannon barrel/base split in progress. Ice/fire/lightning/poison stay still. |
 | `public/sprites/projectiles/*.png` | Same pipeline | Live shots matching the picks above. |
+| `public/sprites/landmarks/portal-out.png` | Cursor image gen + Sprite Forge | Exit rift on Forest maps. Entrance portal still drawing. |
+| `public/sprites/trees/*.png` | Same pipeline | Forest tree set (oak, pine, apple, willow, dogwood). Draws when files exist. |
+| `public/sprites/terrain/*.png` | Same pipeline | Forest grass/path tile variants. Draws when files exist. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
@@ -39,4 +42,4 @@ Enemy meshes are CC0 from [Quaternius](https://quaternius.com/): Ultimate Monste
 | **MagicaVoxel** | Great for 3D voxel props; this game is 2D billboards. Blender covered the one 3D bake. |
 | **Krita / GIMP / LibreSprite / Audacity** | Hand-paint / hand-edit tools. The batch cousins (ImageMagick, sox, ffmpeg) did the repeatable work. |
 
-Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower** and **shot** sprites use the picked painted stills (`public/sprites/towers/`, `public/sprites/projectiles/`). Live enemy sprites are still the Quaternius bakes until four-way keepers are wired. No paid packs.
+Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, and **enemy** sprites use the painted keepers. Forest exit portal is painted; remaining landscape drawings continue as they land. No paid packs.

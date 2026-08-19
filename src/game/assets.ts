@@ -20,6 +20,27 @@ export const TEX = {
   dirt: loadImage('/textures/dirt.jpg'),
   water: loadImage('/textures/water.jpg'),
   tree: loadImage('/sprites/tree.png'),
+  trees: [
+    loadImage('/sprites/trees/oak.png'),
+    loadImage('/sprites/trees/pine.png'),
+    loadImage('/sprites/trees/apple.png'),
+    loadImage('/sprites/trees/willow.png'),
+    loadImage('/sprites/trees/dogwood.png'),
+  ],
+  grassTiles: [
+    loadImage('/sprites/terrain/grass-1.png'),
+    loadImage('/sprites/terrain/grass-2.png'),
+    loadImage('/sprites/terrain/grass-3.png'),
+    loadImage('/sprites/terrain/grass-4.png'),
+  ],
+  pathTiles: [
+    loadImage('/sprites/terrain/path-1.png'),
+    loadImage('/sprites/terrain/path-2.png'),
+    loadImage('/sprites/terrain/path-3.png'),
+    loadImage('/sprites/terrain/path-4.png'),
+  ],
+  portalIn: loadImage('/sprites/landmarks/portal-in.png'),
+  portalOut: loadImage('/sprites/landmarks/portal-out.png'),
   creatures: {
     goblin: loadImage('/sprites/enemies/goblin.png'),
     raider: loadImage('/sprites/enemies/raider.png'),
@@ -44,6 +65,7 @@ export const TEX = {
     arrowBase: loadImage('/sprites/towers/arrow-base.png'),
     arrowTurret: loadImage('/sprites/towers/arrow-turret.png'),
     cannonGun: loadImage('/sprites/towers/cannon-gun.png'),
+    cannonBase: loadImage('/sprites/towers/cannon-base.png'),
   },
   projectiles: {
     arrow: loadImage('/sprites/projectiles/arrow.png'),

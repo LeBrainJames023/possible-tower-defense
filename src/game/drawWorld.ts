@@ -173,6 +173,15 @@ function drawForestTree(
   c: number,
   r: number,
 ): void {
+  const painted = TEX.trees.filter(texReady);
+  if (painted.length) {
+    const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
+    const scale = 1.15 + hash(c, r, 8) * 0.28;
+    const tw = TILE * 1.15 * scale;
+    const th = TILE * 1.55 * scale;
+    ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+    return;
+  }
   if (texReady(TEX.tree)) {
     const tw = TILE * 1.2;
     const th = TILE * 1.45;

@@ -1,10 +1,10 @@
 import './style.css';
-import { MAP_H, MAP_W, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
+import { COLS, MAP_H, MAP_W, ROWS, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
 import { ENEMIES, type EnemyKind } from './game/enemies';
 import { LEVELS, levelsInWorld, waveRoster } from './game/levels';
 import { drawLevelThumb } from './game/levelThumb';
 import { Game } from './game/Game';
-import { Tower } from './game/entities';
+import { Enemy, Tower } from './game/entities';
 import {
   afterWin,
   canPlay,
@@ -21,6 +21,7 @@ import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros
 import { themeFor } from './game/themes';
 import { WORLDS, worldById, worldByIndex } from './game/worlds';
 import { fitCanvasToHost } from './shared/pointer';
+import { pinRectBeside, tileBoxInHost } from './shared/pinPanel';
 
 const screens = {
   title: document.getElementById('screen-title')!,
@@ -46,7 +47,6 @@ const hudGold = document.getElementById('hud-gold')!;
 const hudNext = document.getElementById('hud-next')!;
 const chipLives = document.getElementById('chip-lives')!;
 const chipGold = document.getElementById('chip-gold')!;
-const hint = document.getElementById('hint')!;
 const btnWave = document.getElementById('btn-wave') as HTMLButtonElement;
 const btnSpeed = document.getElementById('btn-speed') as HTMLButtonElement;
 const btnPause = document.getElementById('btn-pause') as HTMLButtonElement;
@@ -66,10 +66,14 @@ const btnMute = document.getElementById('btn-mute') as HTMLButtonElement;
 const mapOverlay = document.getElementById('map-overlay')!;
 const buildPanel = document.getElementById('build-panel')!;
 const buildDetail = document.getElementById('build-detail')!;
-const buildDetailText = document.getElementById('build-detail-text')!;
+const buildBlurb = document.getElementById('build-blurb')!;
+const buildStats = document.getElementById('build-stats')!;
 const inspectPanel = document.getElementById('inspect-panel')!;
+const selectionBlurb = document.getElementById('selection-blurb')!;
+const upgradeConfirm = document.getElementById('upgrade-confirm')!;
 const buildTitle = document.getElementById('build-title')!;
 const btnBuild = document.getElementById('btn-build') as HTMLButtonElement;
+const playfield = document.getElementById('playfield')!;
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 const game = new Game(canvas);
@@ -108,11 +112,13 @@ let resultWon = false;
 let toastTimer = 0;
 let activeLevelId = 1;
 let activeWorldIndex = 1;
-/** Playing a map that is not yet unlocked — win does not save. */
+/** Playing a map that is not yet unlocked - win does not save. */
 let lookMode = false;
 let lastGold = -1;
 let lastLives = -1;
 let introQueue: EnemyKind[] = [];
+type InspectStep = 'idle' | 'preview' | 'confirm';
+let inspectStep: InspectStep = 'idle';
 
 function flashChip(el: HTMLElement, cls: string): void {
   el.classList.remove(cls);
@@ -204,7 +210,7 @@ function renderLevels(): void {
   const worldOpen = isWorldOpen(p, activeWorldIndex);
   levelsLede.textContent = worldOpen
     ? `${world.blurb} Ten maps. Beat them in order.`
-    : `${world.blurb} Peek only — beat the previous world to play these maps.`;
+    : `${world.blurb} Peek only - beat the previous world to play these maps.`;
   levelGrid.innerHTML = '';
   for (const level of levelsInWorld(activeWorldIndex)) {
     const open = canPlay(p, level);
@@ -230,7 +236,7 @@ function renderLevels(): void {
     name.className = 'level-name';
     name.textContent = level.name;
     const blurb = document.createElement('span');
-    blurb.textContent = open ? level.blurb : 'Locked — beat the previous world to play.';
+    blurb.textContent = open ? level.blurb : 'Locked - beat the previous world to play.';
     btn.append(thumb, badge, label, name, blurb);
     btn.style.borderColor = themeFor(level).ui;
     btn.addEventListener('click', () => {
@@ -259,6 +265,18 @@ function syncOverlay(): void {
   } else {
     buildTitle.textContent = 'Build';
   }
+  requestAnimationFrame(() => {
+    if (game.buildCell && !buildPanel.classList.contains('hidden')) {
+      pinPanelToCell(buildPanel, game.buildCell.c, game.buildCell.r);
+    }
+    const focus = game.getSelectedTower();
+    if (focus && !inspectPanel.classList.contains('hidden')) {
+      pinPanelToCell(inspectPanel, focus.col, focus.row);
+    } else if (game.getSelectedEnemy() && !inspectPanel.classList.contains('hidden')) {
+      const e = game.getSelectedEnemy()!;
+      pinPanelToCell(inspectPanel, Math.floor(e.pos.x / TILE), Math.floor(e.pos.y / TILE));
+    }
+  });
 }
 
 function closeBuildMenu(): void {
@@ -270,11 +288,27 @@ function closeBuildMenu(): void {
 function openBuildMenu(c: number, r: number): void {
   game.selectedTowerId = null;
   game.selectedEnemyId = null;
+  game.upgradePreview = false;
+  inspectStep = 'idle';
   game.buildCell = { c, r };
   game.selectedKind = null;
   syncShopSelection();
   syncOverlay();
-  showToast('Pick a tower, then Build.');
+}
+
+function fillBuildDetail(kind: TowerKind): void {
+  const def = TOWERS[kind];
+  buildBlurb.textContent = def.description;
+  const extra = extraTowerLine(def);
+  const rows: Array<[string, string]> = [
+    ['Range', `${(def.range / TILE).toFixed(1)} tiles`],
+    ['Attack', String(def.damage)],
+    ['Fire', `${def.fireRate.toFixed(1)} /s`],
+  ];
+  if (extra) rows.push(['Extra', extra]);
+  buildStats.innerHTML = statGridHtml(rows);
+  btnBuild.disabled = !!(game.level && game.gold < def.cost);
+  btnBuild.textContent = game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build ${def.cost}g`;
 }
 
 function renderShop(): void {
@@ -285,30 +319,50 @@ function renderShop(): void {
     btn.type = 'button';
     btn.className = 'tower-btn';
     btn.dataset.kind = kind;
+    btn.setAttribute('aria-label', `${def.name} ${def.cost} gold`);
     btn.innerHTML = `
-      <img class="tower-portrait" src="/icons/${kind}.png" alt="" />
-      <strong>${def.name}</strong>
-      <span class="tower-cost">${def.cost}g</span>
+      <img class="tower-portrait" src="/sprites/towers/${kind}.png" alt="" />
+      <span class="tower-cost">${def.cost}</span>
     `;
     btn.addEventListener('click', () => {
       game.selectedKind = kind;
       syncShopSelection();
-      const rangeTiles = (def.range / TILE).toFixed(1);
-      buildDetailText.textContent = [
-        def.description,
-        `Damage ${def.damage} · Range ${rangeTiles} tiles · ${def.fireRate.toFixed(1)}/s`,
-        def.splash > 0 ? `Splash ${(def.splash / TILE).toFixed(1)} tiles` : def.chain > 0 ? `Chain ${def.chain}` : 'Single target',
-      ]
-        .filter(Boolean)
-        .join('\n');
-      btnBuild.disabled = !!(game.level && game.gold < def.cost);
-      btnBuild.textContent = game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build · ${def.cost}g`;
+      fillBuildDetail(kind);
       syncOverlay();
       game.audio.ui();
     });
     towerShop.appendChild(btn);
   }
   syncShopSelection();
+}
+
+function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
+  const canvasRect = canvas.getBoundingClientRect();
+  const hostRect = playfield.getBoundingClientRect();
+  const tile = tileBoxInHost(c, r, COLS, ROWS, canvasRect, hostRect);
+  const pin = pinRectBeside(tile, { width: panel.offsetWidth, height: panel.offsetHeight }, hostRect);
+  panel.style.left = `${pin.left}px`;
+  panel.style.top = `${pin.top}px`;
+}
+
+function statGridHtml(rows: Array<[string, string]>): string {
+  return rows
+    .map(([label, value]) => `<div class="stat-row"><span>${label}</span><strong>${value}</strong></div>`)
+    .join('');
+}
+
+function arrowStat(cur: number, next: number, digits = 0): string {
+  const a = digits ? cur.toFixed(digits) : String(Math.round(cur));
+  const b = digits ? next.toFixed(digits) : String(Math.round(next));
+  if (Math.abs(next - cur) < (digits ? 0.05 : 0.5)) return `${a} (same)`;
+  return `${a} ? ${b}`;
+}
+
+function extraTowerLine(def: (typeof TOWERS)[TowerKind]): string | null {
+  if (def.splash > 0) return `Splash ${(def.splash / TILE).toFixed(1)} tiles`;
+  if (def.chain > 0) return `Chain ${def.chain}`;
+  if (def.slow > 0) return `Slow ${Math.round(def.slow * 100)}%`;
+  return null;
 }
 
 function syncShopSelection(): void {
@@ -318,7 +372,6 @@ function syncShopSelection(): void {
     const broke = !!(game.level && game.gold < TOWERS[kind].cost);
     btn.classList.toggle('selected', game.selectedKind === kind);
     btn.classList.toggle('broke', broke);
-    btn.classList.toggle('affordable', !broke && !!game.level);
   });
 }
 
@@ -356,44 +409,62 @@ function updatePauseUi(): void {
   if (!paused) restartStrip.classList.add('hidden');
 }
 
-function plus(cur: number, next: number, digits = 0): string {
-  const d = next - cur;
-  const shown = digits ? cur.toFixed(digits) : String(cur);
-  if (Math.abs(d) < (digits ? 0.05 : 0.5)) return shown;
-  const delta = digits ? d.toFixed(digits) : String(Math.round(d));
-  return `${shown}  (+${delta})`;
-}
-
-function towerInspectText(t: Tower): string {
+function fillInspectTower(t: Tower): void {
   const curD = Math.round(game.shotDamage(t));
   const curR = t.range / TILE;
   const curRate = t.fireRate;
-  const lines = [`${t.def.role} tower`, t.def.description];
-  if (t.level >= 3) {
-    lines.push(
-      `Damage ${curD}`,
-      `Range ${curR.toFixed(1)} tiles`,
-      `Rate ${curRate.toFixed(1)}/s`,
-      `Sell ${t.sellValue()}g`,
-    );
-  } else {
-    const next = t.level + 1;
-    const nextD = Math.round(t.damageAt(next) * game.mods.damage);
-    const nextR = t.rangeAt(next) / TILE;
-    const nextRate = t.fireRateAt(next);
-    lines.push(
-      `Damage ${plus(curD, nextD)}`,
-      `Range ${plus(curR, nextR, 1)} tiles`,
-      `Rate ${plus(curRate, nextRate, 1)}/s`,
-      `Next ${t.upgradeCost()}g · Sell ${t.sellValue()}g`,
-    );
-  }
-  return lines.join('\n');
+  selectionTitle.textContent = `${t.def.name} Lv ${t.level}`;
+  selectionBlurb.textContent = t.def.description;
+  const preview = inspectStep !== 'idle' && t.level < 3;
+  const rows: Array<[string, string]> = preview
+    ? [
+        ['Range', arrowStat(curR, t.rangeAt(t.level + 1) / TILE, 1) + ' tiles'],
+        ['Attack', arrowStat(curD, Math.round(t.damageAt(t.level + 1) * game.mods.damage))],
+        ['Fire', arrowStat(curRate, t.fireRateAt(t.level + 1), 1) + ' /s'],
+        ['Cost', `${t.upgradeCost()}g`],
+      ]
+    : [
+        ['Range', `${curR.toFixed(1)} tiles`],
+        ['Attack', String(curD)],
+        ['Fire', `${curRate.toFixed(1)} /s`],
+      ];
+  selectionStats.innerHTML = statGridHtml(rows);
+  const maxed = t.level >= 3;
+  const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
+  up.disabled = maxed || (inspectStep === 'preview' && game.gold < t.upgradeCost());
+  up.textContent = maxed ? 'Max' : inspectStep === 'preview' ? 'Upgrade tower' : `Upgrade ${t.upgradeCost()}g`;
+  towerActions.classList.toggle('hidden', inspectStep === 'confirm');
+  upgradeConfirm.classList.toggle('hidden', inspectStep !== 'confirm');
+}
+
+function fillInspectEnemy(enemy: Enemy): void {
+  const def = ENEMIES[enemy.kind];
+  const effects = [
+    enemy.slowMul < 1 ? 'chilled' : '',
+    enemy.burnTimer > 0 ? 'burning' : '',
+    enemy.poisonTimer > 0 ? 'poisoned' : '',
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const roleTag =
+    def.role === 'champion' ? 'Champion' : def.role === 'boss' ? 'Boss' : def.role === 'special' ? 'Local' : '';
+  selectionTitle.textContent = roleTag ? `${def.name} ${roleTag}` : def.name;
+  selectionBlurb.textContent = def.flying ? `${def.blurb} Flying - cannon cannot hit.` : def.blurb;
+  const rows: Array<[string, string]> = [
+    ['HP', `${Math.ceil(enemy.hp)} / ${enemy.maxHp}`],
+    ['Armor', `${Math.round(def.armor * 100)}%`],
+    ['Speed', `${(def.speed / TILE).toFixed(2)} /s`],
+    ['Gold', `${scaleGold(def.reward, game.mods.gold)}g`],
+  ];
+  if (effects) rows.push(['Status', effects]);
+  selectionStats.innerHTML = statGridHtml(rows);
+  towerActions.classList.add('hidden');
+  upgradeConfirm.classList.add('hidden');
 }
 
 function updateHud(): void {
   if (!game.level) return;
-  hudLevel.textContent = `${worldById(game.level.world).name} · ${game.level.stage}`;
+  hudLevel.textContent = `${worldById(game.level.world).name} - ${game.level.stage}`;
   hudWave.textContent = `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);
@@ -413,41 +484,26 @@ function updateHud(): void {
     game.waveIndex >= WAVES_PER_LEVEL
       ? 'Complete'
       : game.phase === 'wave'
-        ? 'Wave running…'
+        ? 'Wave running-'
         : `Start wave ${game.waveIndex + 1}`;
   updatePauseUi();
 
   const tower = game.getSelectedTower();
   const enemy = game.getSelectedEnemy();
   if (tower) {
-    towerActions.classList.remove('hidden');
-    selectionTitle.textContent = `${tower.def.name} · Lv ${tower.level}`;
-    selectionStats.textContent = towerInspectText(tower);
-    const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
-    up.disabled = tower.level >= 3 || game.gold < tower.upgradeCost();
-    up.textContent = tower.level >= 3 ? 'Max' : `Upgrade ${tower.upgradeCost()}g`;
-    hint.textContent =
-      tower.level >= 3 ? 'Range ring is maxed. Sell or close.' : 'Solid ring is now. Outer ring is after upgrade.';
+    fillInspectTower(tower);
   } else if (enemy) {
-    towerActions.classList.add('hidden');
-    const def = ENEMIES[enemy.kind];
-    const effects = [
-      enemy.slowMul < 1 ? 'chilled' : '',
-      enemy.burnTimer > 0 ? 'burning' : '',
-      enemy.poisonTimer > 0 ? 'poisoned' : '',
-    ]
-      .filter(Boolean)
-      .join(', ');
-    const roleTag =
-      def.role === 'champion' ? 'Champion' : def.role === 'boss' ? 'Boss' : def.role === 'special' ? 'Local' : '';
-    selectionTitle.textContent = roleTag ? `${def.name} · ${roleTag}` : def.name;
-    selectionStats.textContent = `${def.blurb}\n${def.flying ? 'Flying — Cannon cannot hit.\n' : ''}HP ${Math.ceil(enemy.hp)} / ${enemy.maxHp}\nArmor ${Math.round(def.armor * 100)}% · Speed ${(def.speed / TILE).toFixed(2)} tiles/s\nReward ${scaleGold(def.reward, game.mods.gold)}g${effects ? `\nStatus: ${effects}` : ''}`;
-    hint.textContent = 'Pause to study packs without pressure.';
+    inspectStep = 'idle';
+    game.upgradePreview = false;
+    fillInspectEnemy(enemy);
   } else {
+    inspectStep = 'idle';
+    game.upgradePreview = false;
     towerActions.classList.add('hidden');
+    upgradeConfirm.classList.add('hidden');
     selectionTitle.textContent = 'Inspector';
-    selectionStats.textContent = '';
-    hint.textContent = 'Click grass to build. Click a tower or enemy to inspect.';
+    selectionBlurb.textContent = '';
+    selectionStats.innerHTML = '';
   }
 
   syncShopSelection();
@@ -473,7 +529,7 @@ function startLevel(id: number): void {
   updateHud();
   queueLevelIntros(level);
   const where = `${worldById(level.world).name} ${level.stage}: ${level.name}`;
-  showToast(`${where} — click grass to build`);
+  showToast(`${where} - click grass to build`);
 }
 
 game.onHud = updateHud;
@@ -490,7 +546,7 @@ game.onResult = (won) => {
       btnResultPrimary.textContent = 'Back to worlds';
     } else if (isCampaignClear(next)) {
       resultTitle.textContent = 'Campaign clear!';
-      resultBody.textContent = 'You held The Hollow. The magician’s door is shut.';
+      resultBody.textContent = 'You held The Hollow. The magician-s door is shut.';
       btnResultPrimary.textContent = 'Back to worlds';
     } else if (next.world > level.worldIndex) {
       const opened = worldByIndex(next.world);
@@ -510,7 +566,7 @@ game.onResult = (won) => {
 };
 
 btnSpeed.addEventListener('click', () => {
-  game.timeScale = game.timeScale >= 2 ? 1 : 2;
+  game.timeScale = game.timeScale >= 3 ? 1 : game.timeScale + 1;
   btnSpeed.textContent = `Speed ${game.timeScale}x`;
   game.audio.ui();
 });
@@ -528,7 +584,7 @@ document.querySelectorAll('[data-diff]').forEach((el) => {
     applyDifficulty(id);
     game.audio.unlock();
     game.audio.ui();
-    showToast(`${DIFFICULTY[id].label} — ${DIFFICULTY[id].blurb}`);
+    showToast(`${DIFFICULTY[id].label} - ${DIFFICULTY[id].blurb}`);
   });
 });
 
@@ -603,16 +659,43 @@ document.getElementById('btn-leave-confirm')!.addEventListener('click', () => {
   game.stopLoop();
 });
 
-document.getElementById('btn-upgrade')!.addEventListener('click', () => game.upgradeSelected());
-document.getElementById('btn-sell')!.addEventListener('click', () => game.sellSelected());
-document.getElementById('btn-deselect')!.addEventListener('click', () => {
-  game.selectedTowerId = null;
-  game.selectedEnemyId = null;
+document.getElementById('btn-upgrade')!.addEventListener('click', () => {
+  const t = game.getSelectedTower();
+  if (!t || t.level >= 3) return;
+  if (inspectStep === 'idle') {
+    inspectStep = 'preview';
+    game.upgradePreview = true;
+    updateHud();
+    game.audio.ui();
+    return;
+  }
+  if (inspectStep === 'preview') {
+    inspectStep = 'confirm';
+    updateHud();
+    game.audio.ui();
+  }
+});
+document.getElementById('btn-upgrade-yes')!.addEventListener('click', () => {
+  game.upgradeSelected();
+  inspectStep = 'idle';
+  game.upgradePreview = false;
+  updateHud();
+});
+document.getElementById('btn-upgrade-no')!.addEventListener('click', () => {
+  inspectStep = 'preview';
+  game.upgradePreview = true;
+  updateHud();
+});
+document.getElementById('btn-sell')!.addEventListener('click', () => {
+  game.sellSelected();
+  inspectStep = 'idle';
   updateHud();
 });
 document.getElementById('btn-inspect-close')!.addEventListener('click', () => {
   game.selectedTowerId = null;
   game.selectedEnemyId = null;
+  inspectStep = 'idle';
+  game.upgradePreview = false;
   updateHud();
 });
 document.getElementById('btn-build-close')!.addEventListener('click', () => closeBuildMenu());

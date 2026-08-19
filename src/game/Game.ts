@@ -60,6 +60,8 @@ export class Game {
   selectedEnemyId: number | null = null;
   /** Grass cell waiting for the on-map Build menu. */
   buildCell: { c: number; r: number } | null = null;
+  /** After clicking Upgrade — show the wider gold range ring. */
+  upgradePreview = false;
 
   towers: Tower[] = [];
   enemies: Enemy[] = [];
@@ -85,7 +87,7 @@ export class Game {
   onResult?: (won: boolean) => void;
   onToast?: (message: string) => void;
 
-  /** Playback speed (1 or 2). */
+  /** Playback speed (1, 2, or 3). */
   timeScale = 1;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -128,6 +130,7 @@ export class Game {
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
     this.buildCell = null;
+    this.upgradePreview = false;
     this.clock = 0;
     this.fx.clear();
     this.renderer.spawnHeat = 0;
@@ -265,6 +268,7 @@ export class Game {
     if (!t) return false;
     this.selectedTowerId = t.id;
     this.selectedEnemyId = null;
+    this.upgradePreview = false;
     this.onHud?.();
     return true;
   }
@@ -286,6 +290,7 @@ export class Game {
     if (!best) return false;
     this.selectedEnemyId = best.id;
     this.selectedTowerId = null;
+    this.upgradePreview = false;
     this.onHud?.();
     return true;
   }
@@ -305,6 +310,7 @@ export class Game {
     if (this.gold < cost) return false;
     this.gold -= cost;
     t.level += 1;
+    this.upgradePreview = false;
     this.fx.burst(t.x, t.y, t.def.color, 14, 'spark');
     this.fx.ring(t.x, t.y, t.def.color, 28, 2);
     this.floats.push({
@@ -325,6 +331,7 @@ export class Game {
     this.occupied.delete(`${t.col},${t.row}`);
     this.towers = this.towers.filter((x) => x.id !== t.id);
     this.selectedTowerId = null;
+    this.upgradePreview = false;
     this.onHud?.();
     return true;
   }
@@ -526,7 +533,7 @@ export class Game {
     );
     this.renderer.drawSpawnExit(this.waypoints);
     for (const t of this.towers) {
-      this.renderer.drawTower(t, t.id === this.selectedTowerId);
+      this.renderer.drawTower(t, t.id === this.selectedTowerId, this.upgradePreview);
     }
     for (const e of this.enemies) {
       this.renderer.drawEnemy(e, e.id === this.selectedEnemyId);
