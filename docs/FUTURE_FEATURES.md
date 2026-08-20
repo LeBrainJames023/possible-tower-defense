@@ -20,7 +20,7 @@ Captured for later — not in this pass:
 - Tiled as a visual map editor that exports into `levels.ts` (single source of truth must stay TypeScript)
 - MagicaVoxel / Blender sprite sheets for extra props
 - Flying vs ground targeting (Kingdom Rush style: cannon cannot lock air; arrows/lightning can)
-- Unique art for world specials / champions / bosses (painted keepers are in; four-way walks still preview-only)
+- Unique art for world specials / champions / bosses (painted keepers are in; four-way facing stills still preview-only)
 - On-death tricks (magma pop, wisp chill) and flyers once the roster feels right
 - Enemy sprite polish — per-creature cleanup, or image-gen if we explicitly choose. Placeholders are good enough to play.
 - Image-gen enemy sprites — only if we explicitly choose. Style drift and license logging are the traps; not default.
@@ -42,3 +42,4 @@ Done since MVP:
 - Painted enemies + towers + shots in the live match; Forest entrance and exit portals
 - Forest tree set + mixed grass/path tiles; cannon carriage stays, barrel turns
 - On-map 2×3 build tray, compact upgrade/sell, HUD chips, match vignette
+- Forest path/grass split, bigger towers + shots, y-sort, spinning portal halos, HUD hearts/gold/wave, path-aware frosted trays, 4-frame enemy walks

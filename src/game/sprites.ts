@@ -1,6 +1,6 @@
 import type { Enemy, Tower } from './entities';
 import { PX, TILE, TOWER_FEET, towerPaintHeight, type TowerKind } from './constants';
-import { ENEMY_GAIT, creatureFor, ENEMIES } from './enemies';
+import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
 
@@ -291,7 +291,10 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.stroke();
   }
 
-  const img = TEX.creatures[creatureFor(e.kind)];
+  const slot = creatureFor(e.kind);
+  const walk = TEX.creatureWalks[slot].filter(texReady);
+  const still = TEX.creatures[slot];
+  const img = walk.length ? walk[walkFrameIndex(e.bob, walk.length)] : still;
   if (texReady(img)) {
     const h = r * 3.35;
     const w = h * (img.naturalWidth / img.naturalHeight);
@@ -331,7 +334,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
 
   const hurt = e.hp < e.maxHp - 0.2;
   const showBar = selected || hurt || e.hitFlash > 0.12;
-  const by = y - (texReady(TEX.creatures[creatureFor(e.kind)]) ? r * 2.7 : r) - 16;
+  const by = y - (texReady(img) ? r * 2.7 : r) - 16;
   if (showBar) {
     const bw = Math.max(32, r * 2.5);
     const bh = 7;

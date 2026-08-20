@@ -14,6 +14,7 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/icons/*.png` | **Inkscape** (SVG in `tools/icons/`) | Tower dock swatches instead of flat CSS gradients |
 | `public/sprites/tree.png` | **Blender** headless (`tools/blender_tree.py`) | Fallback tree if painted forest trees are missing. |
 | `public/sprites/enemies/*.png` | **Cursor image gen** + Sprite Forge (copied from `preview/sprite-forge/monsters/`) | Live match now uses the painted keepers. Orc still → Raider. Ghoul/Gnome still extras. |
+| `public/sprites/enemies/walk/{creature}-1..4.png` | Cursor image gen 2×2 walk/fly sheet + Sprite Forge process (`feet` walkers, `center` flyers) | Four-frame loops on the ten live keepers. Imp / hellbat / wyvern flap; others walk. Fallback is the still if a frame is missing. |
 | `public/sprites/enemy-bodies/{slot}/*.png` | **Blender** (`tools/blender_enemy_bodies.py`) from extra Quaternius packs (Easy Enemy, Animated Monster, unused Ultimate Monsters) | Three new-body options per job for the picker. Not wired into the match until you pick. |
 | `public/preview/sprite-forge/raider/{a,b,c}/` | **Cursor image gen** + **Agent Sprite Forge** (`generate2dsprite.py` magenta key) | Human raider stills. Parked — quality was good, species was wrong. |
 | `public/preview/sprite-forge/monsters/{goblin,orc,troll,ghoul,gnome,wyvern,imp,warg,warlord,ogre,hellbat,drake}/` | Same pipeline | Mythic enemy identity stills. Keepers are now the live sprites. |

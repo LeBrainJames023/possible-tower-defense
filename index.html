@@ -91,20 +91,32 @@
         <div class="game-shell">
           <header class="hud">
             <div class="hud-chips">
-              <div class="hud-chip" title="Level">
+              <div class="hud-chip hud-chip-level" title="Level">
                 <span class="hud-ico ico-flag" aria-hidden="true"></span>
-                <span id="hud-level">1</span>
+                <span id="hud-level"><span class="hud-world">Forest</span><span class="hud-stage"> - 1</span></span>
               </div>
               <div class="hud-chip hud-chip-wave" title="Wave">
-                <span class="hud-ico ico-wave" aria-hidden="true"></span>
+                <svg class="hud-ico ico-wave" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 8 l5 4 l-5 4" fill="none" stroke="#f4d35e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M11 8 l5 4 l-5 4" fill="none" stroke="#ffe08a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M18 8 l5 4 l-5 4" fill="none" stroke="#c48a18" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
                 <span id="hud-wave">0 / 10</span>
               </div>
               <div class="hud-chip hud-chip-lives" id="chip-lives" title="Lives">
-                <span class="hud-ico ico-heart" aria-hidden="true"></span>
+                <svg class="hud-ico ico-heart" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#e23d4a" stroke="#7a1020" stroke-width="1.4" d="M12 20.4s-7.2-4.4-9.2-8.6C1.2 8.6 3.1 5 6.6 5c2 0 3.4 1.1 4.4 2.6C12 6.1 13.4 5 15.4 5c3.5 0 5.4 3.6 3.8 6.8-2 4.2-7.2 8.6-7.2 8.6z"/>
+                  <path fill="#ff9aa4" d="M8.2 7.2c1.1 0 2 .6 2.6 1.6L12 10l1.2-1.2c.6-1 1.5-1.6 2.6-1.6.4 0 .9.1 1.3.3-1-.9-2.3-1.5-3.7-1.5-1.6 0-2.8.8-3.8 2-.3-.4-.8-.8-1.4-1-.4.1-.7.3-1 .5.3-.1.6-.3 1-.3z"/>
+                </svg>
                 <span id="hud-lives">20</span>
               </div>
               <div class="hud-chip hud-chip-gold" id="chip-gold" title="Gold">
-                <span class="hud-ico ico-coin" aria-hidden="true"></span>
+                <svg class="hud-ico ico-coin" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="4" y="13" width="16" height="5" rx="1.2" fill="#c48a18" stroke="#6a4a08" stroke-width="1.2"/>
+                  <rect x="5" y="9" width="14" height="5" rx="1.2" fill="#e0b040" stroke="#8a6200" stroke-width="1.2"/>
+                  <rect x="6.5" y="5" width="11" height="5" rx="1.2" fill="#f4d35e" stroke="#8a6200" stroke-width="1.2"/>
+                  <rect x="8" y="6.4" width="8" height="1.1" rx="0.4" fill="#fff3b0"/>
+                </svg>
                 <span id="hud-gold">250</span>
               </div>
             </div>

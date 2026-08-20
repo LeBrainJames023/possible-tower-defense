@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pinRectBeside, tileBoxInHost } from '../src/shared/pinPanel';
+import { pinRectBeside, rectsOverlapArea, tileBoxInHost } from '../src/shared/pinPanel';
 
 describe('tileBoxInHost', () => {
   it('maps a cell into host space from the canvas box', () => {
@@ -48,5 +48,14 @@ describe('pinRectBeside', () => {
       { width: 800, height: 200 },
     );
     expect(pin.top).toBe(8);
+  });
+
+  it('picks the side that overlaps the path least', () => {
+    const tile = { left: 200, top: 120, width: 32, height: 32 };
+    const pathRight = { left: 240, top: 0, width: 80, height: 400 };
+    const pin = pinRectBeside(tile, panel, { width: 800, height: 500 }, 8, 8, [tile, pathRight]);
+    expect(pin.side).toBe('left');
+    const box = { left: pin.left, top: pin.top, width: panel.width, height: panel.height };
+    expect(rectsOverlapArea(box, pathRight)).toBe(0);
   });
 });

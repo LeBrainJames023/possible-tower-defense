@@ -238,7 +238,10 @@ h3 {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 230, 200, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 200, 0.28),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    0 6px 16px rgba(0, 0, 0, 0.28);
   transition:
     transform 0.1s ease,
     background 0.12s ease,
@@ -284,8 +287,8 @@ h3 {
 }
 
 .btn-ghost {
-  background: #1c1610;
-  border-color: var(--line);
+  background: linear-gradient(180deg, #2a241c, #16120e);
+  border-color: #8a7458;
   color: var(--text);
 }
 
@@ -540,8 +543,9 @@ h3 {
   min-height: 44px;
   padding: 6px 14px 6px 10px;
   border-radius: 12px;
-  background: rgba(8, 12, 16, 0.72);
-  border: 1px solid rgba(196, 176, 120, 0.28);
+  background: linear-gradient(180deg, rgba(18, 24, 28, 0.82), rgba(8, 12, 16, 0.78));
+  border: 1px solid rgba(196, 176, 120, 0.34);
+  box-shadow: inset 0 1px 0 rgba(220, 200, 150, 0.12);
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.02rem;
@@ -581,24 +585,77 @@ h3 {
 .hud-ico {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
   flex-shrink: 0;
+  display: block;
 }
 
-.ico-heart {
-  background: radial-gradient(circle at 35% 35%, #ff8a8a, #c01828);
-}
-
-.ico-coin {
-  background: radial-gradient(circle at 35% 30%, #ffe08a, #c48a18);
+.ico-heart,
+.ico-coin,
+.ico-wave {
+  overflow: visible;
 }
 
 .ico-flag {
-  background: radial-gradient(circle at 35% 35%, #8ec8f0, #2a5a8a);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, #8ec8f0, #2a5a8a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 8px rgba(80, 140, 80, 0.35);
+}
+
+#screen-game[data-world='forest'] .ico-flag {
+  background: radial-gradient(circle at 32% 30%, #d4f0b0, #3d8f4a 58%, #143820);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 220, 0.55), 0 0 10px rgba(80, 180, 70, 0.45);
+}
+#screen-game[data-world='desert'] .ico-flag {
+  background: radial-gradient(circle at 32% 30%, #f0d090, #c4a060 58%, #6a3a08);
+}
+#screen-game[data-world='ice'] .ico-flag {
+  background: radial-gradient(circle at 32% 30%, #e8f6ff, #7ab0d0 58%, #1a3040);
+}
+#screen-game[data-world='fire'] .ico-flag {
+  background: radial-gradient(circle at 32% 30%, #ffc090, #e05020 58%, #4a0800);
+}
+#screen-game[data-world='hollow'] .ico-flag {
+  background: radial-gradient(circle at 32% 30%, #e8c8ff, #7a40b0 58%, #2a0848);
+}
+
+.hud-world {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+#screen-game[data-world='forest'] .hud-world {
+  background-image: linear-gradient(
+    180deg,
+    #eaffc8 0%,
+    #b6e878 18%,
+    #5cb85a 40%,
+    #1e4a28 62%,
+    #3d8f4a 82%,
+    #d4f0b0 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 #0c2014) drop-shadow(0 -1px 0 rgba(220, 255, 180, 0.35));
+}
+
+.hud-stage {
+  color: rgba(243, 236, 227, 0.88);
+  font-weight: 700;
+}
+
+.ico-heart {
+  background: none;
+}
+
+.ico-coin {
+  background: none;
 }
 
 .ico-wave {
-  background: radial-gradient(circle at 35% 35%, #f4d35e, #8a6200);
+  background: none;
 }
 
 .hud-next {
@@ -699,14 +756,24 @@ h3 {
   width: 196px;
   max-height: none;
   overflow: visible;
-  background: linear-gradient(180deg, rgba(18, 22, 28, 0.94), rgba(10, 12, 16, 0.92));
-  border: 1px solid rgba(196, 176, 120, 0.45);
-  border-radius: 12px;
-  padding: 8px;
+  background: radial-gradient(
+    ellipse 74% 68% at 50% 46%,
+    rgba(16, 20, 26, 0.9) 0%,
+    rgba(16, 20, 26, 0.78) 52%,
+    rgba(16, 20, 26, 0.32) 78%,
+    rgba(16, 20, 26, 0.08) 100%
+  );
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(196, 176, 120, 0.38);
+  border-radius: 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(220, 200, 150, 0.16),
+    0 10px 28px rgba(0, 0, 0, 0.28);
 }
 
 .map-panel-head {

@@ -534,12 +534,23 @@ export class Game {
       !!this.buildCell,
     );
     this.renderer.drawSpawnExit(this.waypoints);
+    const units: Array<{ y: number; z: number; draw: () => void }> = [];
     for (const t of this.towers) {
-      this.renderer.drawTower(t, t.id === this.selectedTowerId, this.upgradePreview);
+      units.push({
+        y: t.y,
+        z: 0,
+        draw: () => this.renderer.drawTower(t, t.id === this.selectedTowerId, this.upgradePreview),
+      });
     }
     for (const e of this.enemies) {
-      this.renderer.drawEnemy(e, e.id === this.selectedEnemyId);
+      units.push({
+        y: e.pos.y,
+        z: 1,
+        draw: () => this.renderer.drawEnemy(e, e.id === this.selectedEnemyId),
+      });
     }
+    units.sort((a, b) => a.y - b.y || a.z - b.z);
+    for (const unit of units) unit.draw();
     for (const p of this.projectiles) this.renderer.drawProjectile(p);
     this.renderer.drawBeams(this.beams);
     this.renderer.drawParticles(this.fx);

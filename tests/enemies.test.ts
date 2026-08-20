@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ENEMIES, leakLives, spriteFlip } from '../src/game/enemies';
+import { ENEMIES, leakLives, spriteFlip, walkFrameIndex } from '../src/game/enemies';
 import { championAt, rosterFor, specialAt } from '../src/game/worldRoster';
 import { LEVELS, pathWaypoints } from '../src/game/levels';
 import { firstAppearanceKinds, shouldIntro } from '../src/game/intros';
@@ -69,5 +69,15 @@ describe('sprite facing', () => {
     const grunt = new Enemy('grunt', 1, wps);
     expect(grunt.flip).toBe(-1);
     expect(Math.cos(grunt.facing)).toBeGreaterThan(0.5);
+  });
+});
+
+describe('walk frames', () => {
+  it('loops four frames across one gait cycle', () => {
+    expect(walkFrameIndex(0, 4)).toBe(0);
+    expect(walkFrameIndex(Math.PI * 0.5, 4)).toBe(1);
+    expect(walkFrameIndex(Math.PI, 4)).toBe(2);
+    expect(walkFrameIndex(Math.PI * 1.5, 4)).toBe(3);
+    expect(walkFrameIndex(Math.PI * 2, 4)).toBe(0);
   });
 });

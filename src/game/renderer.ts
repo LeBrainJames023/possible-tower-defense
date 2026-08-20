@@ -153,6 +153,12 @@ export class Renderer {
     if (this.world === 'forest' && tiles.length) {
       const img = tiles[Math.floor(hash(c, r, 2) * tiles.length) % tiles.length];
       ctx.drawImage(img, x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = 'rgba(92, 168, 78, 0.38)';
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(180, 220, 120, 0.08)';
+      ctx.fillRect(x, y, TILE, TILE);
       return;
     }
     const mix = hash(c, r, 2);
@@ -174,8 +180,17 @@ export class Renderer {
     const tiles = TEX.pathTiles.filter(texReady);
     if (this.world === 'forest' && tiles.length) {
       const img = tiles[Math.floor(hash(c, r, 5) * tiles.length) % tiles.length];
-      const bleed = 5 * PX;
+      const bleed = 3 * PX;
       ctx.drawImage(img, x - bleed, y - bleed, TILE + bleed * 2, TILE + bleed * 2);
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = 'rgba(186, 128, 64, 0.42)';
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(232, 186, 120, 0.14)';
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.strokeStyle = 'rgba(42, 24, 12, 0.42)';
+      ctx.lineWidth = 1.4 * PX;
+      ctx.strokeRect(x + 0.7 * PX, y + 0.7 * PX, TILE - 1.4 * PX, TILE - 1.4 * PX);
       this.stampWater(x, y);
       drawWorldPath(ctx, theme, this.world, x, y, this.time);
       return;
@@ -217,8 +232,8 @@ export class Renderer {
     const { ctx, theme } = this;
     const painted = this.world === 'forest' && TEX.pathTiles.some(texReady);
     ctx.strokeStyle = theme.glow;
-    ctx.lineWidth = (painted ? 18 : 32) * PX;
-    ctx.globalAlpha = painted ? 0.35 : 1;
+    ctx.lineWidth = (painted ? 22 : 32) * PX;
+    ctx.globalAlpha = painted ? 0.48 : 1;
     ctx.lineCap = 'butt';
     ctx.lineJoin = 'miter';
     ctx.beginPath();

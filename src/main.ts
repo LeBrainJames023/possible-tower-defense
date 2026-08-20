@@ -341,7 +341,18 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
   const canvasRect = canvas.getBoundingClientRect();
   const hostRect = playfield.getBoundingClientRect();
   const tile = tileBoxInHost(c, r, COLS, ROWS, canvasRect, hostRect);
-  const pin = pinRectBeside(tile, { width: panel.offsetWidth, height: panel.offsetHeight }, hostRect);
+  const avoid = (game.level?.pathTiles ?? []).map((p) =>
+    tileBoxInHost(p.c, p.r, COLS, ROWS, canvasRect, hostRect),
+  );
+  avoid.push(tile);
+  const pin = pinRectBeside(
+    tile,
+    { width: panel.offsetWidth, height: panel.offsetHeight },
+    hostRect,
+    8,
+    8,
+    avoid,
+  );
   panel.style.left = `${pin.left}px`;
   panel.style.top = `${pin.top}px`;
 }
@@ -465,7 +476,7 @@ function fillInspectEnemy(enemy: Enemy): void {
 
 function updateHud(): void {
   if (!game.level) return;
-  hudLevel.textContent = `${worldById(game.level.world).name} - ${game.level.stage}`;
+  hudLevel.innerHTML = `<span class="hud-world">${worldById(game.level.world).name}</span><span class="hud-stage"> - ${game.level.stage}</span>`;
   hudWave.textContent = `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);

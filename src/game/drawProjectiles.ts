@@ -4,12 +4,12 @@ import { TEX, texReady } from './assets';
 
 /** In-flight shots. Splash rings live in fx.ts and use each tower's splash radius. */
 const SHOT_SIZE: Record<Projectile['kind'], number> = {
-  arrow: 22,
-  cannon: 34,
-  ice: 26,
-  lightning: 28,
-  fire: 30,
-  poison: 28,
+  arrow: 32,
+  cannon: 48,
+  ice: 38,
+  lightning: 40,
+  fire: 42,
+  poison: 40,
 };
 
 export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): void {

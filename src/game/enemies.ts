@@ -166,3 +166,10 @@ export function spriteFlip(dx: number, prev: number): number {
   if (dx < -0.32) return 1;
   return prev;
 }
+
+/** Loop a walk/fly sheet from the gait bob (one revolution = one cycle). */
+export function walkFrameIndex(bob: number, frameCount: number): number {
+  if (frameCount <= 1) return 0;
+  const cycle = ((bob / (Math.PI * 2)) % 1 + 1) % 1;
+  return Math.floor(cycle * frameCount);
+}

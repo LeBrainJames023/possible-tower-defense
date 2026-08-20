@@ -15,6 +15,10 @@ export function texReady(img: HTMLImageElement | null): img is HTMLImageElement 
   return !!img && img.complete && img.naturalWidth > 0;
 }
 
+function walkSheet(name: CreatureSprite): Array<HTMLImageElement | null> {
+  return [1, 2, 3, 4].map((i) => loadImage(`/sprites/enemies/walk/${name}-${i}.png`));
+}
+
 export const TEX = {
   grass: loadImage('/textures/grass.jpg'),
   dirt: loadImage('/textures/dirt.jpg'),
@@ -53,6 +57,18 @@ export const TEX = {
     wyvern: loadImage('/sprites/enemies/wyvern.png'),
     drake: loadImage('/sprites/enemies/drake.png'),
   } satisfies Record<CreatureSprite, HTMLImageElement | null>,
+  creatureWalks: {
+    goblin: walkSheet('goblin'),
+    raider: walkSheet('raider'),
+    imp: walkSheet('imp'),
+    troll: walkSheet('troll'),
+    warlord: walkSheet('warlord'),
+    warg: walkSheet('warg'),
+    ogre: walkSheet('ogre'),
+    hellbat: walkSheet('hellbat'),
+    wyvern: walkSheet('wyvern'),
+    drake: walkSheet('drake'),
+  } satisfies Record<CreatureSprite, Array<HTMLImageElement | null>>,
   towers: {
     arrow: loadImage('/sprites/towers/arrow.png'),
     cannon: loadImage('/sprites/towers/cannon.png'),

@@ -31,26 +31,61 @@ function drawPortalBillboard(
   img: HTMLImageElement,
   heat: number,
   tint: string,
+  time: number,
+  kind: 'in' | 'out',
 ): void {
-  const pulse = 1 + heat * 0.28;
-  const h = 58 * PX * pulse;
+  const idle = 0.72 + Math.sin(time * 2.05) * 0.08;
+  const pulse = 1 + heat * 0.22 + idle * 0.06;
+  const h = 92 * PX * pulse;
   const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
-  const glowR = (38 + heat * 22) * PX * pulse;
-  const glow = ctx.createRadialGradient(x, y, 4 * PX, x, y, glowR);
+  const cx = x;
+  const cy = y - h * 0.38;
+  const glowR = (58 + heat * 20) * PX * pulse;
+  const glow = ctx.createRadialGradient(cx, cy, 6 * PX, cx, cy, glowR);
   glow.addColorStop(0, tint);
+  glow.addColorStop(0.45, kind === 'in' ? 'rgba(120, 200, 255, 0.16)' : 'rgba(239, 71, 111, 0.16)');
   glow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.arc(x, y, glowR, 0, Math.PI * 2);
+  ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
   ctx.fill();
-  if (heat > 0.2) {
-    ctx.strokeStyle = `rgba(255, 120, 140, ${0.25 + heat * 0.55})`;
-    ctx.lineWidth = 4 * PX;
-    ctx.beginPath();
-    ctx.arc(x, y, (28 + heat * 16) * PX, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.drawImage(img, x - w / 2, y - h + 16 * PX, w, h);
+
+  const ringColor =
+    kind === 'in' ? `rgba(140, 220, 255, ${0.55 + heat * 0.35})` : `rgba(255, 120, 140, ${0.55 + heat * 0.35})`;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(time * 0.7);
+  ctx.strokeStyle = ringColor;
+  ctx.lineWidth = 3.2 * PX;
+  ctx.setLineDash([10 * PX, 8 * PX]);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 30 * PX * pulse, 18 * PX * pulse, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.rotate(-time * 1.55);
+  ctx.strokeStyle = kind === 'in' ? `rgba(220, 250, 255, ${0.4 + idle * 0.25})` : `rgba(255, 200, 190, ${0.4 + idle * 0.25})`;
+  ctx.lineWidth = 2.2 * PX;
+  ctx.setLineDash([6 * PX, 10 * PX]);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 22 * PX * pulse, 13 * PX * pulse, 0.4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  ctx.drawImage(img, x - w / 2, y - h + 18 * PX, w, h);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-time * 1.15);
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = 0.28 + heat * 0.22 + idle * 0.12;
+  const swirl = ctx.createRadialGradient(0, 0, 2 * PX, 0, 0, 16 * PX * pulse);
+  swirl.addColorStop(0, kind === 'in' ? 'rgba(180, 240, 255, 0.9)' : 'rgba(255, 170, 150, 0.9)');
+  swirl.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = swirl;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 16 * PX * pulse, 10 * PX * pulse, time * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawSpawnArch(
@@ -65,7 +100,7 @@ function drawSpawnArch(
 ): void {
   const pulse = 0.7 + Math.sin(time * 3.2) * 0.15 + heat * 0.55;
   if (texReady(TEX.portalIn)) {
-    drawPortalBillboard(ctx, x, y, TEX.portalIn, heat, `rgba(120, 200, 255, ${0.28 + heat * 0.4})`);
+    drawPortalBillboard(ctx, x, y, TEX.portalIn, Math.max(heat, 0.2), `rgba(120, 200, 255, ${0.42 + heat * 0.35})`, time, 'in');
     return;
   }
   ctx.save();
@@ -147,8 +182,10 @@ function drawExitKeep(
       x,
       y,
       TEX.portalOut,
-      Math.max(wound, 0.12),
-      `rgba(239, 71, 111, ${0.38 + wound * 0.55})`,
+      Math.max(wound, 0.22),
+      `rgba(239, 71, 111, ${0.48 + wound * 0.4})`,
+      time,
+      'out',
     );
     return;
   }
