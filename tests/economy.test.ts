@@ -7,6 +7,7 @@ import {
   SELL_REFUND,
   UPGRADE_PRICE_MUL,
   arrowGruntTimeToKill,
+  killPayout,
   scaleGold,
   scaleLives,
   sellValueFor,
@@ -97,10 +98,30 @@ describe('difficulty levers', () => {
     expect(DIFFICULTY.hard.hp).toBeGreaterThan(DIFFICULTY.normal.hp);
   });
 
-  it('scales gold and lives without going to zero', () => {
-    expect(scaleGold(250, DIFFICULTY.easy.gold)).toBe(313);
-    expect(scaleGold(250, DIFFICULTY.hard.gold)).toBe(200);
+  it('hard keeps a four-arrow opening and squeezes income instead', () => {
+    expect(scaleGold(LEVELS[0].startingGold, DIFFICULTY.hard.startGold)).toBeGreaterThanOrEqual(
+      TOWERS.arrow.cost * 4,
+    );
+    expect(DIFFICULTY.hard.startGold).toBe(DIFFICULTY.normal.startGold);
+    expect(scaleGold(15, DIFFICULTY.hard.gold)).toBe(12);
     expect(scaleLives(18, DIFFICULTY.easy.lives)).toBe(23);
     expect(scaleLives(18, DIFFICULTY.hard.lives)).toBe(14);
+  });
+
+  it('later worlds pay more per kill as HP climbs', () => {
+    expect(killPayout(15, 1)).toBe(15);
+    expect(killPayout(15, 5)).toBeGreaterThan(killPayout(15, 1));
+    expect(waveKillGold(1, 1, 5)).toBeGreaterThan(waveKillGold(1, 1, 1));
+  });
+
+  it('later world openings scale with HP so a gate is not a Forest-10 start', () => {
+    const forest1 = LEVELS.find((l) => l.world === 'forest' && l.stage === 1)!;
+    const fire1 = LEVELS.find((l) => l.world === 'fire' && l.stage === 1)!;
+    const hollow1 = LEVELS.find((l) => l.world === 'hollow' && l.stage === 1)!;
+    expect(forest1.startingGold).toBe(250);
+    expect(fire1.startingGold).toBeGreaterThan(forest1.startingGold);
+    expect(hollow1.startingGold).toBeGreaterThan(fire1.startingGold);
+    expect(Math.floor(fire1.startingGold / TOWERS.arrow.cost)).toBeGreaterThanOrEqual(6);
+    expect(Math.floor(hollow1.startingGold / TOWERS.arrow.cost)).toBeGreaterThanOrEqual(7);
   });
 });

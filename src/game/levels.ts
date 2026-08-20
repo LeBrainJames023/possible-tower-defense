@@ -397,7 +397,7 @@ function buildLevels(): LevelDef[] {
         pathTiles,
         blocked: scatterWorldDecor(world.id, pathTiles, authored),
         hpScale: Math.round(t.hpScale * world.hpMul * 100) / 100,
-        startingGold: t.gold + (world.index - 1) * 10,
+        startingGold: Math.round(t.gold * world.hpMul),
         lives: t.lives,
       });
     });

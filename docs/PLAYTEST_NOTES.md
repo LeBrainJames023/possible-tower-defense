@@ -1,5 +1,39 @@
 # Playtest notes
 
+## This session — audit fix pass (Aug 20)
+
+Walk east/west files were backwards (Meadow Gate’s opening stretch moonwalked). Swapped e/w walk + face frames for all ten keepers; raider-e now faces right. Re-keyed magenta halos on the 160 dir-walk frames (`tools/defringeWalks.py`). Dir-walk no longer gets the old bob/squash/sway on top — the four frames carry the gait.
+
+Sticky place: after Build, the next grass click drops the same tower. Inspect is on demand (click an existing keep), not after every place. Hovering empty grass shows a range ghost (last tower, or Arrow before the first build). Right-click grass opens the tray to pick another. How to play and the Build toast say this.
+
+Arrow/Cannon fill more of the tile (wider base, bigger turret/barrel). Arrow bolts draw smaller so they read as arrows, not spears. Forest campaign thumbs stamp live grass/path tiles instead of a checkerboard; other worlds use hashed theme colors. HUD copy is `Wave running` (no trailing dash).
+
+Still parked: unique Desert/Ice/Fire/Hollow bodies (scorpion is still a hellbat), a real music score, 14-arrow Forest 10 start gold, 7th tower, splash retune.
+
+Check 1x: Forest 1 — place Arrow, click more grass, it should drop another without opening inspect. Right-click grass for the tray. Raiders on the first east stretch face **right**. Forest level cards should look painted, not checkerboard.
+
+### Hard 0-life rule
+
+Hard still hits 80% kill gold, 88% damage, 112% HP, 14 lives. Starting gold is no longer cut, so Forest 1 still opens with four Arrows. Start gold and kill bounties scale with world HP (Forest 1× … Hollow 1.68×), then Hard’s 80% income applies. Stage HP climb is unpaid — that’s the skill check. Early maps should 0-life with smart placement; later maps stay possible if you place and upgrade well, not a 14-arrow opening farm.
+
+### Kill gold HUD was lying
+
+Gold was already added in `collectBounties` on death. The HUD chip only refreshed on pause / place / sell / start wave / wave end, so the number sat still until the wave cleared. `onHud` now fires when a kill pays (and when a leak costs a life). `+Ng` floats are bigger with a dark stroke so they read at 1x. Amounts not retuned.
+
+### Four-way walk / flap is in
+
+Generated 4×4 sheets for all ten keepers and wired `public/sprites/enemies/walk/{creature}-{n,e,s,w}-1..4.png`. Down/up now cycle, not just face. Imp and hellbat flap; the rest walk. Check 1x: Forest 9 south stretch, then a left/right corner. Identity can drift a bit vs the still portraits — say if one creature looks like a cousin.
+
+### Trays still eat a big chunk of the map
+
+Aug 20 stronger pass: pin prefers a far edge / corner that misses the path and the range-ring box; card is more see-through (no blur, lighter center). Buttons stayed the same size. Still do not promise “never covers path.”
+
+Aug 19 batch did the two levers we wrote down: pin tries right/left/below/above to miss path tiles, and `.map-panel` fades at the edges so the range ring can peek. It did **not** get the menu off the Forest. The 2×3 build card is still 196px wide, mostly-solid in the middle (~90% dark) plus a 5px blur, so it still sits on the meadow as a big dark rectangle. Inspect is smaller but the same language.
+
+Forest 9 (Siege March): entrance is the top-left of the canvas, so the HUD bar sits right against the blue portal — that is the chrome above the map, not the tray. Do not mix those two.
+
+Next pass if we pick it (do not shrink BCI buttons): stronger see-through (lower center opacity, less blur so the ring actually reads through more of the card), and/or pin farther away (empty grass / toward a screen edge, not 8px beside the tile). `clampPanel` can also slide a “left” pick back onto the path to stay on screen — fix that if we retouch pin. Still do not promise “never covers path.”
+
 ## Built this pass (Aug 19 batch)
 
 Verified after a Vite restart (5173 had been serving yesterday’s files). Meadow Gate: path vs grass, HUD icons, taller keeps, portal halos, frosted tray + range ring, Raider walk, path placement blocked. Goblin/Imp/Warlord still need your eyes on Forest 9.

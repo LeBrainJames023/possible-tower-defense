@@ -10,8 +10,19 @@ function billboardHeight(t: Tower): number {
   return towerPaintHeight(t.level);
 }
 
-function drawFeetBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElement, h: number, feetY: number): void {
+function drawFeetBillboard(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  h: number,
+  feetY: number,
+  fillTile = false,
+): void {
   let w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  if (fillTile && w < TILE * 0.9) {
+    const s = (TILE * 0.9) / w;
+    w *= s;
+    h *= s;
+  }
   if (w > TILE) {
     const s = TILE / w;
     w = TILE;
@@ -32,19 +43,19 @@ function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: numbe
   const { arrowBase, arrowTurret, cannonGun, cannonBase } = TEX.towerParts;
 
   if (t.kind === 'arrow' && texReady(arrowBase) && texReady(arrowTurret)) {
-    drawFeetBillboard(ctx, arrowBase, h, feet);
+    drawFeetBillboard(ctx, arrowBase, h, feet, true);
     ctx.save();
-    ctx.translate(0, -h * 0.56 + feet);
+    ctx.translate(0, -h * 0.5 + feet);
     ctx.rotate(t.aim + Math.PI);
     ctx.translate(recoil * 1.1, 0);
-    drawCenteredBillboard(ctx, arrowTurret, h * 0.52);
+    drawCenteredBillboard(ctx, arrowTurret, h * 0.7);
     ctx.restore();
     return true;
   }
 
   if (t.kind === 'cannon' && texReady(cannonGun)) {
     if (texReady(cannonBase)) {
-      drawFeetBillboard(ctx, cannonBase, h * 0.92, feet);
+      drawFeetBillboard(ctx, cannonBase, h * 0.92, feet, true);
     } else {
       ctx.fillStyle = 'rgba(0,0,0,0.32)';
       ctx.beginPath();
@@ -55,7 +66,7 @@ function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: numbe
     ctx.translate(0, texReady(cannonBase) ? -h * 0.22 + feet : 2 * PX);
     ctx.rotate(t.aim + Math.PI);
     ctx.translate(recoil * 1.25, 0);
-    drawCenteredBillboard(ctx, cannonGun, texReady(cannonBase) ? h * 0.42 : h * 0.78);
+    drawCenteredBillboard(ctx, cannonGun, texReady(cannonBase) ? h * 0.58 : h * 0.82);
     ctx.restore();
     return true;
   }
@@ -260,12 +271,38 @@ export function drawTower(
   drawRankStar(ctx, x, y + 26 * PX, 7.5 * PX, rank.fill, rank.stroke);
 }
 
+function enemyBillboard(e: Enemy): { img: HTMLImageElement; flip: number; puppet: boolean } | null {
+  const slot = creatureFor(e.kind);
+  const dirWalk = TEX.creatureDirWalks[slot][e.cardinal].filter(texReady);
+  if (dirWalk.length) {
+    return { img: dirWalk[walkFrameIndex(e.bob, dirWalk.length)], flip: 1, puppet: false };
+  }
+  const faces = TEX.creatureFaces[slot];
+  if (e.cardinal === 'n' || e.cardinal === 's') {
+    const face = faces[e.cardinal];
+    if (texReady(face)) return { img: face, flip: 1, puppet: true };
+  }
+  const walk = TEX.creatureWalks[slot].filter(texReady);
+  if (walk.length) {
+    return { img: walk[walkFrameIndex(e.bob, walk.length)], flip: e.flip, puppet: false };
+  }
+  const sideFace = e.cardinal === 'e' || e.cardinal === 'w' ? faces[e.cardinal] : null;
+  if (texReady(sideFace)) return { img: sideFace, flip: 1, puppet: true };
+  const still = TEX.creatures[slot];
+  if (texReady(still)) return { img: still, flip: e.flip, puppet: true };
+  return null;
+}
+
 export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boolean, time: number): void {
   const gait = ENEMY_GAIT[e.kind];
-  const bob = Math.sin(e.bob) * gait.bobAmp;
-  const sway = Math.sin(e.bob * 0.5) * gait.sway;
-  const jitter = gait.jitter ? Math.sin(e.bob * 3.4) * gait.jitter + Math.sin(time * 31 + e.id) * gait.jitter * 0.35 : 0;
-  const squash = Math.sin(e.bob) * gait.squash;
+  const billboard = enemyBillboard(e);
+  const puppet = billboard?.puppet ?? true;
+  const bob = puppet ? Math.sin(e.bob) * gait.bobAmp : 0;
+  const sway = puppet ? Math.sin(e.bob * 0.5) * gait.sway : 0;
+  const jitter = puppet && gait.jitter
+    ? Math.sin(e.bob * 3.4) * gait.jitter + Math.sin(time * 31 + e.id) * gait.jitter * 0.35
+    : 0;
+  const squash = puppet ? Math.sin(e.bob) * gait.squash : 0;
   const r = e.radius;
   const air = e.flying ? r * 1.25 : 0;
   const x = e.pos.x + sway + jitter;
@@ -291,14 +328,10 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.stroke();
   }
 
-  const slot = creatureFor(e.kind);
-  const walk = TEX.creatureWalks[slot].filter(texReady);
-  const still = TEX.creatures[slot];
-  const img = walk.length ? walk[walkFrameIndex(e.bob, walk.length)] : still;
-  if (texReady(img)) {
+  if (billboard) {
+    const { img, flip } = billboard;
     const h = r * 3.35;
     const w = h * (img.naturalWidth / img.naturalHeight);
-    const flip = e.flip;
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(flip * (1 + squash), 1 - squash);
@@ -334,7 +367,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
 
   const hurt = e.hp < e.maxHp - 0.2;
   const showBar = selected || hurt || e.hitFlash > 0.12;
-  const by = y - (texReady(img) ? r * 2.7 : r) - 16;
+  const by = y - (billboard ? r * 2.7 : r) - 16;
   if (showBar) {
     const bw = Math.max(32, r * 2.5);
     const bh = 7;

@@ -270,10 +270,14 @@ export class Renderer {
   drawFloating(texts: FloatingText[]): void {
     const { ctx } = this;
     ctx.textAlign = 'center';
-    ctx.font = `bold ${Math.round(18 * PX)}px DM Sans, sans-serif`;
+    ctx.font = `800 ${Math.round(22 * PX)}px Syne, DM Sans, sans-serif`;
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 4 * PX;
     for (const t of texts) {
       ctx.globalAlpha = Math.min(1, t.life);
+      ctx.strokeStyle = '#0a120c';
       ctx.fillStyle = t.color;
+      ctx.strokeText(t.text, t.x, t.y);
       ctx.fillText(t.text, t.x, t.y);
       ctx.globalAlpha = 1;
     }

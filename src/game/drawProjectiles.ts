@@ -4,7 +4,7 @@ import { TEX, texReady } from './assets';
 
 /** In-flight shots. Splash rings live in fx.ts and use each tower's splash radius. */
 const SHOT_SIZE: Record<Projectile['kind'], number> = {
-  arrow: 32,
+  arrow: 22,
   cannon: 48,
   ice: 38,
   lightning: 40,

@@ -1,7 +1,7 @@
 /** Optional baked images. Missing files just mean we keep procedural art. */
 
 import type { TowerKind } from './constants';
-import type { CreatureSprite } from './enemies';
+import type { Cardinal, CreatureSprite } from './enemies';
 
 export function loadImage(src: string): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
@@ -15,8 +15,36 @@ export function texReady(img: HTMLImageElement | null): img is HTMLImageElement 
   return !!img && img.complete && img.naturalWidth > 0;
 }
 
+const CREATURES: CreatureSprite[] = [
+  'goblin',
+  'raider',
+  'imp',
+  'troll',
+  'warlord',
+  'warg',
+  'ogre',
+  'hellbat',
+  'wyvern',
+  'drake',
+];
+
 function walkSheet(name: CreatureSprite): Array<HTMLImageElement | null> {
   return [1, 2, 3, 4].map((i) => loadImage(`/sprites/enemies/walk/${name}-${i}.png`));
+}
+
+function dirWalkSheet(name: CreatureSprite): Record<Cardinal, Array<HTMLImageElement | null>> {
+  const frames = (dir: Cardinal) =>
+    [1, 2, 3, 4].map((i) => loadImage(`/sprites/enemies/walk/${name}-${dir}-${i}.png`));
+  return { n: frames('n'), e: frames('e'), s: frames('s'), w: frames('w') };
+}
+
+function faceSheet(name: CreatureSprite): Record<Cardinal, HTMLImageElement | null> {
+  return {
+    n: loadImage(`/sprites/enemies/face/${name}-n.png`),
+    e: loadImage(`/sprites/enemies/face/${name}-e.png`),
+    s: loadImage(`/sprites/enemies/face/${name}-s.png`),
+    w: loadImage(`/sprites/enemies/face/${name}-w.png`),
+  };
 }
 
 export const TEX = {
@@ -69,6 +97,22 @@ export const TEX = {
     wyvern: walkSheet('wyvern'),
     drake: walkSheet('drake'),
   } satisfies Record<CreatureSprite, Array<HTMLImageElement | null>>,
+  creatureDirWalks: Object.fromEntries(CREATURES.map((name) => [name, dirWalkSheet(name)])) as Record<
+    CreatureSprite,
+    Record<Cardinal, Array<HTMLImageElement | null>>
+  >,
+  creatureFaces: {
+    goblin: faceSheet('goblin'),
+    raider: faceSheet('raider'),
+    imp: faceSheet('imp'),
+    troll: faceSheet('troll'),
+    warlord: faceSheet('warlord'),
+    warg: faceSheet('warg'),
+    ogre: faceSheet('ogre'),
+    hellbat: faceSheet('hellbat'),
+    wyvern: faceSheet('wyvern'),
+    drake: faceSheet('drake'),
+  } satisfies Record<CreatureSprite, Record<Cardinal, HTMLImageElement | null>>,
   towers: {
     arrow: loadImage('/sprites/towers/arrow.png'),
     cannon: loadImage('/sprites/towers/cannon.png'),

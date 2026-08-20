@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ENEMIES, leakLives, spriteFlip, walkFrameIndex } from '../src/game/enemies';
+import { existsSync } from 'node:fs';
+import { ENEMIES, leakLives, facingCardinal, spriteFlip, walkFrameIndex, type CreatureSprite } from '../src/game/enemies';
 import { championAt, rosterFor, specialAt } from '../src/game/worldRoster';
 import { LEVELS, pathWaypoints } from '../src/game/levels';
 import { firstAppearanceKinds, shouldIntro } from '../src/game/intros';
@@ -64,11 +65,28 @@ describe('sprite facing', () => {
     expect(spriteFlip(-0.1, 1)).toBe(1);
   });
 
+  it('picks the dominant cardinal from path heading', () => {
+    expect(facingCardinal(0)).toBe('e');
+    expect(facingCardinal(Math.PI / 2)).toBe('s');
+    expect(facingCardinal(Math.PI)).toBe('w');
+    expect(facingCardinal(-Math.PI / 2)).toBe('n');
+  });
+
   it('spawns Meadow Gate enemies already facing the first rightward stretch', () => {
     const wps = pathWaypoints(LEVELS[0]);
     const grunt = new Enemy('grunt', 1, wps);
+    expect(grunt.cardinal).toBe('e');
     expect(grunt.flip).toBe(-1);
     expect(Math.cos(grunt.facing)).toBeGreaterThan(0.5);
+  });
+
+  it('spawns Siege March enemies facing the first southward stretch', () => {
+    const siege = LEVELS.find((l) => l.world === 'forest' && l.stage === 9);
+    expect(siege?.name).toBe('Siege March');
+    const wps = pathWaypoints(siege!);
+    const grunt = new Enemy('grunt', 1, wps);
+    expect(grunt.cardinal).toBe('s');
+    expect(Math.sin(grunt.facing)).toBeGreaterThan(0.5);
   });
 });
 
@@ -79,5 +97,27 @@ describe('walk frames', () => {
     expect(walkFrameIndex(Math.PI, 4)).toBe(2);
     expect(walkFrameIndex(Math.PI * 1.5, 4)).toBe(3);
     expect(walkFrameIndex(Math.PI * 2, 4)).toBe(0);
+  });
+
+  it('has four-direction walk loops for every live keeper', () => {
+    const creatures: CreatureSprite[] = [
+      'goblin',
+      'raider',
+      'imp',
+      'troll',
+      'warlord',
+      'warg',
+      'ogre',
+      'hellbat',
+      'wyvern',
+      'drake',
+    ];
+    for (const name of creatures) {
+      for (const dir of ['n', 'e', 's', 'w'] as const) {
+        for (const frame of [1, 2, 3, 4]) {
+          expect(existsSync(`public/sprites/enemies/walk/${name}-${dir}-${frame}.png`)).toBe(true);
+        }
+      }
+    }
   });
 });

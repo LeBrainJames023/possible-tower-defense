@@ -50,12 +50,29 @@ describe('pinRectBeside', () => {
     expect(pin.top).toBe(8);
   });
 
-  it('picks the side that overlaps the path least', () => {
+  it('picks a seat that misses a path on the right of the tile', () => {
     const tile = { left: 200, top: 120, width: 32, height: 32 };
     const pathRight = { left: 240, top: 0, width: 80, height: 400 };
     const pin = pinRectBeside(tile, panel, { width: 800, height: 500 }, 8, 8, [tile, pathRight]);
-    expect(pin.side).toBe('left');
     const box = { left: pin.left, top: pin.top, width: panel.width, height: panel.height };
     expect(rectsOverlapArea(box, pathRight)).toBe(0);
+    expect(pin.left).not.toBe(tile.left + tile.width + 8);
+  });
+
+  it('prefers a far edge over a snug seat that clamp would slide onto the path', () => {
+    const tile = { left: 40, top: 180, width: 32, height: 32 };
+    const pathLeft = { left: 0, top: 0, width: 160, height: 500 };
+    const pin = pinRectBeside(tile, panel, { width: 800, height: 500 }, 8, 8, [tile, pathLeft]);
+    const box = { left: pin.left, top: pin.top, width: panel.width, height: panel.height };
+    expect(rectsOverlapArea(box, pathLeft)).toBe(0);
+    expect(pin.left).toBeGreaterThan(400);
+  });
+
+  it('picks the farther seat when two spots miss the keep-clear ring', () => {
+    const tile = { left: 300, top: 200, width: 32, height: 32 };
+    const ring = { left: 220, top: 120, width: 192, height: 192 };
+    const pin = pinRectBeside(tile, panel, { width: 800, height: 500 }, 8, 8, [tile, ring]);
+    const snugRight = 300 + 32 + 8;
+    expect(pin.left).toBeGreaterThan(snugRight);
   });
 });

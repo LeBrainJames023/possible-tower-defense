@@ -1,5 +1,5 @@
 import { TOWER_FEET, TOWERS, towerPaintHeight, type TowerKind } from './constants';
-import { ENEMIES, ENEMY_GAIT, spriteFlip, type EnemyKind } from './enemies';
+import { ENEMIES, ENEMY_GAIT, facingCardinal, type Cardinal, type EnemyKind } from './enemies';
 import { sellValueFor, upgradeCostFor } from './balance';
 import type { Vec2 } from '../shared/math';
 import { dist, pathTotalLength } from '../shared/math';
@@ -34,6 +34,7 @@ export class Enemy {
   facing = 0;
   /** 1 = authored left, -1 = mirrored for travel right. */
   flip = 1;
+  cardinal: Cardinal = 'e';
   hitFlash = 0;
   bob = Math.random() * Math.PI * 2;
   footfall = false;
@@ -55,9 +56,9 @@ export class Enemy {
     if (waypoints.length >= 2) {
       const dx = waypoints[1].x - waypoints[0].x;
       const dy = waypoints[1].y - waypoints[0].y;
-      const len = Math.hypot(dx, dy) || 1;
       this.facing = Math.atan2(dy, dx);
-      this.flip = spriteFlip(dx / len, 1);
+      this.cardinal = facingCardinal(this.facing);
+      this.flip = this.cardinal === 'e' ? -1 : 1;
     }
   }
 
@@ -141,7 +142,8 @@ export class Enemy {
         const dy = this.pos.y - prev.y;
         if (dx * dx + dy * dy > 0.01) {
           this.facing = Math.atan2(dy, dx);
-          this.flip = spriteFlip(Math.cos(this.facing), this.flip);
+          this.cardinal = facingCardinal(this.facing);
+          this.flip = this.cardinal === 'e' ? -1 : 1;
         }
         return;
       }

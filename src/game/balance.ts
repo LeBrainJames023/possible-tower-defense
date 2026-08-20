@@ -1,14 +1,17 @@
 import { TOWERS, WAVES_PER_LEVEL } from './constants';
 import { ENEMIES } from './enemies';
 import { buildWave } from './levels';
+import { worldByIndex } from './worlds';
 
 export type DifficultyId = 'easy' | 'normal' | 'hard';
 
 export interface DifficultyMods {
   label: string;
   blurb: string;
-  /** Kill gold, wave bonus, starting gold. */
+  /** Kill gold and wave-clear bonus. */
   gold: number;
+  /** Starting gold. Hard keeps a full opening kit; income is where it squeezes. */
+  startGold: number;
   /** Tower shot / DoT damage. */
   damage: number;
   /** Enemy max HP. */
@@ -31,12 +34,14 @@ export const WAVE_HP_GROWTH = 1.05;
  * Damage and enemy HP move less (~12%) so the three levers don't stack
  * into "twice as easy" — that would happen if every lever also got 25%.
  * Kill gold uses this gold mul on every bounty (Hard is proportional), not a lump.
+ * Starting gold is a separate lever so Hard still opens with four Arrows.
  */
 export const DIFFICULTY: Record<DifficultyId, DifficultyMods> = {
   easy: {
     label: 'Easy',
     blurb: 'More gold and lives. Room to learn.',
     gold: 1.25,
+    startGold: 1.25,
     damage: 1.12,
     hp: 0.88,
     lives: 1.25,
@@ -45,6 +50,7 @@ export const DIFFICULTY: Record<DifficultyId, DifficultyMods> = {
     label: 'Normal',
     blurb: 'The intended campaign.',
     gold: 1,
+    startGold: 1,
     damage: 1,
     hp: 1,
     lives: 1,
@@ -53,6 +59,7 @@ export const DIFFICULTY: Record<DifficultyId, DifficultyMods> = {
     label: 'Hard',
     blurb: 'Tighter gold. Foes press the line.',
     gold: 0.8,
+    startGold: 1,
     damage: 0.88,
     hp: 1.12,
     lives: 0.8,
@@ -93,9 +100,21 @@ export function scaleLives(lives: number, livesMul: number): number {
   return Math.max(1, Math.round(lives * livesMul));
 }
 
+/** Later worlds pay a bit more per kill so HP climb is not unpaid. Forest stays 1. */
+export function killBountyMul(worldIndex: number): number {
+  return worldByIndex(worldIndex).hpMul;
+}
+
+export function killPayout(reward: number, worldIndex: number, goldMul = 1): number {
+  return scaleGold(reward * killBountyMul(worldIndex), goldMul);
+}
+
 /** Sum of kill bounties if every spawn in the wave dies. stage is 1–10, not a global map id. */
 export function waveKillGold(stage: number, wave: number, worldIndex = 1): number {
-  return buildWave(stage, wave, worldIndex).reduce((sum, g) => sum + ENEMIES[g.kind].reward * g.count, 0);
+  return buildWave(stage, wave, worldIndex).reduce(
+    (sum, g) => sum + killPayout(ENEMIES[g.kind].reward, worldIndex) * g.count,
+    0,
+  );
 }
 
 export function waveTotalIncome(stage: number, wave: number, worldIndex = 1): number {

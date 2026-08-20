@@ -167,6 +167,16 @@ export function spriteFlip(dx: number, prev: number): number {
   return prev;
 }
 
+export type Cardinal = 'n' | 'e' | 's' | 'w';
+
+/** Dominant path heading. Used to pick a 4-dir walk row. */
+export function facingCardinal(angle: number): Cardinal {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  if (Math.abs(c) >= Math.abs(s)) return c >= 0 ? 'e' : 'w';
+  return s >= 0 ? 's' : 'n';
+}
+
 /** Loop a walk/fly sheet from the gait bob (one revolution = one cycle). */
 export function walkFrameIndex(bob: number, frameCount: number): number {
   if (frameCount <= 1) return 0;

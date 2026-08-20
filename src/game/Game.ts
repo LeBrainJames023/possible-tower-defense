@@ -25,6 +25,7 @@ import { FxWorld } from './fx';
 import { AudioBus } from './audio';
 import {
   DIFFICULTY,
+  killPayout,
   scaleGold,
   scaleLives,
   waveClearBonus,
@@ -56,6 +57,8 @@ export class Game {
   waveIndex = 0; // completed waves
   phase: GamePhase = 'prepare';
   selectedKind: TowerKind | null = null;
+  /** Last built tower — next grass click places another. */
+  placeKind: TowerKind | null = null;
   selectedTowerId: number | null = null;
   selectedEnemyId: number | null = null;
   /** Grass cell waiting for the on-map Build menu. */
@@ -114,7 +117,7 @@ export class Game {
     this.grid = buildGrid(level);
     this.waypoints = pathWaypoints(level);
     this.renderer.setLevel(level);
-    this.gold = scaleGold(level.startingGold, this.mods.gold);
+    this.gold = scaleGold(level.startingGold, this.mods.startGold);
     this.lives = scaleLives(level.lives, this.mods.lives);
     this.waveIndex = 0;
     this.phase = 'prepare';
@@ -127,6 +130,7 @@ export class Game {
     this.spawnQueue = [];
     this.waveActive = false;
     this.selectedKind = null;
+    this.placeKind = null;
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
     this.buildCell = null;
@@ -254,8 +258,9 @@ export class Game {
     const tower = new Tower(this.selectedKind, c, r, x, y);
     this.towers.push(tower);
     this.occupied.add(key);
-    this.selectedTowerId = tower.id;
+    this.selectedTowerId = null;
     this.selectedEnemyId = null;
+    this.placeKind = this.selectedKind;
     this.fx.burst(x, y, def.color, 10, 'spark');
     this.audio.place();
     this.floats.push({ x, y: y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
@@ -388,6 +393,7 @@ export class Game {
       }
       if (e.reachedEnd) {
         this.lives -= leakLives(e.kind);
+        this.onHud?.();
         this.audio.leak();
         this.renderer.keepWound = 1;
         this.fx.addShake(5);
@@ -479,18 +485,20 @@ export class Game {
   }
 
   private collectBounties(): void {
+    let paid = false;
     for (const e of this.enemies) {
       if (!e.alive && !e.reachedEnd) {
-        const payout = scaleGold(e.reward, this.mods.gold);
+        const payout = killPayout(e.reward, this.level.worldIndex, this.mods.gold);
         this.gold += payout;
+        paid = true;
         this.fx.death(e);
         this.audio.kill();
         this.floats.push({
           x: e.pos.x,
-          y: e.pos.y - 10,
+          y: e.pos.y - 18,
           text: `+${payout}g`,
           color: '#f4d35e',
-          life: 1.15,
+          life: 1.65,
         });
       }
     }
@@ -498,6 +506,7 @@ export class Game {
     if (this.selectedEnemyId && !this.enemies.some((e) => e.id === this.selectedEnemyId)) {
       this.selectedEnemyId = null;
     }
+    if (paid) this.onHud?.();
   }
 
   private draw(): void {
@@ -519,18 +528,19 @@ export class Game {
     this.renderer.clear();
     this.renderer.drawPathGlow(this.waypoints);
     const focus = this.buildCell ?? this.hover;
-    const canPlace =
+    const hoverBuildable =
       !!focus &&
-      !!this.selectedKind &&
       canPlaceOnCell(this.grid, focus.c, focus.r) &&
-      !this.occupied.has(`${focus.c},${focus.r}`) &&
-      this.gold >= TOWERS[this.selectedKind].cost;
+      !this.occupied.has(`${focus.c},${focus.r}`);
+    // Sticky brush, else Arrow so you can shop a tile with your eyes before opening the tray.
+    const brush = this.selectedKind ?? this.placeKind ?? (hoverBuildable ? 'arrow' : null);
+    const canPlace = hoverBuildable && !!brush && this.gold >= TOWERS[brush].cost;
 
     this.renderer.drawGrid(
       this.grid,
       focus,
       canPlace,
-      this.selectedKind,
+      brush,
       !!this.buildCell,
     );
     this.renderer.drawSpawnExit(this.waypoints);

@@ -2,7 +2,7 @@ import './style.css';
 import { COLS, MAP_H, MAP_W, ROWS, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
 import { ENEMIES, type EnemyKind } from './game/enemies';
 import { LEVELS, levelsInWorld, waveRoster } from './game/levels';
-import { drawLevelThumb } from './game/levelThumb';
+import { paintLevelThumb } from './game/levelThumb';
 import { Game } from './game/Game';
 import { Enemy, Tower } from './game/entities';
 import {
@@ -16,12 +16,12 @@ import {
   saveProgress,
   worldClearedCount,
 } from './game/progress';
-import { DIFFICULTY, scaleGold, type DifficultyId } from './game/balance';
+import { DIFFICULTY, killPayout, type DifficultyId } from './game/balance';
 import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
 import { WORLDS, worldById, worldByIndex } from './game/worlds';
 import { fitCanvasToHost } from './shared/pointer';
-import { pinRectBeside, tileBoxInHost } from './shared/pinPanel';
+import { expandRect, pinRectBeside, tileBoxInHost } from './shared/pinPanel';
 
 const screens = {
   title: document.getElementById('screen-title')!,
@@ -174,9 +174,8 @@ function renderWorlds(): void {
     thumb.width = 200;
     thumb.height = 96;
     thumb.setAttribute('aria-hidden', 'true');
-    const tctx = thumb.getContext('2d');
     const preview = levelsInWorld(world.index)[0];
-    if (tctx && preview) drawLevelThumb(tctx, preview, thumb.width, thumb.height);
+    if (preview) paintLevelThumb(thumb, preview);
     const badge = document.createElement('span');
     badge.className = 'level-badge';
     badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
@@ -226,8 +225,7 @@ function renderLevels(): void {
     thumb.width = 200;
     thumb.height = 96;
     thumb.setAttribute('aria-hidden', 'true');
-    const tctx = thumb.getContext('2d');
-    if (tctx) drawLevelThumb(tctx, level, thumb.width, thumb.height);
+    paintLevelThumb(thumb, level);
     const badge = document.createElement('span');
     badge.className = 'level-badge';
     badge.textContent = cleared ? 'Cleared' : open ? 'Open' : 'Locked';
@@ -292,7 +290,12 @@ function openBuildMenu(c: number, r: number): void {
   game.upgradePreview = false;
   inspectStep = 'idle';
   game.buildCell = { c, r };
-  game.selectedKind = null;
+  if (game.placeKind) {
+    game.selectedKind = game.placeKind;
+    fillBuildDetail(game.placeKind);
+  } else {
+    game.selectedKind = null;
+  }
   syncShopSelection();
   syncOverlay();
 }
@@ -345,6 +348,16 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
     tileBoxInHost(p.c, p.r, COLS, ROWS, canvasRect, hostRect),
   );
   avoid.push(tile);
+  const tower = game.getSelectedTower();
+  const rangeWorld = tower
+    ? game.upgradePreview
+      ? tower.rangeAt(tower.level + 1)
+      : tower.range
+    : game.selectedKind
+      ? TOWERS[game.selectedKind].range
+      : Math.max(...TOWER_ORDER.map((k) => TOWERS[k].range));
+  const ringPad = game.getSelectedEnemy() && !tower ? tile.width * 1.2 : (rangeWorld / TILE) * tile.width;
+  avoid.push(expandRect(tile, ringPad));
   const pin = pinRectBeside(
     tile,
     { width: panel.offsetWidth, height: panel.offsetHeight },
@@ -466,7 +479,7 @@ function fillInspectEnemy(enemy: Enemy): void {
     ['HP', `${Math.ceil(enemy.hp)} / ${enemy.maxHp}`],
     ['Armor', `${Math.round(def.armor * 100)}%`],
     ['Speed', `${(def.speed / TILE).toFixed(2)} /s`],
-    ['Gold', `${scaleGold(def.reward, game.mods.gold)}g`],
+    ['Gold', `${killPayout(def.reward, game.level.worldIndex, game.mods.gold)}g`],
   ];
   if (effects) rows.push(['Status', effects]);
   selectionStats.innerHTML = statGridHtml(rows);
@@ -496,7 +509,7 @@ function updateHud(): void {
     game.waveIndex >= WAVES_PER_LEVEL
       ? 'Complete'
       : game.phase === 'wave'
-        ? 'Wave running-'
+        ? 'Wave running'
         : `Start wave ${game.waveIndex + 1}`;
   updatePauseUi();
 
@@ -719,9 +732,13 @@ document.getElementById('btn-build-back')!.addEventListener('click', () => {
 });
 btnBuild.addEventListener('click', () => {
   const cell = game.buildCell;
-  if (!cell || !game.selectedKind) return;
+  const kind = game.selectedKind;
+  if (!cell || !kind) return;
   const ok = game.tryPlace(cell.c, cell.r);
-  if (ok) closeBuildMenu();
+  if (ok) {
+    closeBuildMenu();
+    showToast(`${TOWERS[kind].name} ready — click grass to place more. Right-click to pick another.`);
+  }
   updateHud();
 });
 
@@ -747,10 +764,11 @@ canvas.addEventListener('pointermove', (e) => {
 canvas.addEventListener('pointerleave', () => {
   game.clearPointer();
 });
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 canvas.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0) return;
+  if (e.button !== 0 && e.button !== 2) return;
   game.setPointerFromEvent(e);
-  if (game.selectEnemyAt()) {
+  if (e.button === 0 && game.selectEnemyAt()) {
     game.buildCell = null;
     game.selectedKind = null;
     updateHud();
@@ -758,16 +776,29 @@ canvas.addEventListener('pointerdown', (e) => {
   }
   const cell = game.hover;
   if (!cell) return;
-  if (game.selectTowerAt(cell.c, cell.r)) {
+  if (e.button === 0 && game.selectTowerAt(cell.c, cell.r)) {
     game.buildCell = null;
     game.selectedKind = null;
     updateHud();
     return;
   }
   if (game.canBuildAt(cell.c, cell.r)) {
+    if (e.button === 2) {
+      openBuildMenu(cell.c, cell.r);
+      return;
+    }
+    if (game.placeKind && !game.buildCell) {
+      game.selectedKind = game.placeKind;
+      const ok = game.tryPlace(cell.c, cell.r);
+      game.selectedKind = null;
+      if (!ok) openBuildMenu(cell.c, cell.r);
+      updateHud();
+      return;
+    }
     openBuildMenu(cell.c, cell.r);
     return;
   }
+  if (e.button === 2) return;
   showToast('Towers cannot be placed on the path or trees.');
 });
 
