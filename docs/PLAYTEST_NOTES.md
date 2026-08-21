@@ -4,11 +4,11 @@
 
 Walk east/west files were backwards (Meadow Gate’s opening stretch moonwalked). Swapped e/w walk + face frames for all ten keepers; raider-e now faces right. Re-keyed magenta halos on the 160 dir-walk frames (`tools/defringeWalks.py`). Dir-walk no longer gets the old bob/squash/sway on top — the four frames carry the gait.
 
-Sticky place: after Build, the same tower follows the cursor as a range ghost. The next grass click does **not** drop it — a bar asks **Build {name} here?** with Build / Not this tile / Done placing. Inspect is on demand (click an existing keep). Right-click grass opens the tray to pick another. How to play and the Build toast say this.
+Sticky place was tried and reverted — it was extra clicks in practice. Click grass → tray → Build, done. Inspect is on demand (click an existing keep). **Upgrade** is two clicks on the same button: first shows current → next stats (and the gold range ring); second pays. No third “are you sure?” card.
 
 Arrow/Cannon fill more of the tile (wider base, bigger turret/barrel). Arrow bolts draw smaller so they read as arrows, not spears. Forest campaign thumbs stamp live grass/path tiles instead of a checkerboard; other worlds use hashed theme colors. HUD copy is `Wave running` (no trailing dash).
 
-Still parked: unique Desert/Ice/Fire/Hollow bodies (scorpion is still a hellbat), a real music score, 14-arrow Forest 10 start gold, 7th tower, splash retune.
+Still parked: unique Ice/Fire/Hollow bodies, a real music score, 14-arrow Forest 10 start gold, 7th tower, splash retune, Ice/lightning/fire/poison forks.
 
 Check 1x: Forest 1 — place Arrow, click more grass, it should drop another without opening inspect. Right-click grass for the tray. Raiders on the first east stretch face **right**. Forest level cards should look painted, not checkerboard.
 

@@ -243,7 +243,7 @@ export class AudioBus {
     try {
       const ctx = this.ensure();
       this.stopScore();
-      this.musicVol = mode === 'prepare' ? 0.03 : 0.046;
+      this.musicVol = mode === 'prepare' ? 0.028 : 0.058;
       const master = ctx.createGain();
       master.gain.value = this.musicVol;
       master.connect(ctx.destination);
@@ -274,8 +274,8 @@ export class AudioBus {
       }
       const lfo = ctx.createOscillator();
       const lfoG = ctx.createGain();
-      lfo.frequency.value = mode === 'prepare' ? 0.11 : 1.45;
-      lfoG.gain.value = this.musicVol * 0.22;
+      lfo.frequency.value = mode === 'prepare' ? 0.11 : 1.7;
+      lfoG.gain.value = this.musicVol * (mode === 'prepare' ? 0.18 : 0.28);
       lfo.connect(lfoG);
       lfoG.connect(master.gain);
       lfo.start();

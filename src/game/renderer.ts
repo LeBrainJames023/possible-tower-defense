@@ -149,15 +149,27 @@ export class Renderer {
 
   private drawGrass(x: number, y: number, c: number, r: number): void {
     const { ctx, theme } = this;
-    const tiles = TEX.grassTiles.filter(texReady);
-    if (this.world === 'forest' && tiles.length) {
-      const img = tiles[Math.floor(hash(c, r, 2) * tiles.length) % tiles.length];
+    const forestTiles = TEX.grassTiles.filter(texReady);
+    const sandTiles = TEX.sandTiles.filter(texReady);
+    if (this.world === 'forest' && forestTiles.length) {
+      const img = forestTiles[Math.floor(hash(c, r, 2) * forestTiles.length) % forestTiles.length];
       ctx.drawImage(img, x, y, TILE, TILE);
       ctx.globalCompositeOperation = 'overlay';
       ctx.fillStyle = 'rgba(92, 168, 78, 0.38)';
       ctx.fillRect(x, y, TILE, TILE);
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = 'rgba(180, 220, 120, 0.08)';
+      ctx.fillRect(x, y, TILE, TILE);
+      return;
+    }
+    if (this.world === 'desert' && sandTiles.length) {
+      const img = sandTiles[Math.floor(hash(c, r, 2) * sandTiles.length) % sandTiles.length];
+      ctx.drawImage(img, x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = 'rgba(210, 160, 70, 0.28)';
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(255, 220, 140, 0.08)';
       ctx.fillRect(x, y, TILE, TILE);
       return;
     }
@@ -177,16 +189,20 @@ export class Renderer {
 
   private drawDirt(x: number, y: number, c: number, r: number): void {
     const { ctx, theme } = this;
-    const tiles = TEX.pathTiles.filter(texReady);
-    if (this.world === 'forest' && tiles.length) {
+    const forestPath = TEX.pathTiles.filter(texReady);
+    const sandPath = TEX.sandPathTiles.filter(texReady);
+    const painted =
+      (this.world === 'forest' && forestPath.length) || (this.world === 'desert' && sandPath.length);
+    if (painted) {
+      const tiles = this.world === 'desert' ? sandPath : forestPath;
       const img = tiles[Math.floor(hash(c, r, 5) * tiles.length) % tiles.length];
       const bleed = 3 * PX;
       ctx.drawImage(img, x - bleed, y - bleed, TILE + bleed * 2, TILE + bleed * 2);
       ctx.globalCompositeOperation = 'overlay';
-      ctx.fillStyle = 'rgba(186, 128, 64, 0.42)';
+      ctx.fillStyle = this.world === 'desert' ? 'rgba(186, 128, 48, 0.36)' : 'rgba(186, 128, 64, 0.42)';
       ctx.fillRect(x, y, TILE, TILE);
       ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = 'rgba(232, 186, 120, 0.14)';
+      ctx.fillStyle = this.world === 'desert' ? 'rgba(232, 186, 90, 0.12)' : 'rgba(232, 186, 120, 0.14)';
       ctx.fillRect(x, y, TILE, TILE);
       ctx.strokeStyle = 'rgba(42, 24, 12, 0.42)';
       ctx.lineWidth = 1.4 * PX;
@@ -230,7 +246,9 @@ export class Renderer {
   drawPathGlow(waypoints: Vec2[]): void {
     if (waypoints.length < 2) return;
     const { ctx, theme } = this;
-    const painted = this.world === 'forest' && TEX.pathTiles.some(texReady);
+    const painted =
+      (this.world === 'forest' && TEX.pathTiles.some(texReady)) ||
+      (this.world === 'desert' && TEX.sandPathTiles.some(texReady));
     ctx.strokeStyle = theme.glow;
     ctx.lineWidth = (painted ? 22 : 32) * PX;
     ctx.globalAlpha = painted ? 0.48 : 1;

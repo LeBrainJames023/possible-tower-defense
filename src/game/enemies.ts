@@ -11,7 +11,11 @@ export type CreatureSprite =
   | 'ogre'
   | 'hellbat'
   | 'wyvern'
-  | 'drake';
+  | 'drake'
+  | 'scorpion'
+  | 'dunerunner'
+  | 'dunetyrant'
+  | 'sandkhan';
 
 export type EnemyKind =
   | 'scout'
@@ -91,8 +95,8 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
 
   warg: E('warg', 'Warg', 'Faster than a Raider, meaner than a Goblin.', 'special', 'warg', 70, u(78), 18, 0.04, u(13), '#8ab87a', '#2a4a20'),
   boar: E('boar', 'Boar', 'Chunky forest hog. A little armor.', 'special', 'troll', 160, u(40), 22, 0.18, u(16), '#a87848', '#4a3018'),
-  scorpion: E('scorpion', 'Scorpion', 'Desert armor. Cannon and Poison help.', 'special', 'hellbat', 140, u(38), 20, 0.28, u(15), '#c4a060', '#5a3a10'),
-  duneRunner: E('duneRunner', 'Dune Runner', 'Very fast, very thin. Ice is your friend.', 'special', 'goblin', 48, u(96), 14, 0, u(11), '#e0b050', '#6a4810'),
+  scorpion: E('scorpion', 'Scorpion', 'Burrows. Wait it out, or catch it when it pops.', 'special', 'scorpion', 140, u(38), 20, 0.28, u(15), '#c4a060', '#5a3a10'),
+  duneRunner: E('duneRunner', 'Dune Runner', 'Dashes. Ice makes the sprint useless.', 'special', 'dunerunner', 48, u(96), 14, 0, u(11), '#e0b050', '#6a4810'),
   frostWisp: E('frostWisp', 'Frost Wisp', 'Flying ice spark. Ice/Fire splash deletes them; Cannon cannot lock.', 'special', 'imp', 28, u(80), 9, 0, u(10), '#b8e8ff', '#3a6a88', true),
   iceWolf: E('iceWolf', 'Ice Wolf', 'Pack hunter. Fast and a bit tougher.', 'special', 'warg', 88, u(74), 19, 0.08, u(13), '#c8dce8', '#3a5060'),
   magmaHound: E('magmaHound', 'Magma Hound', 'Hot dog. Sturdier than a Goblin.', 'special', 'warg', 95, u(70), 20, 0.1, u(14), '#ff7040', '#6a1808'),
@@ -101,12 +105,12 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   hexKnight: E('hexKnight', 'Hex Knight', 'Slow cursed plate. Poison and Cannon.', 'special', 'raider', 200, u(34), 30, 0.38, u(17), '#7a40b0', '#2a1040'),
 
   alphaWarg: E('alphaWarg', 'Alpha Warg', 'Forest champion. Wave 7 trouble.', 'champion', 'warg', 420, u(52), 60, 0.18, u(22), '#6a9a50', '#1a3010'),
-  duneTyrant: E('duneTyrant', 'Dune Tyrant', 'Desert champion. A sand-crowned brute.', 'champion', 'wyvern', 460, u(44), 65, 0.22, u(22), '#e0a040', '#5a3010'),
+  duneTyrant: E('duneTyrant', 'Dune Tyrant', 'Sandstorm chokes nearby towers.', 'champion', 'dunetyrant', 460, u(44), 65, 0.22, u(22), '#e0a040', '#5a3010'),
   packLord: E('packLord', 'Pack Lord', 'Ice champion. The wolves answer to this.', 'champion', 'ogre', 500, u(40), 69, 0.2, u(23), '#d0e8f4', '#2a4050'),
   cinderKing: E('cinderKing', 'Cinder King', 'Fire champion. Heavy and glowing.', 'champion', 'ogre', 540, u(36), 72, 0.26, u(23), '#ff6020', '#4a1000'),
   hexWarden: E('hexWarden', 'Hex Warden', 'Hollow champion. A walking seal.', 'champion', 'wyvern', 560, u(38), 75, 0.24, u(23), '#c77dff', '#2a0840'),
 
-  sandKhan: E('sandKhan', 'Sand Khan', 'Desert boss. The caravan’s last word.', 'boss', 'warlord', 1100, u(24), 150, 0.32, u(28), '#e0b050', '#6a3a08'),
+  sandKhan: E('sandKhan', 'Sand Khan', 'Calls a caravan of Dune Runners. No gold on the summons.', 'boss', 'sandkhan', 1100, u(24), 150, 0.32, u(28), '#e0b050', '#6a3a08'),
   frostJarl: E('frostJarl', 'Frost Jarl', 'Ice boss. The shelf belongs to him.', 'boss', 'ogre', 1250, u(22), 162, 0.34, u(29), '#c8e8ff', '#1a3040'),
   ashTitan: E('ashTitan', 'Ash Titan', 'Fire boss. The crust walks.', 'boss', 'drake', 1400, u(20), 175, 0.36, u(30), '#ff6b4a', '#4a0800'),
   magician: E('magician', 'The Magician', 'Hollow boss. The last door.', 'boss', 'drake', 1550, u(22), 188, 0.34, u(30), '#d4a0ff', '#2a0848'),

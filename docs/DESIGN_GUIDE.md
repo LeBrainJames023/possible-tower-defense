@@ -11,8 +11,8 @@
 ## Interaction (BCI)
 
 - Minimum control height ~48–52px
-- Click grass → tray → Build. After that, the same tower follows the cursor as a range ghost. Click grass, then Build if that spot is right. Done placing (or the tray ×) stops that. Right-click grass to pick another.
-- Click owned tower → upgrade / sell
+- Click grass → tray → Build. That keep is placed. Click grass again when you want another.
+- Click owned tower → Upgrade once to see next stats, Upgrade again to pay. After Lv3, Arrow and Cannon pick a path (two large buttons, same two-click pay). Sell is its own button.
 - No drag-and-drop; no hover-only actions. Range ghost on hover is a preview, not a control.
 
 ## Difficulty philosophy

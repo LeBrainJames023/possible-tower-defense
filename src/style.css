@@ -871,6 +871,15 @@ h3 {
   letter-spacing: 0.02em;
 }
 
+.fork-actions {
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.fork-actions .btn-tray {
+  min-height: 48px;
+}
+
 .tower-shop {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -933,7 +942,6 @@ h3 {
   display: none;
 }
 
-.place-strip,
 .pause-strip,
 .leave-strip {
   display: flex;
@@ -943,11 +951,6 @@ h3 {
   padding: 10px 18px;
   border-bottom: 1px solid var(--line);
   font-weight: 700;
-}
-
-.place-strip {
-  background: rgba(87, 204, 153, 0.14);
-  color: #b8f0d4;
 }
 
 .pause-strip {
@@ -960,7 +963,6 @@ h3 {
   color: #ffb3c1;
 }
 
-.place-strip.hidden,
 .pause-strip.hidden,
 .leave-strip.hidden,
 .hidden {

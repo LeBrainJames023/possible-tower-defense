@@ -17,6 +17,7 @@ import {
   worldClearedCount,
 } from './game/progress';
 import { DIFFICULTY, killPayout, type DifficultyId } from './game/balance';
+import { forkDef, forksFor, type ForkId } from './game/forks';
 import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
 import { WORLDS, worldById, worldByIndex } from './game/worlds';
@@ -50,11 +51,6 @@ const chipGold = document.getElementById('chip-gold')!;
 const btnWave = document.getElementById('btn-wave') as HTMLButtonElement;
 const btnSpeed = document.getElementById('btn-speed') as HTMLButtonElement;
 const btnPause = document.getElementById('btn-pause') as HTMLButtonElement;
-const placeStrip = document.getElementById('place-strip')!;
-const placeStripLabel = document.getElementById('place-strip-label')!;
-const btnPlaceBuild = document.getElementById('btn-place-build') as HTMLButtonElement;
-const btnPlaceNot = document.getElementById('btn-place-not') as HTMLButtonElement;
-const btnPlaceDone = document.getElementById('btn-place-done') as HTMLButtonElement;
 const pauseStrip = document.getElementById('pause-strip')!;
 const leaveStrip = document.getElementById('leave-strip')!;
 const restartStrip = document.getElementById('restart-strip')!;
@@ -75,7 +71,6 @@ const buildBlurb = document.getElementById('build-blurb')!;
 const buildStats = document.getElementById('build-stats')!;
 const inspectPanel = document.getElementById('inspect-panel')!;
 const selectionBlurb = document.getElementById('selection-blurb')!;
-const upgradeConfirm = document.getElementById('upgrade-confirm')!;
 const buildTitle = document.getElementById('build-title')!;
 const btnBuild = document.getElementById('btn-build') as HTMLButtonElement;
 const playfield = document.getElementById('playfield')!;
@@ -123,7 +118,7 @@ let lookMode = false;
 let lastGold = -1;
 let lastLives = -1;
 let introQueue: EnemyKind[] = [];
-type InspectStep = 'idle' | 'preview' | 'confirm';
+type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB';
 let inspectStep: InspectStep = 'idle';
 
 function flashChip(el: HTMLElement, cls: string): void {
@@ -289,63 +284,13 @@ function closeBuildMenu(): void {
   syncOverlay();
 }
 
-function stopPlacing(): void {
-  game.placeKind = null;
-  game.placeCell = null;
-  closeBuildMenu();
-  updateHud();
-}
-
-function syncPlaceStrip(): void {
-  const kind = game.placeKind;
-  if (!kind) {
-    placeStrip.classList.add('hidden');
-    return;
-  }
-  placeStrip.classList.remove('hidden');
-  const pending = game.placeCell;
-  const def = TOWERS[kind];
-  btnPlaceBuild.classList.toggle('hidden', !pending);
-  btnPlaceNot.classList.toggle('hidden', !pending);
-  btnPlaceDone.classList.toggle('btn-primary', !pending);
-  btnPlaceDone.classList.toggle('btn-ghost', !!pending);
-  if (pending) {
-    placeStripLabel.textContent = `Build ${def.name} here?`;
-    const short = !!(game.level && game.gold < def.cost);
-    btnPlaceBuild.disabled = short;
-    btnPlaceBuild.textContent = short ? `Need ${def.cost}g` : `Build ${def.cost}g`;
-  } else {
-    placeStripLabel.textContent = `${def.name} ready — click grass, then Build if that spot is right.`;
-  }
-}
-
-function confirmStickyPlace(): void {
-  const cell = game.placeCell;
-  const kind = game.placeKind;
-  if (!cell || !kind) return;
-  game.selectedKind = kind;
-  const ok = game.tryPlace(cell.c, cell.r);
-  game.selectedKind = null;
-  game.placeCell = null;
-  if (ok) {
-    showToast(`${TOWERS[kind].name} ready — click grass, then Build if that spot is right.`);
-  }
-  updateHud();
-}
-
 function openBuildMenu(c: number, r: number): void {
   game.selectedTowerId = null;
   game.selectedEnemyId = null;
   game.upgradePreview = false;
   inspectStep = 'idle';
-  game.placeCell = null;
   game.buildCell = { c, r };
-  if (game.placeKind) {
-    game.selectedKind = game.placeKind;
-    fillBuildDetail(game.placeKind);
-  } else {
-    game.selectedKind = null;
-  }
+  game.selectedKind = null;
   syncShopSelection();
   syncOverlay();
 }
@@ -401,7 +346,7 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
   const tower = game.getSelectedTower();
   const rangeWorld = tower
     ? game.upgradePreview
-      ? tower.rangeAt(tower.level + 1)
+      ? tower.rangeAt(tower.canNumberUpgrade() ? tower.level + 1 : tower.level, tower.previewFork ?? tower.fork)
       : tower.range
     : game.selectedKind
       ? TOWERS[game.selectedKind].range
@@ -488,9 +433,13 @@ function fillInspectTower(t: Tower): void {
   const curD = Math.round(game.shotDamage(t));
   const curR = t.range / TILE;
   const curRate = t.fireRate;
-  selectionTitle.textContent = `${t.def.name} Lv ${t.level}`;
-  selectionBlurb.textContent = t.def.description;
-  const preview = inspectStep !== 'idle' && t.level < 3;
+  const forkName = t.fork ? forkDef(t.kind, t.fork)?.name : null;
+  selectionTitle.textContent = forkName ? `${t.def.name} ${forkName}` : `${t.def.name} Lv ${t.level}`;
+  const previewingFork = inspectStep === 'forkA' || inspectStep === 'forkB';
+  const previewFork = inspectStep === 'forkA' ? 'a' : inspectStep === 'forkB' ? 'b' : null;
+  selectionBlurb.textContent =
+    previewFork && forksFor(t.kind) ? forksFor(t.kind)![previewFork].blurb : t.def.description;
+  const preview = inspectStep === 'preview' && t.canNumberUpgrade();
   const rows: Array<[string, string]> = preview
     ? [
         ['Range', arrowStat(curR, t.rangeAt(t.level + 1) / TILE, 1) + ' tiles'],
@@ -498,18 +447,42 @@ function fillInspectTower(t: Tower): void {
         ['Fire', arrowStat(curRate, t.fireRateAt(t.level + 1), 1) + ' /s'],
         ['Cost', `${t.upgradeCost()}g`],
       ]
-    : [
-        ['Range', `${curR.toFixed(1)} tiles`],
-        ['Attack', String(curD)],
-        ['Fire', `${curRate.toFixed(1)} /s`],
-      ];
+    : previewingFork && previewFork
+      ? [
+          ['Range', arrowStat(curR, t.rangeAt(3, previewFork) / TILE, 1) + ' tiles'],
+          ['Attack', arrowStat(curD, Math.round(t.damageAt(3, previewFork) * game.mods.damage))],
+          ['Fire', arrowStat(curRate, t.fireRateAt(3, previewFork), 1) + ' /s'],
+          ...(t.def.splash > 0 || t.splashAt(previewFork) > 0
+            ? ([['Splash', arrowStat(t.splash / TILE, t.splashAt(previewFork) / TILE, 1) + ' tiles']] as Array<[string, string]>)
+            : []),
+          ['Cost', `${t.upgradeCost()}g`],
+        ]
+      : [
+          ['Range', `${curR.toFixed(1)} tiles`],
+          ['Attack', String(curD)],
+          ['Fire', `${curRate.toFixed(1)} /s`],
+        ];
+  if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);
   selectionStats.innerHTML = statGridHtml(rows);
-  const maxed = t.level >= 3;
+
   const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
-  up.disabled = maxed || (inspectStep === 'preview' && game.gold < t.upgradeCost());
-  up.textContent = maxed ? 'Max' : inspectStep === 'preview' ? 'Upgrade tower' : `Upgrade ${t.upgradeCost()}g`;
-  towerActions.classList.toggle('hidden', inspectStep === 'confirm');
-  upgradeConfirm.classList.toggle('hidden', inspectStep !== 'confirm');
+  const forkRow = document.getElementById('fork-actions')!;
+  const forking = t.canFork();
+  up.classList.toggle('hidden', forking);
+  forkRow.classList.toggle('hidden', !forking);
+  up.disabled = t.isMaxed() || (inspectStep === 'preview' && game.gold < t.upgradeCost());
+  up.textContent = t.isMaxed() ? 'Max' : `Upgrade ${t.upgradeCost()}g`;
+  if (forking) {
+    const forks = forksFor(t.kind)!;
+    const cost = t.upgradeCost();
+    const a = document.getElementById('btn-fork-a') as HTMLButtonElement;
+    const b = document.getElementById('btn-fork-b') as HTMLButtonElement;
+    a.textContent = inspectStep === 'forkA' ? `Pay ${forks.a.name} ${cost}g` : `${forks.a.name} ${cost}g`;
+    b.textContent = inspectStep === 'forkB' ? `Pay ${forks.b.name} ${cost}g` : `${forks.b.name} ${cost}g`;
+    a.disabled = inspectStep === 'forkA' && game.gold < cost;
+    b.disabled = inspectStep === 'forkB' && game.gold < cost;
+  }
+  towerActions.classList.remove('hidden');
 }
 
 function fillInspectEnemy(enemy: Enemy): void {
@@ -518,6 +491,9 @@ function fillInspectEnemy(enemy: Enemy): void {
     enemy.slowMul < 1 ? 'chilled' : '',
     enemy.burnTimer > 0 ? 'burning' : '',
     enemy.poisonTimer > 0 ? 'poisoned' : '',
+    enemy.burrowed ? 'burrowed' : '',
+    enemy.verbSpeedMul > 1.4 ? 'dashing' : '',
+    enemy.kind === 'duneTyrant' ? 'sandstorm' : '',
   ]
     .filter(Boolean)
     .join(', ');
@@ -534,7 +510,7 @@ function fillInspectEnemy(enemy: Enemy): void {
   if (effects) rows.push(['Status', effects]);
   selectionStats.innerHTML = statGridHtml(rows);
   towerActions.classList.add('hidden');
-  upgradeConfirm.classList.add('hidden');
+  document.getElementById('fork-actions')!.classList.add('hidden');
 }
 
 function updateHud(): void {
@@ -561,7 +537,6 @@ function updateHud(): void {
       : game.phase === 'wave'
         ? 'Wave running'
         : `Start wave ${game.waveIndex + 1}`;
-  syncPlaceStrip();
   updatePauseUi();
 
   const tower = game.getSelectedTower();
@@ -572,11 +547,12 @@ function updateHud(): void {
     inspectStep = 'idle';
     game.upgradePreview = false;
     fillInspectEnemy(enemy);
+    document.getElementById('fork-actions')!.classList.add('hidden');
   } else {
     inspectStep = 'idle';
     game.upgradePreview = false;
     towerActions.classList.add('hidden');
-    upgradeConfirm.classList.add('hidden');
+    document.getElementById('fork-actions')!.classList.add('hidden');
     selectionTitle.textContent = 'Inspector';
     selectionBlurb.textContent = '';
     selectionStats.innerHTML = '';
@@ -738,31 +714,41 @@ document.getElementById('btn-leave-confirm')!.addEventListener('click', () => {
 
 document.getElementById('btn-upgrade')!.addEventListener('click', () => {
   const t = game.getSelectedTower();
-  if (!t || t.level >= 3) return;
+  if (!t || !t.canNumberUpgrade()) return;
   if (inspectStep === 'idle') {
     inspectStep = 'preview';
     game.upgradePreview = true;
+    t.previewFork = null;
     updateHud();
     game.audio.ui();
     return;
   }
   if (inspectStep === 'preview') {
-    inspectStep = 'confirm';
+    if (game.upgradeSelected()) {
+      inspectStep = 'idle';
+      game.upgradePreview = false;
+    }
     updateHud();
-    game.audio.ui();
   }
 });
-document.getElementById('btn-upgrade-yes')!.addEventListener('click', () => {
-  game.upgradeSelected();
-  inspectStep = 'idle';
-  game.upgradePreview = false;
+
+function onForkClick(id: ForkId): void {
+  const t = game.getSelectedTower();
+  if (!t || !t.canFork()) return;
+  const step: InspectStep = id === 'a' ? 'forkA' : 'forkB';
+  if (inspectStep !== step) {
+    inspectStep = step;
+    t.previewFork = id;
+    game.upgradePreview = true;
+    updateHud();
+    game.audio.ui();
+    return;
+  }
+  if (game.chooseFork(id)) inspectStep = 'idle';
   updateHud();
-});
-document.getElementById('btn-upgrade-no')!.addEventListener('click', () => {
-  inspectStep = 'preview';
-  game.upgradePreview = true;
-  updateHud();
-});
+}
+document.getElementById('btn-fork-a')!.addEventListener('click', () => onForkClick('a'));
+document.getElementById('btn-fork-b')!.addEventListener('click', () => onForkClick('b'));
 document.getElementById('btn-sell')!.addEventListener('click', () => {
   game.sellSelected();
   inspectStep = 'idle';
@@ -775,16 +761,7 @@ document.getElementById('btn-inspect-close')!.addEventListener('click', () => {
   game.upgradePreview = false;
   updateHud();
 });
-document.getElementById('btn-place-done')!.addEventListener('click', () => stopPlacing());
-document.getElementById('btn-place-build')!.addEventListener('click', () => confirmStickyPlace());
-document.getElementById('btn-place-not')!.addEventListener('click', () => {
-  game.placeCell = null;
-  updateHud();
-});
-document.getElementById('btn-build-close')!.addEventListener('click', () => {
-  if (game.placeKind) stopPlacing();
-  else closeBuildMenu();
-});
+document.getElementById('btn-build-close')!.addEventListener('click', () => closeBuildMenu());
 document.getElementById('btn-build-back')!.addEventListener('click', () => {
   game.selectedKind = null;
   syncShopSelection();
@@ -797,7 +774,6 @@ btnBuild.addEventListener('click', () => {
   const ok = game.tryPlace(cell.c, cell.r);
   if (ok) {
     closeBuildMenu();
-    showToast(`${TOWERS[kind].name} ready — click grass, then Build if that spot is right.`);
   }
   updateHud();
 });
@@ -830,8 +806,8 @@ canvas.addEventListener('pointerdown', (e) => {
   game.setPointerFromEvent(e);
   if (e.button === 0 && game.selectEnemyAt()) {
     game.buildCell = null;
-    game.placeCell = null;
     game.selectedKind = null;
+    inspectStep = 'idle';
     updateHud();
     return;
   }
@@ -839,23 +815,12 @@ canvas.addEventListener('pointerdown', (e) => {
   if (!cell) return;
   if (e.button === 0 && game.selectTowerAt(cell.c, cell.r)) {
     game.buildCell = null;
-    game.placeCell = null;
     game.selectedKind = null;
+    inspectStep = 'idle';
     updateHud();
     return;
   }
   if (game.canBuildAt(cell.c, cell.r)) {
-    if (e.button === 2) {
-      openBuildMenu(cell.c, cell.r);
-      return;
-    }
-    if (game.placeKind && !game.buildCell) {
-      game.placeCell = { c: cell.c, r: cell.r };
-      game.selectedTowerId = null;
-      game.selectedEnemyId = null;
-      updateHud();
-      return;
-    }
     openBuildMenu(cell.c, cell.r);
     return;
   }

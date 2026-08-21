@@ -1,5 +1,6 @@
 import { TOWER_FEET, TOWERS, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMIES, ENEMY_GAIT, facingCardinal, type Cardinal, type EnemyKind } from './enemies';
+import { forkCostFor, forkDef, forksFor, type ForkId } from './forks';
 import { sellValueFor, upgradeCostFor } from './balance';
 import type { Vec2 } from '../shared/math';
 import { dist, pathTotalLength } from '../shared/math';
@@ -38,6 +39,10 @@ export class Enemy {
   hitFlash = 0;
   bob = Math.random() * Math.PI * 2;
   footfall = false;
+  burrowed = false;
+  verbSpeedMul = 1;
+  verbT = Math.random() * 1.4;
+  nextSummonAt = 5.2;
   private lastStep = -1;
 
   constructor(kind: EnemyKind, hpScale: number, waypoints: Vec2[]) {
@@ -122,7 +127,7 @@ export class Enemy {
     const total = pathTotalLength(waypoints);
     if (total <= 0) return;
     const prev = { x: this.pos.x, y: this.pos.y };
-    const speed = this.speed * this.slowMul;
+    const speed = this.speed * this.slowMul * this.verbSpeedMul;
     this.progress += (speed * dt) / total;
     if (this.progress >= 1) {
       this.progress = 1;
@@ -166,6 +171,10 @@ export class Tower {
   aim = -Math.PI / 2;
   recoil = 0;
   muzzle = 0;
+  fork: ForkId | null = null;
+  /** Inspect preview of a path — not paid yet. */
+  previewFork: ForkId | null = null;
+  choked = false;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;
@@ -191,28 +200,67 @@ export class Tower {
     return this.fireRateAt(this.level);
   }
 
-  damageAt(level: number): number {
-    return this.def.damage * Math.pow(this.def.upgradeMul, level - 1);
+  forkMods(fork: ForkId | null = this.fork) {
+    const f = fork ? forkDef(this.kind, fork) : null;
+    return {
+      damageMul: f?.damageMul ?? 1,
+      fireRateMul: f?.fireRateMul ?? 1,
+      rangeMul: f?.rangeMul ?? 1,
+      splashMul: f?.splashMul ?? 1,
+      speedMul: f?.speedMul ?? 1,
+      arcMul: f?.arcMul ?? 1,
+      pierceArmor: f?.pierceArmor ?? this.def.pierceArmor,
+    };
   }
 
-  rangeAt(level: number): number {
-    return this.def.range * (1 + (level - 1) * 0.08);
+  damageAt(level: number, fork: ForkId | null = this.fork): number {
+    return this.def.damage * Math.pow(this.def.upgradeMul, level - 1) * this.forkMods(fork).damageMul;
   }
 
-  fireRateAt(level: number): number {
-    return this.def.fireRate * (1 + (level - 1) * 0.1);
+  rangeAt(level: number, fork: ForkId | null = this.fork): number {
+    return this.def.range * (1 + (level - 1) * 0.08) * this.forkMods(fork).rangeMul;
+  }
+
+  fireRateAt(level: number, fork: ForkId | null = this.fork): number {
+    return this.def.fireRate * (1 + (level - 1) * 0.1) * this.forkMods(fork).fireRateMul;
+  }
+
+  splashAt(fork: ForkId | null = this.fork): number {
+    return this.def.splash * this.forkMods(fork).splashMul;
+  }
+
+  get splash(): number {
+    return this.splashAt();
+  }
+
+  get pierceArmor(): boolean {
+    return this.forkMods().pierceArmor;
   }
 
   statusScale(): number {
     return Math.pow(this.def.upgradeMul, this.level - 1);
   }
 
+  canNumberUpgrade(): boolean {
+    return this.level < 3;
+  }
+
+  canFork(): boolean {
+    return this.level >= 3 && !this.fork && !!forksFor(this.kind);
+  }
+
+  isMaxed(): boolean {
+    return this.level >= 3 && (!forksFor(this.kind) || this.fork != null);
+  }
+
   upgradeCost(): number {
-    return upgradeCostFor(this.def.cost, this.level);
+    if (this.level < 3) return upgradeCostFor(this.def.cost, this.level);
+    if (this.canFork()) return forkCostFor(this.def.cost);
+    return 0;
   }
 
   sellValue(): number {
-    return sellValueFor(this.def.cost, this.level);
+    return sellValueFor(this.def.cost, this.level, this.fork != null);
   }
 
   /**

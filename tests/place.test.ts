@@ -9,7 +9,7 @@ describe('tryPlace', () => {
 
   let game: Game | undefined;
 
-  it('remembers the brush and does not auto-inspect', () => {
+  it('places without auto-inspect', () => {
     globalThis.requestAnimationFrame = () => 0;
     globalThis.cancelAnimationFrame = () => {};
 
@@ -35,12 +35,5 @@ describe('tryPlace', () => {
     expect(game.tryPlace(grass.c, grass.r)).toBe(true);
     expect(game.towers).toHaveLength(1);
     expect(game.selectedTowerId).toBeNull();
-    expect(game.placeKind).toBe('arrow');
-    expect(game.placeCell).toBeNull();
-    game.placeCell = { c: grass.c, r: grass.r };
-    expect(game.placeCell).toEqual({ c: grass.c, r: grass.r });
-    game.placeCell = null;
-    game.placeKind = null;
-    expect(game.placeKind).toBeNull();
   });
 });

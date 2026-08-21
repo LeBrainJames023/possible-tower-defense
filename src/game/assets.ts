@@ -26,6 +26,10 @@ const CREATURES: CreatureSprite[] = [
   'hellbat',
   'wyvern',
   'drake',
+  'scorpion',
+  'dunerunner',
+  'dunetyrant',
+  'sandkhan',
 ];
 
 function walkSheet(name: CreatureSprite): Array<HTMLImageElement | null> {
@@ -59,6 +63,12 @@ export const TEX = {
     loadImage('/sprites/trees/willow.png'),
     loadImage('/sprites/trees/dogwood.png'),
   ],
+  desertProps: [
+    loadImage('/sprites/desert/cactus.png'),
+    loadImage('/sprites/desert/dead-tree.png'),
+    loadImage('/sprites/desert/boulder.png'),
+    loadImage('/sprites/desert/agave.png'),
+  ],
   grassTiles: [
     loadImage('/sprites/terrain/grass-1.png'),
     loadImage('/sprites/terrain/grass-2.png'),
@@ -71,48 +81,38 @@ export const TEX = {
     loadImage('/sprites/terrain/path-3.png'),
     loadImage('/sprites/terrain/path-4.png'),
   ],
+  sandTiles: [
+    loadImage('/sprites/terrain/sand-1.png'),
+    loadImage('/sprites/terrain/sand-2.png'),
+    loadImage('/sprites/terrain/sand-3.png'),
+    loadImage('/sprites/terrain/sand-4.png'),
+  ],
+  sandPathTiles: [
+    loadImage('/sprites/terrain/sand-path-1.png'),
+    loadImage('/sprites/terrain/sand-path-2.png'),
+    loadImage('/sprites/terrain/sand-path-3.png'),
+    loadImage('/sprites/terrain/sand-path-4.png'),
+  ],
   portalIn: loadImage('/sprites/landmarks/portal-in.png'),
   portalOut: loadImage('/sprites/landmarks/portal-out.png'),
-  creatures: {
-    goblin: loadImage('/sprites/enemies/goblin.png'),
-    raider: loadImage('/sprites/enemies/raider.png'),
-    imp: loadImage('/sprites/enemies/imp.png'),
-    troll: loadImage('/sprites/enemies/troll.png'),
-    warlord: loadImage('/sprites/enemies/warlord.png'),
-    warg: loadImage('/sprites/enemies/warg.png'),
-    ogre: loadImage('/sprites/enemies/ogre.png'),
-    hellbat: loadImage('/sprites/enemies/hellbat.png'),
-    wyvern: loadImage('/sprites/enemies/wyvern.png'),
-    drake: loadImage('/sprites/enemies/drake.png'),
-  } satisfies Record<CreatureSprite, HTMLImageElement | null>,
-  creatureWalks: {
-    goblin: walkSheet('goblin'),
-    raider: walkSheet('raider'),
-    imp: walkSheet('imp'),
-    troll: walkSheet('troll'),
-    warlord: walkSheet('warlord'),
-    warg: walkSheet('warg'),
-    ogre: walkSheet('ogre'),
-    hellbat: walkSheet('hellbat'),
-    wyvern: walkSheet('wyvern'),
-    drake: walkSheet('drake'),
-  } satisfies Record<CreatureSprite, Array<HTMLImageElement | null>>,
+  portalDesertIn: loadImage('/sprites/landmarks/portal-desert-in.png'),
+  portalDesertOut: loadImage('/sprites/landmarks/portal-desert-out.png'),
+  creatures: Object.fromEntries(CREATURES.map((name) => [name, loadImage(`/sprites/enemies/${name}.png`)])) as Record<
+    CreatureSprite,
+    HTMLImageElement | null
+  >,
+  creatureWalks: Object.fromEntries(CREATURES.map((name) => [name, walkSheet(name)])) as Record<
+    CreatureSprite,
+    Array<HTMLImageElement | null>
+  >,
   creatureDirWalks: Object.fromEntries(CREATURES.map((name) => [name, dirWalkSheet(name)])) as Record<
     CreatureSprite,
     Record<Cardinal, Array<HTMLImageElement | null>>
   >,
-  creatureFaces: {
-    goblin: faceSheet('goblin'),
-    raider: faceSheet('raider'),
-    imp: faceSheet('imp'),
-    troll: faceSheet('troll'),
-    warlord: faceSheet('warlord'),
-    warg: faceSheet('warg'),
-    ogre: faceSheet('ogre'),
-    hellbat: faceSheet('hellbat'),
-    wyvern: faceSheet('wyvern'),
-    drake: faceSheet('drake'),
-  } satisfies Record<CreatureSprite, Record<Cardinal, HTMLImageElement | null>>,
+  creatureFaces: Object.fromEntries(CREATURES.map((name) => [name, faceSheet(name)])) as Record<
+    CreatureSprite,
+    Record<Cardinal, HTMLImageElement | null>
+  >,
   towers: {
     arrow: loadImage('/sprites/towers/arrow.png'),
     cannon: loadImage('/sprites/towers/cannon.png'),

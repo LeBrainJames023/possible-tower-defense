@@ -7,7 +7,9 @@ import {
   u,
   type TowerKind,
 } from './constants';
-import { leakLives } from './enemies';
+import { ENEMIES, leakLives } from './enemies';
+import { forkDef, type ForkId } from './forks';
+import { stepEnemyVerb } from './verbs';
 import {
   buildGrid,
   buildWave,
@@ -57,10 +59,6 @@ export class Game {
   waveIndex = 0; // completed waves
   phase: GamePhase = 'prepare';
   selectedKind: TowerKind | null = null;
-  /** Last built tower — the next grass click asks before placing another. */
-  placeKind: TowerKind | null = null;
-  /** Grass tile waiting for the sticky Build confirm (tray stays closed). */
-  placeCell: { c: number; r: number } | null = null;
   selectedTowerId: number | null = null;
   selectedEnemyId: number | null = null;
   /** Grass cell waiting for the on-map Build menu. */
@@ -132,8 +130,6 @@ export class Game {
     this.spawnQueue = [];
     this.waveActive = false;
     this.selectedKind = null;
-    this.placeKind = null;
-    this.placeCell = null;
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
     this.buildCell = null;
@@ -263,7 +259,6 @@ export class Game {
     this.occupied.add(key);
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
-    this.placeKind = this.selectedKind;
     this.fx.burst(x, y, def.color, 10, 'spark');
     this.audio.place();
     this.floats.push({ x, y: y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
@@ -277,6 +272,7 @@ export class Game {
     this.selectedTowerId = t.id;
     this.selectedEnemyId = null;
     this.upgradePreview = false;
+    for (const x of this.towers) x.previewFork = null;
     this.onHud?.();
     return true;
   }
@@ -313,12 +309,13 @@ export class Game {
 
   upgradeSelected(): boolean {
     const t = this.getSelectedTower();
-    if (!t || t.level >= 3) return false;
+    if (!t || !t.canNumberUpgrade()) return false;
     const cost = t.upgradeCost();
     if (this.gold < cost) return false;
     this.gold -= cost;
     t.level += 1;
     this.upgradePreview = false;
+    t.previewFork = null;
     this.fx.burst(t.x, t.y, t.def.color, 14, 'spark');
     this.fx.ring(t.x, t.y, t.def.color, 28, 2);
     this.floats.push({
@@ -326,6 +323,29 @@ export class Game {
       y: t.y - 24,
       text: `Lv${t.level}`,
       color: '#57cc99',
+      life: 0.9,
+    });
+    this.onHud?.();
+    return true;
+  }
+
+  chooseFork(id: ForkId): boolean {
+    const t = this.getSelectedTower();
+    if (!t || !t.canFork()) return false;
+    const cost = t.upgradeCost();
+    if (this.gold < cost) return false;
+    this.gold -= cost;
+    t.fork = id;
+    t.previewFork = null;
+    this.upgradePreview = false;
+    this.fx.burst(t.x, t.y, t.def.color, 18, 'spark');
+    this.fx.ring(t.x, t.y, '#f4d35e', 34, 2);
+    const name = forkDef(t.kind, id)?.name ?? 'Path';
+    this.floats.push({
+      x: t.x,
+      y: t.y - 24,
+      text: name,
+      color: '#f4d35e',
       life: 0.9,
     });
     this.onHud?.();
@@ -390,6 +410,27 @@ export class Game {
 
     for (const e of this.enemies) {
       e.update(dt, this.waypoints);
+      for (const ev of stepEnemyVerb(e, dt)) {
+        if (ev.type === 'burrow') {
+          this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.4, '#c4a060', 8, 'smoke', -12);
+        } else if (ev.type === 'emerge') {
+          this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.4, '#e0c080', 10, 'smoke', -8);
+        } else if (ev.type === 'dash') {
+          this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.5, '#d4b060', 6, 'smoke', -24);
+        } else if (ev.type === 'summon') {
+          const scale = e.maxHp / ENEMIES[e.kind].hp;
+          for (let i = 0; i < ev.count; i++) {
+            const pup = new Enemy(ev.kind, scale, this.waypoints);
+            pup.reward = 0;
+            pup.progress = Math.max(0, e.progress - 0.035 * (i + 1));
+            pup.update(0, this.waypoints);
+            this.enemies.push(pup);
+          }
+          this.fx.ring(e.pos.x, e.pos.y, '#e0b050', 42, 4, 0.55);
+          this.fx.burst(e.pos.x, e.pos.y, '#e0b050', 16, 'smoke', -10);
+          this.floats.push({ x: e.pos.x, y: e.pos.y - 28, text: 'Caravan!', color: '#e0b050', life: 1 });
+        }
+      }
       this.fx.statusTicks(e, dt);
       if (e.footfall) {
         this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.55, '#6a5340', 2, 'smoke', -18);
@@ -492,17 +533,19 @@ export class Game {
     for (const e of this.enemies) {
       if (!e.alive && !e.reachedEnd) {
         const payout = killPayout(e.reward, this.level.worldIndex, this.mods.gold);
-        this.gold += payout;
-        paid = true;
+        if (payout > 0) {
+          this.gold += payout;
+          paid = true;
+          this.floats.push({
+            x: e.pos.x,
+            y: e.pos.y - 18,
+            text: `+${payout}g`,
+            color: '#f4d35e',
+            life: 1.65,
+          });
+        }
         this.fx.death(e);
         this.audio.kill();
-        this.floats.push({
-          x: e.pos.x,
-          y: e.pos.y - 18,
-          text: `+${payout}g`,
-          color: '#f4d35e',
-          life: 1.65,
-        });
       }
     }
     this.enemies = this.enemies.filter((e) => e.alive);
@@ -530,12 +573,12 @@ export class Game {
     }
     this.renderer.clear();
     this.renderer.drawPathGlow(this.waypoints);
-    const focus = this.buildCell ?? this.placeCell ?? this.hover;
+    const focus = this.buildCell ?? this.hover;
     const hoverBuildable =
       !!focus &&
       canPlaceOnCell(this.grid, focus.c, focus.r) &&
       !this.occupied.has(`${focus.c},${focus.r}`);
-    const brush = this.selectedKind ?? this.placeKind;
+    const brush = this.selectedKind;
     const canPlace = hoverBuildable && !!brush && this.gold >= TOWERS[brush].cost;
 
     this.renderer.drawGrid(
@@ -543,7 +586,7 @@ export class Game {
       focus,
       canPlace,
       brush,
-      !!this.buildCell || !!this.placeCell,
+      !!this.buildCell,
     );
     this.renderer.drawSpawnExit(this.waypoints);
     const units: Array<{ y: number; z: number; draw: () => void }> = [];

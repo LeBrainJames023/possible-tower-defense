@@ -111,6 +111,10 @@ describe('walk frames', () => {
       'hellbat',
       'wyvern',
       'drake',
+      'scorpion',
+      'dunerunner',
+      'dunetyrant',
+      'sandkhan',
     ];
     for (const name of creatures) {
       for (const dir of ['n', 'e', 's', 'w'] as const) {
@@ -119,5 +123,19 @@ describe('walk frames', () => {
         }
       }
     }
+  });
+
+  it('has painted Desert tiles, props, portals, and four new bodies', () => {
+    for (const n of [1, 2, 3, 4]) {
+      expect(existsSync(`public/sprites/terrain/sand-${n}.png`)).toBe(true);
+      expect(existsSync(`public/sprites/terrain/sand-path-${n}.png`)).toBe(true);
+    }
+    expect(existsSync('public/sprites/desert/cactus.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-desert-in.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-desert-out.png')).toBe(true);
+    expect(ENEMIES.scorpion.sprite).toBe('scorpion');
+    expect(ENEMIES.duneRunner.sprite).toBe('dunerunner');
+    expect(ENEMIES.duneTyrant.sprite).toBe('dunetyrant');
+    expect(ENEMIES.sandKhan.sprite).toBe('sandkhan');
   });
 });

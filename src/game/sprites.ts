@@ -198,10 +198,19 @@ export function drawTower(
   const recoil = t.recoil * 5 * PX;
 
   if (selected) {
-    if (upgradePreview && t.level < 3) {
-      drawRangeRing(ctx, x, y, t.rangeAt(t.level + 1), '#f4d35e', true, [], 3 * PX, 'cc');
+    if (upgradePreview) {
+      const fork = t.previewFork ?? t.fork;
+      const lv = t.canNumberUpgrade() ? t.level + 1 : t.level;
+      drawRangeRing(ctx, x, y, t.rangeAt(lv, fork), '#f4d35e', true, [], 3 * PX, 'cc');
     }
     drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2.2 * PX, '99');
+  }
+
+  if (t.choked) {
+    ctx.fillStyle = 'rgba(210, 160, 70, 0.22)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 8 * PX, 22 * PX, 10 * PX, 0, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   if (t.level >= 3) {
@@ -263,11 +272,13 @@ export function drawTower(
   }
 
   const rank =
-    t.level >= 3
-      ? { fill: '#f4d35e', stroke: '#8a6200' }
-      : t.level >= 2
-        ? { fill: '#d0d6e0', stroke: '#5a6574' }
-        : { fill: '#c47a3a', stroke: '#6a3a12' };
+    t.fork
+      ? { fill: '#ffe08a', stroke: '#8a6200' }
+      : t.level >= 3
+        ? { fill: '#f4d35e', stroke: '#8a6200' }
+        : t.level >= 2
+          ? { fill: '#d0d6e0', stroke: '#5a6574' }
+          : { fill: '#c47a3a', stroke: '#6a3a12' };
   drawRankStar(ctx, x, y + 26 * PX, 7.5 * PX, rank.fill, rank.stroke);
 }
 
@@ -305,8 +316,9 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   const squash = puppet ? Math.sin(e.bob) * gait.squash : 0;
   const r = e.radius;
   const air = e.flying ? r * 1.25 : 0;
+  const sink = e.burrowed ? 0.55 : 1;
   const x = e.pos.x + sway + jitter;
-  const y = e.pos.y + bob - air;
+  const y = e.pos.y + bob - air + (e.burrowed ? r * 0.45 : 0);
 
   ctx.fillStyle = e.flying ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.32)';
   ctx.beginPath();
@@ -327,6 +339,19 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.ellipse(e.pos.x, e.pos.y + r * 0.78, r * 1.15, r * 0.38, 0, 0, Math.PI * 2);
     ctx.stroke();
   }
+  if (e.kind === 'duneTyrant') {
+    ctx.strokeStyle = `rgba(224, 176, 64, ${0.35 + Math.sin(time * 3) * 0.12})`;
+    ctx.lineWidth = 2.2 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.2, r * 2.4, r * 1.1, time * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (e.burrowed) {
+    ctx.fillStyle = 'rgba(196, 160, 96, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.7, r * 1.15, r * 0.38, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   if (billboard) {
     const { img, flip } = billboard;
@@ -334,7 +359,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     const w = h * (img.naturalWidth / img.naturalHeight);
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(flip * (1 + squash), 1 - squash);
+    ctx.scale(flip * (1 + squash), (1 - squash) * sink);
     ctx.shadowColor = 'rgba(0,0,0,0.72)';
     ctx.shadowBlur = 3;
     ctx.shadowOffsetY = 1;
@@ -389,6 +414,8 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   if (e.slowMul < 1) icons.push('#9ae4f7');
   if (e.burnTimer > 0) icons.push('#ff6b4a');
   if (e.poisonTimer > 0) icons.push('#7be38a');
+  if (e.burrowed) icons.push('#c4a060');
+  if (e.verbSpeedMul > 1.4) icons.push('#e0b050');
   icons.forEach((color, i) => {
     ctx.fillStyle = color;
     ctx.beginPath();

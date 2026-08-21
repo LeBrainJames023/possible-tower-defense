@@ -4,6 +4,7 @@ import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
 import { pickTarget, splashMultiplier, canTarget, enemyAimPoint } from '../src/game/combat';
+import { BURROW_UP, DASH_EVERY, DASH_MUL, stepEnemyVerb } from '../src/game/verbs';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('shared combat rules', () => {
@@ -204,5 +205,47 @@ describe('enemy gait', () => {
     expect(scout.bob - s0).toBeGreaterThan(brute.bob - b0);
     expect(scout.progress).toBe(0);
     expect(brute.progress).toBe(0);
+  });
+});
+
+describe('desert verbs', () => {
+  it('lets a scorpion burrow so towers cannot lock it', () => {
+    const sim = new CombatSandbox();
+    const arrow = sim.place('arrow', 6, 5);
+    const bug = sim.spawn('scorpion');
+    bug.pos = { x: arrow.x + 40, y: arrow.y };
+    bug.verbT = 0;
+    stepEnemyVerb(bug, BURROW_UP + 0.08);
+    expect(bug.burrowed).toBe(true);
+    expect(canTarget(arrow, bug)).toBe(false);
+    expect(pickTarget(arrow, sim.enemies)).toBeNull();
+  });
+
+  it('makes a dune runner sprint for a beat', () => {
+    const sim = new CombatSandbox();
+    const runner = sim.spawn('duneRunner');
+    runner.verbT = 0;
+    stepEnemyVerb(runner, DASH_EVERY + 0.05);
+    expect(runner.verbSpeedMul).toBe(DASH_MUL);
+  });
+
+  it('lets a dune tyrant choke nearby tower fire', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const arrow = sim.place('arrow', 6, 5);
+    const tyrant = sim.spawn('duneTyrant');
+    tyrant.pos = { x: arrow.x + 20, y: arrow.y };
+    tyrant.progress = 0.4;
+    sim.step(1 / 30);
+    expect(arrow.choked).toBe(true);
+  });
+
+  it('has the sand khan call a caravan', () => {
+    const sim = new CombatSandbox();
+    const khan = sim.spawn('sandKhan');
+    khan.nextSummonAt = 0.05;
+    khan.verbT = 0;
+    const ev = stepEnemyVerb(khan, 0.1);
+    expect(ev.some((e) => e.type === 'summon' && e.kind === 'duneRunner' && e.count === 2)).toBe(true);
   });
 });

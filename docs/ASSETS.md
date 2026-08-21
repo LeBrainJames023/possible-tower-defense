@@ -29,6 +29,13 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/landmarks/portal-out.png` | Same pipeline | Forest exit rift. |
 | `public/sprites/trees/*.png` | Same pipeline | Oak, pine, apple, willow, dogwood on Forest decor tiles. |
 | `public/sprites/terrain/*.png` | Same pipeline | Four grass + four worn path tiles, mixed per cell. |
+| `public/sprites/terrain/sand-*.png` | Cursor image gen 2×2 sand pack | Desert grass-equivalent. Mixed per cell like Forest grass. |
+| `public/sprites/terrain/sand-path-*.png` | Cursor image gen 2×2 packed-sand path pack | Desert path tiles. |
+| `public/sprites/desert/{cactus,dead-tree,boulder,agave}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Desert blocked-tile props. |
+| `public/sprites/landmarks/portal-desert-in.png` | Cursor image gen + Sprite Forge | Desert entrance rift (sandstone + gold vortex). |
+| `public/sprites/landmarks/portal-desert-out.png` | Same | Desert exit rift. |
+| `public/sprites/enemies/{scorpion,dunerunner,dunetyrant,sandkhan}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Desert bodies. No longer costume-swap hellbat/goblin/wyvern/warlord. |
+| `public/sprites/enemies/walk/{scorpion,dunerunner,dunetyrant,sandkhan}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`feet` align). Raw in `preview/sprite-forge/walk4/`. | Live 4-dir walks. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
@@ -46,4 +53,4 @@ Enemy meshes are CC0 from [Quaternius](https://quaternius.com/): Ultimate Monste
 | **MagicaVoxel** | Great for 3D voxel props; this game is 2D billboards. Blender covered the one 3D bake. |
 | **Krita / GIMP / LibreSprite / Audacity** | Hand-paint / hand-edit tools. The batch cousins (ImageMagick, sox, ffmpeg) did the repeatable work. |
 
-Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, **enemy**, Forest **portals**, **trees**, and **grass/path** tiles use the painted keepers. No paid packs.
+Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, **enemy**, Forest **and Desert portals**, Forest **trees**, Desert **props**, and **grass/path/sand** tiles use the painted keepers. No paid packs.

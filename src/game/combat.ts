@@ -3,6 +3,7 @@ import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
+import { SANDSTORM_FIRE, towerFireMul } from './verbs';
 
 export interface CombatWorld {
   enemies: Enemy[];
@@ -41,6 +42,7 @@ function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
 
 export function canTarget(t: Tower, e: Enemy): boolean {
   if (!e.alive) return false;
+  if (e.burrowed) return false;
   if (t.kind === 'cannon' && e.flying) return false;
   return true;
 }
@@ -134,6 +136,7 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
   }
 
   const feel = PROJECTILE_FEEL[t.kind];
+  const mods = t.forkMods();
   const spawn = t.muzzlePoint();
   const lock = enemyAimPoint(target);
   world.projectiles.push(
@@ -142,10 +145,10 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
       y: spawn.y,
       tx: lock.x,
       ty: lock.y,
-      speed: feel.speed,
+      speed: feel.speed * mods.speedMul,
       damage: shotDamage(t, damageMul),
-      splash: def.splash,
-      pierceArmor: def.pierceArmor,
+      splash: t.splash,
+      pierceArmor: t.pierceArmor,
       slow: def.slow,
       slowDuration: def.slowDuration,
       burnDps: def.burnDps * status * damageMul,
@@ -157,7 +160,7 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
       targetId: target.id,
       trail: t.kind === 'arrow' || t.kind === 'fire' || t.kind === 'ice' || t.kind === 'poison' || t.kind === 'cannon',
       kind: t.kind,
-      arc: feel.arc,
+      arc: feel.arc * mods.arcMul,
       homing: feel.homing,
     }),
   );
@@ -171,16 +174,21 @@ export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {
     const origin = tgt?.pos ?? { x: p.x, y: p.y };
     for (const e of enemies) {
       if (!e.alive) continue;
+      if (e.burrowed) continue;
       if (p.kind === 'cannon' && e.flying) continue;
       const mul = splashMultiplier(dist(origin, e.pos), p.splash);
       if (mul > 0) applyPayload(e, p, mul, hooks);
     }
   } else if (p.targetId != null) {
     const tgt = enemies.find((e) => e.alive && e.id === p.targetId);
-    if (tgt && !(p.kind === 'cannon' && tgt.flying)) applyPayload(tgt, p, 1, hooks);
+    if (tgt && !tgt.burrowed && !(p.kind === 'cannon' && tgt.flying)) applyPayload(tgt, p, 1, hooks);
     else {
       const near = enemies.find(
-        (e) => e.alive && !(p.kind === 'cannon' && e.flying) && dist({ x: p.x, y: p.y }, e.pos) < u(20),
+        (e) =>
+          e.alive &&
+          !e.burrowed &&
+          !(p.kind === 'cannon' && e.flying) &&
+          dist({ x: p.x, y: p.y }, e.pos) < u(20),
       );
       if (near) applyPayload(near, p, 1, hooks);
     }
@@ -202,10 +210,12 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
       const desired = Math.atan2(lock.y - muzzle.y, lock.x - muzzle.x);
       t.aim = lerpAngle(t.aim, desired, 1 - Math.pow(0.0008, dt));
     }
+    t.choked = towerFireMul({ x: t.x, y: t.y }, world.enemies) < 1;
     if (t.cooldown > 0) continue;
     const target = pickTarget(t, world.enemies);
     if (!target) continue;
-    t.cooldown = 1 / t.fireRate;
+    const choke = t.choked ? SANDSTORM_FIRE : 1;
+    t.cooldown = 1 / (t.fireRate * choke);
     t.targetId = target.id;
     fireTower(t, target, world, hooks);
   }
@@ -214,7 +224,7 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
 export function stepProjectiles(world: CombatWorld, dt: number, hooks: CombatHooks = {}): void {
   for (const p of world.projectiles) {
     if (p.targetId != null && p.homing > 0) {
-      const tgt = world.enemies.find((e) => e.alive && e.id === p.targetId);
+      const tgt = world.enemies.find((e) => e.alive && !e.burrowed && e.id === p.targetId);
       if (tgt) {
         const k = 1 - Math.pow(1 - p.homing, dt * 8);
         const lock = enemyAimPoint(tgt);

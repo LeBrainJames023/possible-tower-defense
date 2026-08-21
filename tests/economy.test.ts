@@ -74,6 +74,34 @@ describe('upgrades and sell', () => {
   });
 });
 
+describe('level-3 forks', () => {
+  it('gives Arrow faster vs heavier after Lv3, not a fourth number', () => {
+    const t = new Tower('arrow', 2, 2, 100, 100);
+    t.level = 3;
+    expect(t.canNumberUpgrade()).toBe(false);
+    expect(t.canFork()).toBe(true);
+    expect(t.fireRateAt(3, 'a')).toBeGreaterThan(t.fireRateAt(3, null));
+    expect(t.damageAt(3, 'b')).toBeGreaterThan(t.damageAt(3, null));
+    t.fork = 'b';
+    expect(t.pierceArmor).toBe(true);
+    expect(t.isMaxed()).toBe(true);
+    expect(t.sellValue()).toBe(sellValueFor(TOWERS.arrow.cost, 3, true));
+    expect(t.sellValue()).toBeGreaterThan(sellValueFor(TOWERS.arrow.cost, 3, false));
+  });
+
+  it('gives Cannon rapid-fire vs mortar and leaves Ice as a number-up', () => {
+    const cannon = new Tower('cannon', 2, 2, 100, 100);
+    cannon.level = 3;
+    expect(cannon.splashAt('a')).toBeLessThan(cannon.splashAt(null));
+    expect(cannon.splashAt('b')).toBeGreaterThan(cannon.splashAt(null));
+    expect(cannon.fireRateAt(3, 'a')).toBeGreaterThan(cannon.fireRateAt(3, 'b'));
+    const ice = new Tower('ice', 2, 2, 100, 100);
+    ice.level = 3;
+    expect(ice.canFork()).toBe(false);
+    expect(ice.isMaxed()).toBe(true);
+  });
+});
+
 describe('wave HP curve', () => {
   it('compounds 5% per wave without doubling by wave 10', () => {
     expect(waveHpMul(1)).toBe(1);

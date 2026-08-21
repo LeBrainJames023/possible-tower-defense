@@ -151,6 +151,15 @@ export function drawWorldDecor(
     return;
   }
   if (world === 'desert') {
+    const painted = TEX.desertProps.filter(texReady);
+    if (painted.length) {
+      const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
+      const scale = 1.05 + hash(c, r, 8) * 0.22;
+      const tw = TILE * 1.05 * scale;
+      const th = TILE * 1.45 * scale;
+      ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      return;
+    }
     drawCactus(ctx, theme, cx, cy, c, r);
     return;
   }
