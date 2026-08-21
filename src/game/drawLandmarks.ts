@@ -8,6 +8,7 @@ function paintedPortalIn(world: WorldId): HTMLImageElement | null {
   if (world === 'ice' && texReady(TEX.portalIceIn)) return TEX.portalIceIn;
   if (world === 'desert' && texReady(TEX.portalDesertIn)) return TEX.portalDesertIn;
   if (world === 'fire' && texReady(TEX.portalFireIn)) return TEX.portalFireIn;
+  if (world === 'hollow' && texReady(TEX.portalHollowIn)) return TEX.portalHollowIn;
   if (world === 'forest' && texReady(TEX.portalIn)) return TEX.portalIn;
   return null;
 }
@@ -16,6 +17,7 @@ function paintedPortalOut(world: WorldId): HTMLImageElement | null {
   if (world === 'ice' && texReady(TEX.portalIceOut)) return TEX.portalIceOut;
   if (world === 'desert' && texReady(TEX.portalDesertOut)) return TEX.portalDesertOut;
   if (world === 'fire' && texReady(TEX.portalFireOut)) return TEX.portalFireOut;
+  if (world === 'hollow' && texReady(TEX.portalHollowOut)) return TEX.portalHollowOut;
   if (world === 'forest' && texReady(TEX.portalOut)) return TEX.portalOut;
   return null;
 }

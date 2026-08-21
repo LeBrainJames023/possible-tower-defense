@@ -145,6 +145,14 @@ describe('walk frames', () => {
       'icewolf',
       'packlord',
       'frostjarl',
+      'magmahound',
+      'cinderbrute',
+      'cinderking',
+      'ashtitan',
+      'shade',
+      'hexknight',
+      'hexwarden',
+      'magician',
     ];
     for (const name of creatures) {
       for (const dir of ['n', 'e', 's', 'w'] as const) {
@@ -181,5 +189,34 @@ describe('walk frames', () => {
     expect(ENEMIES.iceWolf.sprite).toBe('icewolf');
     expect(ENEMIES.packLord.sprite).toBe('packlord');
     expect(ENEMIES.frostJarl.sprite).toBe('frostjarl');
+  });
+
+  it('has painted Fire tiles, props, portals, and four new bodies', () => {
+    for (const n of [1, 2, 3, 4]) {
+      expect(existsSync(`public/sprites/terrain/fire-${n}.png`)).toBe(true);
+      expect(existsSync(`public/sprites/terrain/fire-path-${n}.png`)).toBe(true);
+    }
+    expect(existsSync('public/sprites/fire/lava-rock.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-fire-in.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-fire-out.png')).toBe(true);
+    expect(ENEMIES.magmaHound.sprite).toBe('magmahound');
+    expect(ENEMIES.cinderBrute.sprite).toBe('cinderbrute');
+    expect(ENEMIES.cinderKing.sprite).toBe('cinderking');
+    expect(ENEMIES.ashTitan.sprite).toBe('ashtitan');
+  });
+
+  it('has painted Hollow tiles, props, portals, and four new bodies', () => {
+    for (const n of [1, 2, 3, 4]) {
+      expect(existsSync(`public/sprites/terrain/hollow-${n}.png`)).toBe(true);
+      expect(existsSync(`public/sprites/terrain/hollow-path-${n}.png`)).toBe(true);
+    }
+    expect(existsSync('public/sprites/hollow/menhir.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-hollow-in.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-hollow-out.png')).toBe(true);
+    expect(ENEMIES.shade.sprite).toBe('shade');
+    expect(ENEMIES.hexKnight.sprite).toBe('hexknight');
+    expect(ENEMIES.hexWarden.sprite).toBe('hexwarden');
+    expect(ENEMIES.hexWarden.flying).toBe(false);
+    expect(ENEMIES.magician.sprite).toBe('magician');
   });
 });

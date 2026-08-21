@@ -1,8 +1,8 @@
-# World roadmap — five lands done
+# World roadmap — five lands done, art pass shipped
 
-One land per agent. Finish, play, write lessons. Hollow was the last land. Next chat is the **dedicated art pass** (Fire + Hollow unique bodies; Desert/Ice already have 4-dir sheets — compare to Forest keepers before regenerating). Do not start parked forks, music, endless, or a 7th tower in that thread.
+One land per agent. Finish, play, write lessons. Hollow was the last land. The **dedicated art pass** (Aug 21) painted Fire + Hollow land and unique 4-dir bodies. Desert/Ice already held Forest quality — no regen. Do not start parked forks, music, endless, or a 7th tower in the next thread.
 
-Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire is a place (ash, four verbs; unique bodies still costume-swap until image-gen). Hollow is a place (runes, four verbs; unique bodies still costume-swap until image-gen).
+Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire is a place (ash, four verbs, unique painted bodies). Hollow is a place (runes, four verbs, unique painted bodies).
 
 This file is the pickup brief. `docs/FUTURE_FEATURES.md` points here. Campaign shape lives in `docs/CAMPAIGN.md`.
 
@@ -53,18 +53,17 @@ Copy these forward. Hollow shipped — lessons are below.
 - **One verb per body.** Hound **smolders** (knits HP unless Fire has it burning). Brute **crust** from stage 3 (Fire melts the shell; Cannon pierce ignores it). King **heat haze** (nearby towers still shoot, hits come in at half — not a freeze pulse and not a sandstorm choke; Fire keeps ignore the haze). Titan **erupts** Magma Hounds (no gold on pups).
 - Do not copy Jarl freeze or Wisp phase onto Fire. Heat is softer shots, not skipped shots.
 - Fire 1–4 leaked 0. Twin Caldera (3) is where crust shows. Fire 5–7 bite wave 1 and still win. Late Fire 8–10 got the Desert/Ice gold bump; Fire 8 then leaked 0. Bot still dies on Fire 9–10 rim (`Siege Cinder` up the left wall, `Last Crucible`) — placement, not a second gold bump. Forest 10 still 320g.
-- Fire `hpMul` is 1.5 — stage 1 already buys six arrows. Bodies still wear Warg / Ogre / Drake until you ask for painted sheets.
+- Fire `hpMul` is 1.5 — stage 1 already buys six arrows. Unique 4-dir bodies shipped in the art pass (Magma Hound / Cinder Brute / Cinder King / Ash Titan).
 - Hollow should steal: land + four verbs + play all ten + late-opening bump only if wave 1 dies. Do not start anything past Hollow in that window.
 
 ### Hollow (Aug 21)
 - Land first: rune-etched stone, glowing vein path, menhir / broken tablet / obelisk / ward-post. Hex rune gates and a spire keep — Hollow no longer looks like purple Forest. HUD says **click rune**.
 - **One verb per body.** Shade **hexes** the nearest keep (it fires slower). Flying; not a Wisp flicker. Knight **plate** from Twin Hex (Poison melts it; Cannon pierces it). Warden **seals** a tight bubble (keeps inside cannot fire — constant, small, not a Jarl pulse). Magician **warps** once down the path (cover the landing). No gold summons.
-- Do not copy Wisp phase onto Shade. Do not copy freeze/sandstorm/haze onto the same body. Warden stays **ground** (wyvern is a costume) so Cannon is not trash; Arrow/Lightning stay the air answer; Knight plate gives ground a reason.
+- Warden stays **ground** so Cannon is not trash; Arrow/Lightning stay the air answer; Knight plate gives ground a reason. Unique painted bodies shipped in the art pass (Shade flying / Hex Knight / Hex Warden walking seal-keeper / The Magician).
 - Hollow 1–4 leaked 0. Twin Hex (3) is where plate shows. Hollow 5–8 bite wave 1 and still win. **Hollow 8 held without the Desert/Ice/Fire late gold bump** — do not copy it for symmetry. Bot dies on Hollow 9–10 rim (`Siege Cult` left-wall rite, `Last Spire` climb) — first keeps at the gate, not a purse. Forest 10 still 320g.
-- Bodies still wear Imp / Raider / Wyvern / Drake until you ask for painted sheets.
 
-### Ceiling (read before the art pass)
-Unique 4-dir walk sheets are the expensive part (4 bodies × 4 dirs × 4 frames, plus tiles, props, two portals). **Fire and Hollow need them.** Desert and Ice already have unique 4-dir bodies — compare to Forest keepers before regenerating. Ask before image-gen. One dedicated art chat. Do not start parked forks in that thread.
+### Ceiling (art pass shipped Aug 21)
+Unique 4-dir walk sheets were the expensive part. Fire and Hollow now have them, plus Forest-parity land (tiles, props, two portals each). Desert and Ice already held the Forest bar — no regen. East filenames face right (no Forest e/w swap this pass). Do not start parked forks, music, endless, or a 7th tower. Next is play-after-art, not more worlds.
 
 Verbs live in `src/game/verbs.ts`. Combat asks “may I shoot this?” from there. Do not put timers in `combat.ts`. Bodies and names in `src/game/enemies.ts` / `worldRoster.ts`. Paths already authored in `src/game/worldPaths.ts`. Balance in `constants.ts` / `levels.ts` / `worlds.ts`.
 
@@ -87,7 +86,7 @@ HUD: `click ice`. Late Ice 8–10 openings use the Desert-style gold bump. Fores
 
 ## Fire (done Aug 21)
 
-Land, four verbs, whole-world sim, late-opening gold bump. Unique painted bodies still wait on image-gen. Lessons are above.
+Land, four verbs, whole-world sim, late-opening gold bump. Unique 4-dir painted bodies shipped in the art pass. Lessons are above.
 
 | Role | Kind | Verb (shipped) |
 | --- | --- | --- |
@@ -96,29 +95,29 @@ Land, four verbs, whole-world sim, late-opening gold bump. Unique painted bodies
 | Wave 7 | Cinder King | **Heat haze** — nearby non-Fire towers hit at half. They still shoot. |
 | Wave 10 | Ash Titan | **Erupt** — Magma Hound pups. No gold on the summons. |
 
-HUD: `click ash`. Late Fire 8–10 openings use the Desert-style gold bump. Forest 10 gold unchanged. Costume-swap bodies (Warg / Ogre / Drake) until painted.
+HUD: `click ash`. Late Fire 8–10 openings use the Desert-style gold bump. Forest 10 gold unchanged. Unique painted bodies (Magma Hound / Cinder Brute / Cinder King / Ash Titan).
 
 ---
 
 ## Hollow (done Aug 21)
 
-Land, four verbs, whole-world sim. No late gold bump — Hollow 8 held without it. Unique painted bodies still wait on image-gen. Lessons are above.
+Land, four verbs, whole-world sim. No late gold bump — Hollow 8 held without it. Unique 4-dir painted bodies shipped in the art pass. Lessons are above.
 
 | Role | Kind | Verb (shipped) |
 | --- | --- | --- |
 | Special 1 (stage 1+) | Shade | **Hex** — nearest keep fires slower. Flying. Not a Wisp phase. Cannon cannot lock. |
 | Special 2 (stage 3+) | Hex Knight | **Plate** — extra armor. Poison melts it; Cannon pierces it. |
-| Wave 7 | Hex Warden | **Seal** — nearby keeps cannot fire while he walks past. Ground (wyvern is a costume). |
+| Wave 7 | Hex Warden | **Seal** — nearby keeps cannot fire while he walks past. Ground (walking seal-keeper, not a flyer). |
 | Wave 10 | The Magician | **Warp** — one skip down the path. Cover the landing. |
 
-HUD: `click rune`. Hollow 8–10 openings stay on world HP (no Desert bump). Forest 10 gold unchanged. Costume-swap bodies (Imp / Raider / Wyvern / Drake) until painted. `Rune Gate` drops from above — first keeps at the gate.
+HUD: `click rune`. Hollow 8–10 openings stay on world HP (no Desert bump). Forest 10 gold unchanged. Unique painted bodies (Shade flying / Hex Knight / Hex Warden / The Magician). `Rune Gate` drops from above — first keeps at the gate.
 
-**Do not start parked forks, music, endless, or a 7th tower.** Next chat is the art pass. The paste-ready prompt lives in `docs/FUTURE_FEATURES.md`.
+**Do not start parked forks, music, endless, or a 7th tower.** Art pass shipped. Next is play-after-art if the new sprites change feel. The paste-ready prompt lives in `docs/FUTURE_FEATURES.md`.
 
 ---
 
 ## After each world ships
 
-The agent writes 5–10 lines under **Lessons from {Ice,Fire,Hollow}** in this file: what changed the decision vs wallpaper, gold, rim maps, which verb to steal or never copy. Then stop. Hollow was the last land. Next is the art pass.
+The agent writes 5–10 lines under **Lessons from {Ice,Fire,Hollow}** in this file: what changed the decision vs wallpaper, gold, rim maps, which verb to steal or never copy. Then stop. Hollow was the last land. The art pass shipped Aug 21.
 
 Quality gates stay: `npm test`, `npm run build`, smoke title → Forest 1 → place → wave → damage. Path placement blocked. UI large-click.

@@ -153,6 +153,7 @@ export class Renderer {
     const sandTiles = TEX.sandTiles.filter(texReady);
     const iceTiles = TEX.iceTiles.filter(texReady);
     const fireTiles = TEX.fireTiles.filter(texReady);
+    const hollowTiles = TEX.hollowTiles.filter(texReady);
     if (this.world === 'forest' && forestTiles.length) {
       const img = forestTiles[Math.floor(hash(c, r, 2) * forestTiles.length) % forestTiles.length];
       ctx.drawImage(img, x, y, TILE, TILE);
@@ -197,6 +198,17 @@ export class Renderer {
       ctx.fillRect(x, y, TILE, TILE);
       return;
     }
+    if (this.world === 'hollow' && hollowTiles.length) {
+      const img = hollowTiles[Math.floor(hash(c, r, 2) * hollowTiles.length) % hollowTiles.length];
+      ctx.drawImage(img, x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = 'rgba(140, 70, 200, 0.28)';
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(210, 150, 255, 0.1)';
+      ctx.fillRect(x, y, TILE, TILE);
+      return;
+    }
     const mix = hash(c, r, 2);
     ctx.fillStyle = mix > 0.55 ? theme.grassA : theme.grassB;
     ctx.fillRect(x, y, TILE, TILE);
@@ -217,49 +229,59 @@ export class Renderer {
     const sandPath = TEX.sandPathTiles.filter(texReady);
     const icePath = TEX.icePathTiles.filter(texReady);
     const firePath = TEX.firePathTiles.filter(texReady);
+    const hollowPath = TEX.hollowPathTiles.filter(texReady);
     const painted =
       (this.world === 'forest' && forestPath.length) ||
       (this.world === 'desert' && sandPath.length) ||
       (this.world === 'ice' && icePath.length) ||
-      (this.world === 'fire' && firePath.length);
+      (this.world === 'fire' && firePath.length) ||
+      (this.world === 'hollow' && hollowPath.length);
     if (painted) {
       const tiles =
-        this.world === 'fire'
-          ? firePath
-          : this.world === 'ice'
-            ? icePath
-            : this.world === 'desert'
-              ? sandPath
-              : forestPath;
+        this.world === 'hollow'
+          ? hollowPath
+          : this.world === 'fire'
+            ? firePath
+            : this.world === 'ice'
+              ? icePath
+              : this.world === 'desert'
+                ? sandPath
+                : forestPath;
       const img = tiles[Math.floor(hash(c, r, 5) * tiles.length) % tiles.length];
       const bleed = 3 * PX;
       ctx.drawImage(img, x - bleed, y - bleed, TILE + bleed * 2, TILE + bleed * 2);
       ctx.globalCompositeOperation = 'overlay';
       ctx.fillStyle =
-        this.world === 'fire'
-          ? 'rgba(180, 50, 20, 0.36)'
-          : this.world === 'ice'
-            ? 'rgba(90, 130, 160, 0.32)'
-            : this.world === 'desert'
-              ? 'rgba(186, 128, 48, 0.36)'
-              : 'rgba(186, 128, 64, 0.42)';
+        this.world === 'hollow'
+          ? 'rgba(90, 40, 140, 0.34)'
+          : this.world === 'fire'
+            ? 'rgba(180, 50, 20, 0.36)'
+            : this.world === 'ice'
+              ? 'rgba(90, 130, 160, 0.32)'
+              : this.world === 'desert'
+                ? 'rgba(186, 128, 48, 0.36)'
+                : 'rgba(186, 128, 64, 0.42)';
       ctx.fillRect(x, y, TILE, TILE);
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle =
-        this.world === 'fire'
-          ? 'rgba(255, 140, 40, 0.14)'
-          : this.world === 'ice'
-            ? 'rgba(200, 230, 245, 0.14)'
-            : this.world === 'desert'
-              ? 'rgba(232, 186, 90, 0.12)'
-              : 'rgba(232, 186, 120, 0.14)';
+        this.world === 'hollow'
+          ? 'rgba(200, 140, 255, 0.12)'
+          : this.world === 'fire'
+            ? 'rgba(255, 140, 40, 0.14)'
+            : this.world === 'ice'
+              ? 'rgba(200, 230, 245, 0.14)'
+              : this.world === 'desert'
+                ? 'rgba(232, 186, 90, 0.12)'
+                : 'rgba(232, 186, 120, 0.14)';
       ctx.fillRect(x, y, TILE, TILE);
       ctx.strokeStyle =
-        this.world === 'fire'
-          ? 'rgba(80, 16, 8, 0.5)'
-          : this.world === 'ice'
-            ? 'rgba(40, 70, 90, 0.38)'
-            : 'rgba(42, 24, 12, 0.42)';
+        this.world === 'hollow'
+          ? 'rgba(40, 12, 60, 0.48)'
+          : this.world === 'fire'
+            ? 'rgba(80, 16, 8, 0.5)'
+            : this.world === 'ice'
+              ? 'rgba(40, 70, 90, 0.38)'
+              : 'rgba(42, 24, 12, 0.42)';
       ctx.lineWidth = 1.4 * PX;
       ctx.strokeRect(x + 0.7 * PX, y + 0.7 * PX, TILE - 1.4 * PX, TILE - 1.4 * PX);
       this.stampWater(x, y);
@@ -305,7 +327,8 @@ export class Renderer {
       (this.world === 'forest' && TEX.pathTiles.some(texReady)) ||
       (this.world === 'desert' && TEX.sandPathTiles.some(texReady)) ||
       (this.world === 'ice' && TEX.icePathTiles.some(texReady)) ||
-      (this.world === 'fire' && TEX.firePathTiles.some(texReady));
+      (this.world === 'fire' && TEX.firePathTiles.some(texReady)) ||
+      (this.world === 'hollow' && TEX.hollowPathTiles.some(texReady));
     ctx.strokeStyle = theme.glow;
     ctx.lineWidth = (painted ? 22 : 32) * PX;
     ctx.globalAlpha = painted ? 0.48 : 1;

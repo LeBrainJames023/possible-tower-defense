@@ -34,6 +34,14 @@ const CREATURES: CreatureSprite[] = [
   'icewolf',
   'packlord',
   'frostjarl',
+  'magmahound',
+  'cinderbrute',
+  'cinderking',
+  'ashtitan',
+  'shade',
+  'hexknight',
+  'hexwarden',
+  'magician',
 ];
 
 function walkSheet(name: CreatureSprite): Array<HTMLImageElement | null> {
@@ -85,6 +93,12 @@ export const TEX = {
     loadImage('/sprites/fire/fumarole.png'),
     loadImage('/sprites/fire/slag.png'),
   ],
+  hollowProps: [
+    loadImage('/sprites/hollow/menhir.png'),
+    loadImage('/sprites/hollow/tablet.png'),
+    loadImage('/sprites/hollow/obelisk.png'),
+    loadImage('/sprites/hollow/ward-post.png'),
+  ],
   grassTiles: [
     loadImage('/sprites/terrain/grass-1.png'),
     loadImage('/sprites/terrain/grass-2.png'),
@@ -133,6 +147,18 @@ export const TEX = {
     loadImage('/sprites/terrain/fire-path-3.png'),
     loadImage('/sprites/terrain/fire-path-4.png'),
   ],
+  hollowTiles: [
+    loadImage('/sprites/terrain/hollow-1.png'),
+    loadImage('/sprites/terrain/hollow-2.png'),
+    loadImage('/sprites/terrain/hollow-3.png'),
+    loadImage('/sprites/terrain/hollow-4.png'),
+  ],
+  hollowPathTiles: [
+    loadImage('/sprites/terrain/hollow-path-1.png'),
+    loadImage('/sprites/terrain/hollow-path-2.png'),
+    loadImage('/sprites/terrain/hollow-path-3.png'),
+    loadImage('/sprites/terrain/hollow-path-4.png'),
+  ],
   portalIn: loadImage('/sprites/landmarks/portal-in.png'),
   portalOut: loadImage('/sprites/landmarks/portal-out.png'),
   portalDesertIn: loadImage('/sprites/landmarks/portal-desert-in.png'),
@@ -141,6 +167,8 @@ export const TEX = {
   portalIceOut: loadImage('/sprites/landmarks/portal-ice-out.png'),
   portalFireIn: loadImage('/sprites/landmarks/portal-fire-in.png'),
   portalFireOut: loadImage('/sprites/landmarks/portal-fire-out.png'),
+  portalHollowIn: loadImage('/sprites/landmarks/portal-hollow-in.png'),
+  portalHollowOut: loadImage('/sprites/landmarks/portal-hollow-out.png'),
   creatures: Object.fromEntries(CREATURES.map((name) => [name, loadImage(`/sprites/enemies/${name}.png`)])) as Record<
     CreatureSprite,
     HTMLImageElement | null

@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — world art pass (Aug 21)
+
+Fire and Hollow got Forest-parity painted land and unique 4-dir keepers. Desert/Ice already held the bar — left them. East filenames face right. Magma Hound is a lava-hound, not a recolored Warg. Hex Warden is a walking seal-keeper, not a wyvern. Forest gold unchanged. Sticky place stayed dead.
+
+Check 1x: Forest 1 smoke (place → wave → damage, path blocked). Fire 1 ash/lava path + Magma Hound body. Hollow 1 rune/vein path + Shade flying. Raiders on Meadow Gate’s first east stretch still face **right**.
+
 ## This session — Hollow land + verbs (Aug 21)
 
 Hollow HUD says **click rune**. Rune-etched stone, glowing vein path, four rune props, hex gates + spire keep. Shade hexes the nearest keep (not a Wisp flicker). Hex Knight plates from Twin Hex. Hex Warden seals a tight bubble and stays on the ground. The Magician warps once — cover the landing. Hollow 8 held without a late gold bump. Forest gold unchanged. Sticky place stayed dead.

@@ -24,6 +24,6 @@ Each world has **10 stages × 10 waves**. Worlds get meaner. Stages inside a wor
 8. **Roster** — five shared foes, two locals per world, a wave-7 champion, a wave-10 world boss. Forest stage 1 stays the tutorial (no locals/champion). Placeholder Quaternius bodies for now.
 9. **Later** — unique enemy art, on-death tricks, flyers. Do not image-gen.
 
-**World passes:** Forest, Desert, Ice, Fire, and Hollow all cleared the “place + verbs + play all ten” bar (Fire and Hollow still costume-swap bodies until painted). Next is a dedicated art chat for unique monsters. Pickup brief: `docs/WORLD_ROADMAP.md`.
+**World passes:** Forest, Desert, Ice, Fire, and Hollow all cleared the “place + verbs + play all ten” bar. Art pass painted Fire + Hollow unique bodies and land; Desert/Ice already held Forest quality. Pickup brief: `docs/WORLD_ROADMAP.md`.
 
 Transforms were the scaffold. Custom paths replaced them world by world without breaking saves.

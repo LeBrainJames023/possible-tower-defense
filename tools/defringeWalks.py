@@ -9,7 +9,7 @@ from PIL import Image
 
 ROOT = Path("/Users/participant/Desktop/possible-tower-defense/public/sprites/enemies/walk")
 # Thin purple wings: only eat obvious key + low-alpha halo, not the membrane.
-GENTLE = {"imp", "hellbat", "wyvern", "frostwisp"}
+GENTLE = {"imp", "hellbat", "wyvern", "frostwisp", "shade"}
 
 
 def neighbors_transparent(trans: np.ndarray) -> np.ndarray:

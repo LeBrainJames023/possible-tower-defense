@@ -19,7 +19,15 @@ export type CreatureSprite =
   | 'frostwisp'
   | 'icewolf'
   | 'packlord'
-  | 'frostjarl';
+  | 'frostjarl'
+  | 'magmahound'
+  | 'cinderbrute'
+  | 'cinderking'
+  | 'ashtitan'
+  | 'shade'
+  | 'hexknight'
+  | 'hexwarden'
+  | 'magician';
 
 export type EnemyKind =
   | 'scout'
@@ -103,21 +111,21 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   duneRunner: E('duneRunner', 'Dune Runner', 'Dashes. Ice makes the sprint useless.', 'special', 'dunerunner', 48, u(96), 14, 0, u(11), '#e0b050', '#6a4810'),
   frostWisp: E('frostWisp', 'Frost Wisp', 'Phases. Wait it out, or catch it when it solidifies. Cannon cannot lock.', 'special', 'frostwisp', 28, u(80), 9, 0, u(10), '#b8e8ff', '#3a6a88', true),
   iceWolf: E('iceWolf', 'Ice Wolf', 'Slides. Ice makes the sprint useless.', 'special', 'icewolf', 88, u(74), 19, 0.08, u(13), '#c8dce8', '#3a5060'),
-  magmaHound: E('magmaHound', 'Magma Hound', 'Smolders — knits HP back unless Fire has it burning.', 'special', 'warg', 95, u(70), 20, 0.1, u(14), '#ff7040', '#6a1808'),
-  cinderBrute: E('cinderBrute', 'Cinder Brute', 'Magma crust. Fire melts it; Cannon pierces it.', 'special', 'ogre', 240, u(30), 35, 0.36, u(20), '#e05020', '#4a1008'),
-  shade: E('shade', 'Shade', 'Hexes the nearest keep — it fires slower. Flying; Cannon cannot hit.', 'special', 'imp', 55, u(72), 16, 0.16, u(12), '#a070d0', '#301050', true),
-  hexKnight: E('hexKnight', 'Hex Knight', 'Cursed plate. Poison melts it; Cannon pierces it.', 'special', 'raider', 200, u(34), 30, 0.38, u(17), '#7a40b0', '#2a1040'),
+  magmaHound: E('magmaHound', 'Magma Hound', 'Smolders — knits HP back unless Fire has it burning.', 'special', 'magmahound', 95, u(70), 20, 0.1, u(14), '#ff7040', '#6a1808'),
+  cinderBrute: E('cinderBrute', 'Cinder Brute', 'Magma crust. Fire melts it; Cannon pierces it.', 'special', 'cinderbrute', 240, u(30), 35, 0.36, u(20), '#e05020', '#4a1008'),
+  shade: E('shade', 'Shade', 'Hexes the nearest keep — it fires slower. Flying; Cannon cannot hit.', 'special', 'shade', 55, u(72), 16, 0.16, u(12), '#a070d0', '#301050', true),
+  hexKnight: E('hexKnight', 'Hex Knight', 'Cursed plate. Poison melts it; Cannon pierces it.', 'special', 'hexknight', 200, u(34), 30, 0.38, u(17), '#7a40b0', '#2a1040'),
 
   alphaWarg: E('alphaWarg', 'Alpha Warg', 'Forest champion. Wave 7 trouble.', 'champion', 'warg', 420, u(52), 60, 0.18, u(22), '#6a9a50', '#1a3010'),
   duneTyrant: E('duneTyrant', 'Dune Tyrant', 'Sandstorm chokes nearby towers.', 'champion', 'dunetyrant', 460, u(44), 65, 0.22, u(22), '#e0a040', '#5a3010'),
   packLord: E('packLord', 'Pack Lord', 'Rally speeds nearby Ice Wolves.', 'champion', 'packlord', 500, u(40), 69, 0.2, u(23), '#d0e8f4', '#2a4050'),
-  cinderKing: E('cinderKing', 'Cinder King', 'Heat haze. Nearby towers still shoot, but hits come in weaker. Fire keeps ignore it.', 'champion', 'ogre', 540, u(36), 72, 0.26, u(23), '#ff6020', '#4a1000'),
-  hexWarden: E('hexWarden', 'Hex Warden', 'Seals nearby keeps — they cannot fire while he walks past. Ground.', 'champion', 'wyvern', 560, u(38), 75, 0.24, u(23), '#c77dff', '#2a0840'),
+  cinderKing: E('cinderKing', 'Cinder King', 'Heat haze. Nearby towers still shoot, but hits come in weaker. Fire keeps ignore it.', 'champion', 'cinderking', 540, u(36), 72, 0.26, u(23), '#ff6020', '#4a1000'),
+  hexWarden: E('hexWarden', 'Hex Warden', 'Seals nearby keeps — they cannot fire while he walks past. Ground.', 'champion', 'hexwarden', 560, u(38), 75, 0.24, u(23), '#c77dff', '#2a0840'),
 
   sandKhan: E('sandKhan', 'Sand Khan', 'Calls a caravan of Dune Runners. No gold on the summons.', 'boss', 'sandkhan', 1100, u(24), 150, 0.32, u(28), '#e0b050', '#6a3a08'),
   frostJarl: E('frostJarl', 'Frost Jarl', 'Freezes nearby towers. They cannot fire until they thaw.', 'boss', 'frostjarl', 1250, u(22), 162, 0.34, u(29), '#c8e8ff', '#1a3040'),
-  ashTitan: E('ashTitan', 'Ash Titan', 'Erupts Magma Hounds. No gold on the pups.', 'boss', 'drake', 1400, u(20), 175, 0.36, u(30), '#ff6b4a', '#4a0800'),
-  magician: E('magician', 'The Magician', 'Warps once down the path. Cover the landing, not just the gate.', 'boss', 'drake', 1550, u(22), 188, 0.34, u(30), '#d4a0ff', '#2a0848'),
+  ashTitan: E('ashTitan', 'Ash Titan', 'Erupts Magma Hounds. No gold on the pups.', 'boss', 'ashtitan', 1400, u(20), 175, 0.36, u(30), '#ff6b4a', '#4a0800'),
+  magician: E('magician', 'The Magician', 'Warps once down the path. Cover the landing, not just the gate.', 'boss', 'magician', 1550, u(22), 188, 0.34, u(30), '#d4a0ff', '#2a0848'),
 };
 
 const GAIT: Record<EnemyRole, EnemyGait> = {

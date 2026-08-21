@@ -43,11 +43,21 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/landmarks/portal-ice-out.png` | Same | Ice exit rift. |
 | `public/sprites/enemies/{frostwisp,icewolf,packlord,frostjarl}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Ice bodies. No longer costume-swap imp/warg/ogre. |
 | `public/sprites/enemies/walk/{frostwisp,icewolf,packlord,frostjarl}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`center` wisp, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. | Live 4-dir flap/walks. |
+| `public/sprites/terrain/fire-*.png` | Cursor image gen 2×2 ash pack | Fire grass-equivalent. Mixed per cell like Forest grass. |
+| `public/sprites/terrain/fire-path-*.png` | Cursor image gen 2×2 lava-path pack | Fire path tiles. |
+| `public/sprites/fire/{lava-rock,ember-stump,fumarole,slag}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Fire blocked-tile props. |
+| `public/sprites/landmarks/portal-fire-in.png` | Cursor image gen + Sprite Forge | Fire entrance rift (obsidian + lava vortex). |
+| `public/sprites/landmarks/portal-fire-out.png` | Same | Fire exit rift (slag keep-arch). |
+| `public/sprites/enemies/{magmahound,cinderbrute,cinderking,ashtitan}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Fire bodies. No longer costume-swap warg/ogre/drake. |
+| `public/sprites/enemies/walk/{magmahound,cinderbrute,cinderking,ashtitan}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`feet` align). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir walks. |
+| `public/sprites/terrain/hollow-*.png` | Cursor image gen 2×2 rune-stone pack | Hollow grass-equivalent. Mixed per cell like Forest grass. |
+| `public/sprites/terrain/hollow-path-*.png` | Cursor image gen 2×2 rune-vein path pack | Hollow path tiles. |
+| `public/sprites/hollow/{menhir,tablet,obelisk,ward-post}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Hollow blocked-tile props. |
+| `public/sprites/landmarks/portal-hollow-in.png` | Cursor image gen + Sprite Forge | Hollow entrance hex-gate (violet vortex). |
+| `public/sprites/landmarks/portal-hollow-out.png` | Same | Hollow exit spire-gate. |
+| `public/sprites/enemies/{shade,hexknight,hexwarden,magician}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Hollow bodies. No longer costume-swap imp/raider/wyvern/drake. Warden is a walking seal-keeper, not a flyer. |
+| `public/sprites/enemies/walk/{shade,hexknight,hexwarden,magician}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`center` shade, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir flap/walks. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
-
-Fire land is **procedural Canvas** until painted sheets are asked for: cracked ash + lava-vein path in `drawWorld.ts` / `renderer.ts`, lava-rock variants on blocked tiles, jagged ember portals (Fire no longer falls through to Forest `portal-in.png`). Wiring is ready for `public/sprites/terrain/fire-*.png`, `fire-path-*.png`, `public/sprites/fire/*.png`, and `portal-fire-in/out.png` when those files exist.
-
-Hollow land is **procedural Canvas** the same way: rune glyphs + violet motes on the ground, glowing rune-vein path, four prop kinds (menhir / broken tablet / obelisk / ward-post), hex rune gates and a spire keep. HUD says `click rune`. No image-gen this window. Wiring can wait for `public/sprites/terrain/hollow-*.png` and `portal-hollow-in/out.png` when asked. Bodies still costume-swap Imp / Raider / Wyvern / Drake.
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
 
@@ -64,4 +74,4 @@ Enemy meshes are CC0 from [Quaternius](https://quaternius.com/): Ultimate Monste
 | **MagicaVoxel** | Great for 3D voxel props; this game is 2D billboards. Blender covered the one 3D bake. |
 | **Krita / GIMP / LibreSprite / Audacity** | Hand-paint / hand-edit tools. The batch cousins (ImageMagick, sox, ffmpeg) did the repeatable work. |
 
-Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, **enemy**, Forest / Desert / Ice **portals**, Forest **trees**, Desert **props**, Ice **props**, and **grass/path/sand/ice** tiles use the painted keepers. No paid packs.
+Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, **enemy**, Forest / Desert / Ice / Fire / Hollow **portals**, Forest **trees**, Desert / Ice / Fire / Hollow **props**, and **grass/path/sand/ice/fire/hollow** tiles use the painted keepers. No paid packs.

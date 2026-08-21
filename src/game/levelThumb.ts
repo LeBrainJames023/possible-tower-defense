@@ -21,11 +21,14 @@ export function drawLevelThumb(ctx: CanvasRenderingContext2D, level: LevelDef, w
   const icePath = TEX.icePathTiles.filter(texReady);
   const fire = TEX.fireTiles.filter(texReady);
   const firePath = TEX.firePathTiles.filter(texReady);
+  const hollow = TEX.hollowTiles.filter(texReady);
+  const hollowPath = TEX.hollowPathTiles.filter(texReady);
   const paintedForest = level.world === 'forest' && grass.length > 0 && pathImgs.length > 0;
   const paintedDesert = level.world === 'desert' && sand.length > 0 && sandPath.length > 0;
   const paintedIce = level.world === 'ice' && ice.length > 0 && icePath.length > 0;
   const paintedFire = level.world === 'fire' && fire.length > 0 && firePath.length > 0;
-  const painted = paintedForest || paintedDesert || paintedIce || paintedFire;
+  const paintedHollow = level.world === 'hollow' && hollow.length > 0 && hollowPath.length > 0;
+  const painted = paintedForest || paintedDesert || paintedIce || paintedFire || paintedHollow;
   const onPath = new Set(level.pathTiles.map((p) => `${p.c},${p.r}`));
 
   for (let r = 0; r < ROWS; r++) {
@@ -34,7 +37,15 @@ export function drawLevelThumb(ctx: CanvasRenderingContext2D, level: LevelDef, w
       const y = r * th;
       if (onPath.has(`${c},${r}`)) {
         if (painted) {
-          const pack = paintedFire ? firePath : paintedIce ? icePath : paintedDesert ? sandPath : pathImgs;
+          const pack = paintedHollow
+            ? hollowPath
+            : paintedFire
+              ? firePath
+              : paintedIce
+                ? icePath
+                : paintedDesert
+                  ? sandPath
+                  : pathImgs;
           const img = pack[Math.floor(hash(c, r, 5) * pack.length) % pack.length];
           ctx.drawImage(img, x, y, tw + 0.6, th + 0.6);
         } else {
@@ -42,7 +53,15 @@ export function drawLevelThumb(ctx: CanvasRenderingContext2D, level: LevelDef, w
           ctx.fillRect(x, y, tw + 0.6, th + 0.6);
         }
       } else if (painted) {
-        const pack = paintedFire ? fire : paintedIce ? ice : paintedDesert ? sand : grass;
+        const pack = paintedHollow
+          ? hollow
+          : paintedFire
+            ? fire
+            : paintedIce
+              ? ice
+              : paintedDesert
+                ? sand
+                : grass;
         const img = pack[Math.floor(hash(c, r, 2) * pack.length) % pack.length];
         ctx.drawImage(img, x, y, tw, th);
       } else {
@@ -79,6 +98,8 @@ export function paintLevelThumb(canvas: HTMLCanvasElement, level: LevelDef): voi
     ...TEX.icePathTiles,
     ...TEX.fireTiles,
     ...TEX.firePathTiles,
+    ...TEX.hollowTiles,
+    ...TEX.hollowPathTiles,
   ]) {
     if (img && !img.complete) img.addEventListener('load', paint, { once: true });
   }

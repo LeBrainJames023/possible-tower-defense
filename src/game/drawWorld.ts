@@ -249,6 +249,17 @@ export function drawWorldDecor(
     drawLavaRock(ctx, theme, cx, cy, c, r, time);
     return;
   }
+  if (world === 'hollow') {
+    const painted = TEX.hollowProps.filter(texReady);
+    if (painted.length) {
+      const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
+      const scale = 1.08 + hash(c, r, 8) * 0.2;
+      const tw = TILE * 1.02 * scale;
+      const th = TILE * 1.5 * scale;
+      ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      return;
+    }
+  }
   drawRuneStone(ctx, theme, cx, cy, c, r, time);
 }
 
