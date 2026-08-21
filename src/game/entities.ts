@@ -42,6 +42,7 @@ export class Enemy {
   burrowed = false;
   phased = false;
   freezing = false;
+  warped = false;
   verbSpeedMul = 1;
   verbT = Math.random() * 1.4;
   nextSummonAt = 5.2;
@@ -179,6 +180,8 @@ export class Tower {
   choked = false;
   frozen = false;
   hazed = false;
+  muffled = false;
+  sealed = false;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;

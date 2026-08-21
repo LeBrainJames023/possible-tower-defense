@@ -230,6 +230,21 @@ export function drawTower(
     ctx.lineWidth = 2 * PX;
     ctx.stroke();
   }
+  if (t.muffled) {
+    ctx.fillStyle = 'rgba(160, 80, 220, 0.22)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 8 * PX, 22 * PX, 10 * PX, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (t.sealed) {
+    ctx.fillStyle = 'rgba(160, 60, 220, 0.34)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 8 * PX, 24 * PX, 11 * PX, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(220, 140, 255, ${0.4 + Math.sin(time * 5) * 0.14})`;
+    ctx.lineWidth = 2 * PX;
+    ctx.stroke();
+  }
 
   if (t.level >= 3) {
     const pulse = 0.35 + Math.sin(time * 4) * 0.12;
@@ -385,6 +400,27 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.ellipse(e.pos.x, e.pos.y + r * 0.2, r * 2.5, r * 1.15, time * 0.45, 0, Math.PI * 2);
     ctx.stroke();
   }
+  if (e.kind === 'hexWarden') {
+    ctx.strokeStyle = `rgba(180, 80, 230, ${0.36 + Math.sin(time * 3) * 0.14})`;
+    ctx.lineWidth = 2.2 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.2, r * 2.15, r * 1.0, time * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (e.kind === 'magician') {
+    ctx.strokeStyle = `rgba(200, 120, 255, ${0.34 + Math.sin(time * 2.6) * 0.14})`;
+    ctx.lineWidth = 2.4 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.15, r * 2.4, r * 1.1, time * 0.5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (e.kind === 'hexKnight' && e.armor > 0.4) {
+    ctx.strokeStyle = `rgba(170, 90, 230, ${0.4 + Math.sin(time * 2.4) * 0.12})`;
+    ctx.lineWidth = 2.4 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y, r * 1.35, r * 1.05, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   if (e.kind === 'magmaHound' && e.burnTimer <= 0) {
     ctx.fillStyle = `rgba(255, 110, 40, ${0.28 + Math.sin(time * 4) * 0.12})`;
     ctx.beginPath();
@@ -476,6 +512,10 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   if (e.kind === 'magmaHound' && e.burnTimer <= 0) icons.push('#ff7040');
   if (e.kind === 'cinderBrute' && e.armor > 0.4) icons.push('#e05020');
   if (e.kind === 'cinderKing') icons.push('#ff6020');
+  if (e.kind === 'shade') icons.push('#a070d0');
+  if (e.kind === 'hexKnight' && e.armor > 0.4) icons.push('#7a40b0');
+  if (e.kind === 'hexWarden') icons.push('#c77dff');
+  if (e.kind === 'magician' && !e.warped) icons.push('#d4a0ff');
   icons.forEach((color, i) => {
     ctx.fillStyle = color;
     ctx.beginPath();

@@ -447,6 +447,11 @@ export class Game {
             color: tint,
             life: 1,
           });
+        } else if (ev.type === 'warp') {
+          e.update(0, this.waypoints);
+          this.fx.ring(e.pos.x, e.pos.y, '#c77dff', 56, 4, 0.6);
+          this.fx.burst(e.pos.x, e.pos.y - e.radius, '#e0b0ff', 16, 'spark', -12);
+          this.floats.push({ x: e.pos.x, y: e.pos.y - 28, text: 'Warp!', color: '#c77dff', life: 1 });
         }
       }
       this.fx.statusTicks(e, dt);

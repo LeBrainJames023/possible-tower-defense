@@ -1,24 +1,24 @@
 # Future features
 
-## Last window — Fire world (Aug 21)
+## Last window — Hollow world (Aug 21)
 
-Fire is a place now: cracked ash, lava-vein path, lava-rock props, Fire portals no longer steal Forest’s painted rifts. Verbs: Hound smolders, Brute crusts, King heat-haze, Titan erupts Magma Hounds (no gold). Late Fire 8–10 openings got the Desert-style gold bump. Forest gold unchanged. HUD says **click ash**. Unique Fire bodies still costume-swap (Warg / Ogre / Drake) until image-gen is asked. Hollow waits for its own chat.
+Hollow is a place now: rune-etched stone, glowing vein path, menhir/tablet/obelisk/ward-post, hex rune gates + spire keep. HUD says **click rune**. Verbs: Shade hexes the nearest keep, Hex Knight plates from Twin Hex, Hex Warden seals a tight bubble (ground), The Magician warps once. Hollow 8 held without the Desert/Ice/Fire late gold bump. Forest gold unchanged. Unique Hollow bodies still costume-swap (Imp / Raider / Wyvern / Drake) until image-gen is asked.
 
 ### What play showed
-- Headless sim, normal: Fire 1–4 leak 0. Fire 5–7 bite on wave 1 and still win. Fire 8 holds after the gold bump. Fire 9–10 die on the rim — first keeps at the gate, not a second gold bump.
-- Heat haze is softer shots (Fire keeps ignore it), not a copy of Jarl freeze or Tyrant choke. Smolder makes Fire the hound answer. Crust makes Fire + Cannon the brute answer.
+- Headless sim, normal: Forest 1 leak 0. Hollow 1–4 leak 0. Hollow 5–8 bite on wave 1 and still win. Hollow 9–10 die on the rim — first keeps at the gate, not a gold bump.
+- Shade hex is not Wisp phase. Warden stays on the ground so Cannon is not trash. Knight plate wants Poison + Cannon. Magician warp is a placement decision, not a bigger Drake.
 - Sticky place stayed dead. Upgrade two-click stayed.
 
 ### Next
-**Hollow** — new chat. Brief: `docs/WORLD_ROADMAP.md`. Forest 8–10 on the live save can wait.
+**Dedicated art pass** — new chat. Brief: `docs/WORLD_ROADMAP.md`. Fire + Hollow unique bodies for sure. Desert/Ice already have 4-dir sheets — compare to Forest keepers before regenerating.
 
 ### Parked
-7th tower, endless, splash retune, 14-arrow Forest 10 start gold, Ice/lightning/fire/poison forks, unique art for Fire/Hollow.
+7th tower, endless, splash retune, 14-arrow Forest 10 start gold, Ice/lightning/fire/poison forks. Unique monster stills + 4-dir walks for Fire/Hollow (quality look at Desert/Ice vs Forest keepers) — **this is the next chat**.
 
 ### Watch-outs
 - Fixed-path TD; towers never on path. BCI: large buttons, no drag, no hover-only.
 - Forest save may be 8/10 — do not wipe localStorage.
-- Hollow still lacks unique art and verbs. Fire painted tiles/props/portals/bodies wait on an image-gen ask.
+- Fire and Hollow still costume-swap. Desert and Ice already have unique 4-dir bodies.
 - Leftover untracked preview folders (`public/preview/enemy-quality/`, old `walk4` keepers, Ice `preview/sprite-forge/`) — do not commit unless asked.
 - Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → start wave → damage.
 
@@ -27,18 +27,40 @@ Fire is a place now: cracked ash, lava-vein path, lava-rock props, Fire portals 
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only, on-screen cursor, no drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-This window is HOLLOW ONLY. Read docs/WORLD_ROADMAP.md first — especially Lessons from Fire. Forest, Desert, Ice, and Fire are the bar. Do not start parked forks. Do not bring sticky place back.
+This window is WORLD ART PASS — monsters + land, Forest quality bar. Read docs/WORLD_ROADMAP.md (Lessons from Hollow) and docs/ASSETS.md. Five lands already have place + verbs + play. Do not start parked forks, music, endless, or a 7th tower. Do not bring sticky place back. Do not retune gold unless play after new art says so. Do not re-do Hollow as a world-pass (verbs/land-logic already shipped). Image-gen is the job of this window — still log every keeper in docs/ASSETS.md. Do not commit public/preview/ unless asked. Do not wipe localStorage (Forest save may be 8/10).
 
-Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm. Hollow HUD should say click rune.
+Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm.
 
-Hollow roster: Shade (flying), Hex Knight from stage 3, Hex Warden wave 7, The Magician wave 10. Verbs in verbs.ts. Ask before image-gen. Log assets in docs/ASSETS.md.
+Bar = Forest. Painted grass/path tiles, trees, both portals, and unique 4-dir walk keepers (goblin, raider, imp, troll, warlord, warg, ogre, hellbat, wyvern, drake). New art must feel that finished — not a tint, not a costume-swap, not a weaker cousin. Walks are n/e/s/w × 4 frames. Skill: generate2dsprite. Magenta #FF00FF sheets, local processor for cleanup. East filename must face right (Forest had to swap e/w once — do not repeat that bug). Log live copies; keep raw in public/preview/.
 
-Job: (1) Smoke Forest 1. (2) Make Hollow a place + verbs. (3) Play the whole Hollow world. (4) Write “Lessons from Hollow” into WORLD_ROADMAP.md before you stop.
+Verified on disk at Hollow ship (Aug 21):
 
-Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked.
+FOREST — the bar. public/sprites/terrain/grass-*.png + path-*.png, trees, portal-in/out, unique 4-dir keepers. Leave them unless a keeper is clearly broken.
+
+DESERT — unique 4-dir bodies ALREADY EXIST. Do not regen blindly. Compare to Forest keepers first: scorpion, dunerunner, dunetyrant, sandkhan walks at public/sprites/enemies/walk/{name}-{n,e,s,w}-1..4.png plus stills. Land already painted: sand-*.png, sand-path-*.png, desert/{cactus,dead-tree,boulder,agave}.png, portal-desert-in/out.png. If a Desert body or tile looks cheaper than Forest, regen that piece only.
+
+ICE — unique 4-dir bodies ALREADY EXIST. Same rule: compare to Forest before regenerating. frostwisp, icewolf, packlord, frostjarl. Land already painted: ice-*.png, ice-path-*.png, ice/{crystal,pine,boulder,shrub}.png, portal-ice-in/out.png.
+
+FIRE — must generate. Land is still procedural Canvas (assets.ts wires fire-*.png / fire-path / portal-fire-in/out / public/sprites/fire/* but those files are missing). Bodies still costume-swap: Magma Hound=warg, Cinder Brute=ogre, Cinder King=ogre, Ash Titan=drake. Need four unique creatures + 4-dir walks, plus Forest-parity land: 4 ash tiles, 4 lava-path tiles, 4 props (lava-rock / ember-stump / fumarole / slag), two Fire portals. Wire new sprite names in enemies.ts CreatureSprite + assets.ts CREATURES.
+
+HOLLOW — must generate. Land is procedural runes (glyphs, vein path, four canvas props, hex gates). Bodies still costume-swap: Shade=imp (flying), Hex Knight=raider (ground plate), Hex Warden=wyvern costume but GROUND not flying, The Magician=drake (ground, warps). Need four unique creatures + 4-dir walks that match those identities — Warden must read as a walking seal/warden, not a flyer. Forest-parity land: 4 rune-stone tiles, 4 rune-path tiles, 4 props (menhir / tablet / obelisk / ward-post), two Hollow portals. Shade stays flying; Warden/Knight/Magician stay ground.
+
+Order: (1) smoke Forest 1. (2) Side-by-side quality read of Forest vs Desert vs Ice keepers — regen only losers. (3) Fire land + four Fire bodies. (4) Hollow land + four Hollow bodies. (5) Wire live sprites, tests for file existence, log ASSETS.md. Ask once if a Desert/Ice regen is needed after the compare; then generate. One world of bodies at a time if the sheet work is heavy.
+
+Parked: 7th tower, endless, forks, music, Forest Boar still using the troll sprite unless they ask.
 ```
 
+## Last window — Fire world (Aug 21)
+
+Fire is a place now: cracked ash, lava-vein path, lava-rock props, Fire portals no longer steal Forest’s painted rifts. Verbs: Hound smolders, Brute crusts, King heat-haze, Titan erupts Magma Hounds (no gold). Late Fire 8–10 openings got the Desert-style gold bump. Forest gold unchanged. HUD says **click ash**. Unique Fire bodies still costume-swap (Warg / Ogre / Drake) until image-gen is asked.
+
+### What play showed
+- Headless sim, normal: Fire 1–4 leak 0. Fire 5–7 bite on wave 1 and still win. Fire 8 holds after the gold bump. Fire 9–10 die on the rim — first keeps at the gate, not a second gold bump.
+- Heat haze is softer shots (Fire keeps ignore it), not a copy of Jarl freeze or Tyrant choke. Smolder makes Fire the hound answer. Crust makes Fire + Cannon the brute answer.
+- Sticky place stayed dead. Upgrade two-click stayed.
+
 ## Last window — play pass (Aug 21) — Desert landed
+
 
 Played Forest 1 (smoke) → Forest 2 → **the whole Desert world**. Sticky place stayed dead. Upgrade two-click stayed. Late Desert openings were too thin (maps 9–10 died on wave 1); start gold on Desert 7+ went up. Forest 8/10 gold is unchanged. Desert HUD now says click **sand**, not grass.
 

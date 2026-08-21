@@ -109,6 +109,41 @@ export function drawWorldGround(
     return;
   }
 
+  if (world === 'hollow') {
+    ctx.strokeStyle = 'rgba(160, 80, 220, 0.38)';
+    ctx.lineWidth = 1.25 * PX;
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const hx = hash(c, r, i);
+      const hy = hash(c, r, i + 6);
+      const px = x + 8 * PX + hx * (TILE - 18 * PX);
+      const py = y + 8 * PX + hy * (TILE - 18 * PX);
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + 7 * PX, py + 3 * PX);
+      ctx.lineTo(px + 4 * PX, py + 10 * PX);
+      ctx.lineTo(px + 11 * PX, py + 14 * PX);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(12, 4, 20, 0.5)';
+    ctx.lineWidth = 1.2 * PX;
+    ctx.beginPath();
+    ctx.moveTo(x + 6 * PX + hash(c, r, 9) * 10 * PX, y + 10 * PX);
+    ctx.lineTo(x + TILE - 8 * PX, y + 22 * PX + hash(c, r, 10) * 8 * PX);
+    ctx.stroke();
+    const mote = 0.16 + Math.abs(Math.sin(time * 2.2 + c * 0.5 + r)) * 0.32;
+    ctx.fillStyle = `rgba(200, 120, 255, ${mote})`;
+    ctx.beginPath();
+    ctx.arc(
+      x + 12 * PX + hash(c, r, 14) * 28 * PX,
+      y + 12 * PX + hash(c, r, 15) * 24 * PX,
+      (1.4 + hash(c, r, 16) * 1.4) * PX,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+    return;
+  }
+
   ctx.fillStyle = theme.pebble;
   for (let i = 0; i < 3; i++) {
     ctx.globalAlpha = 0.2 + hash(c, r, i) * 0.25;
@@ -137,15 +172,21 @@ export function drawWorldPath(
     return;
   }
   if (world === 'hollow') {
+    const pulse = 0.18 + Math.abs(Math.sin(time * 2.1 + x * 0.01 + y * 0.008)) * 0.3;
+    ctx.fillStyle = `rgba(140, 60, 220, ${pulse})`;
+    ctx.fillRect(x + 8 * PX, y + 20 * PX, TILE - 16 * PX, 8 * PX);
+    ctx.fillStyle = `rgba(220, 150, 255, ${pulse * 0.75})`;
+    ctx.fillRect(x + 16 * PX, y + 22 * PX, TILE - 32 * PX, 4 * PX);
     ctx.strokeStyle = theme.glow;
-    ctx.globalAlpha = 0.35;
-    ctx.lineWidth = 1.4 * PX;
+    ctx.globalAlpha = 0.28 + pulse * 0.35;
+    ctx.lineWidth = 1.3 * PX;
     ctx.beginPath();
-    ctx.moveTo(x + 8 * PX, y + 18 * PX);
+    ctx.moveTo(x + 10 * PX, y + 16 * PX);
     ctx.lineTo(x + 22 * PX, y + 28 * PX);
-    ctx.lineTo(x + 40 * PX, y + 20 * PX);
+    ctx.lineTo(x + 38 * PX, y + 18 * PX);
     ctx.stroke();
     ctx.globalAlpha = 1;
+    return;
   }
 }
 
@@ -366,22 +407,67 @@ function drawRuneStone(
   cx: number,
   cy: number,
   c: number,
-  _r: number,
+  r: number,
   time: number,
 ): void {
+  const kind = Math.floor(hash(c, r, 4) * 4);
+  const pulse = 0.4 + Math.abs(Math.sin(time * 2.6 + c * 0.4 + r)) * 0.3;
   ctx.fillStyle = theme.trunk;
   ctx.beginPath();
-  ctx.roundRect(cx - 8 * PX, cy - 18 * PX, 16 * PX, 36 * PX, 4 * PX);
+  if (kind === 0) {
+    ctx.roundRect(cx - 8 * PX, cy - 18 * PX, 16 * PX, 36 * PX, 4 * PX);
+  } else if (kind === 1) {
+    ctx.moveTo(cx - 16 * PX, cy + 14 * PX);
+    ctx.lineTo(cx - 10 * PX, cy - 4 * PX);
+    ctx.lineTo(cx + 4 * PX, cy - 2 * PX);
+    ctx.lineTo(cx + 16 * PX, cy + 12 * PX);
+    ctx.lineTo(cx + 8 * PX, cy + 16 * PX);
+    ctx.lineTo(cx - 8 * PX, cy + 16 * PX);
+  } else if (kind === 2) {
+    ctx.moveTo(cx - 7 * PX, cy + 16 * PX);
+    ctx.lineTo(cx - 5 * PX, cy - 10 * PX);
+    ctx.lineTo(cx, cy - 26 * PX);
+    ctx.lineTo(cx + 5 * PX, cy - 10 * PX);
+    ctx.lineTo(cx + 7 * PX, cy + 16 * PX);
+  } else {
+    ctx.roundRect(cx - 4 * PX, cy - 8 * PX, 8 * PX, 26 * PX, 2 * PX);
+  }
+  ctx.closePath();
   ctx.fill();
   ctx.fillStyle = theme.canopyDark;
-  ctx.fillRect(cx - 6 * PX, cy - 14 * PX, 12 * PX, 28 * PX);
-  const pulse = 0.45 + Math.sin(time * 2.6 + c * 0.4) * 0.25;
+  if (kind === 1) {
+    ctx.beginPath();
+    ctx.moveTo(cx - 8 * PX, cy + 8 * PX);
+    ctx.lineTo(cx - 2 * PX, cy);
+    ctx.lineTo(cx + 8 * PX, cy + 6 * PX);
+    ctx.lineTo(cx + 4 * PX, cy + 12 * PX);
+    ctx.closePath();
+    ctx.fill();
+  } else if (kind === 3) {
+    ctx.fillRect(cx - 3 * PX, cy - 6 * PX, 6 * PX, 20 * PX);
+  } else {
+    ctx.fillRect(cx - 5 * PX, cy - 12 * PX, 10 * PX, kind === 2 ? 22 * PX : 24 * PX);
+  }
   ctx.strokeStyle = `rgba(200, 120, 255, ${pulse})`;
   ctx.lineWidth = 2 * PX;
   ctx.beginPath();
-  ctx.moveTo(cx - 3 * PX, cy - 8 * PX);
-  ctx.lineTo(cx + 3 * PX, cy - 2 * PX);
-  ctx.lineTo(cx - 2 * PX, cy + 6 * PX);
-  ctx.lineTo(cx + 4 * PX, cy + 10 * PX);
+  if (kind === 2) {
+    ctx.moveTo(cx, cy - 18 * PX);
+    ctx.lineTo(cx + 3 * PX, cy - 6 * PX);
+    ctx.lineTo(cx - 3 * PX, cy + 4 * PX);
+  } else if (kind === 3) {
+    ctx.arc(cx, cy - 14 * PX, 5 * PX, 0, Math.PI * 2);
+  } else {
+    ctx.moveTo(cx - 3 * PX, cy - 8 * PX);
+    ctx.lineTo(cx + 3 * PX, cy - 2 * PX);
+    ctx.lineTo(cx - 2 * PX, cy + 6 * PX);
+    ctx.lineTo(cx + 4 * PX, cy + 10 * PX);
+  }
   ctx.stroke();
+  if (kind === 3) {
+    ctx.fillStyle = `rgba(220, 150, 255, ${pulse})`;
+    ctx.beginPath();
+    ctx.arc(cx, cy - 14 * PX, 2.4 * PX, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }

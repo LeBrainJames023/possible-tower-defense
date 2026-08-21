@@ -478,6 +478,8 @@ function fillInspectTower(t: Tower): void {
   if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);
   if (t.frozen) rows.push(['Status', 'Frozen — cannot fire']);
   if (t.hazed) rows.push(['Status', 'Heat haze — shots weaker']);
+  if (t.muffled) rows.push(['Status', 'Hex — firing slow']);
+  if (t.sealed) rows.push(['Status', 'Sealed — cannot fire']);
   selectionStats.innerHTML = statGridHtml(rows);
 
   const selling = inspectStep === 'sell';

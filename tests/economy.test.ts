@@ -179,4 +179,13 @@ describe('difficulty levers', () => {
     expect(Math.floor(fire10.startingGold / TOWERS.arrow.cost)).toBeGreaterThanOrEqual(8);
     expect(f10.startingGold).toBe(320);
   });
+
+  it('leaves Hollow late openings on world HP and Forest 10 gold alone', () => {
+    const h1 = LEVELS.find((l) => l.world === 'hollow' && l.stage === 1)!;
+    const h10 = LEVELS.find((l) => l.world === 'hollow' && l.stage === 10)!;
+    const f10 = LEVELS.find((l) => l.world === 'forest' && l.stage === 10)!;
+    expect(h1.startingGold).toBe(Math.round(250 * 1.68));
+    expect(h10.startingGold).toBe(Math.round(320 * 1.68));
+    expect(f10.startingGold).toBe(320);
+  });
 });

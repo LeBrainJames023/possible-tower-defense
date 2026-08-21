@@ -40,6 +40,20 @@ describe('world roster', () => {
     expect(ENEMIES.cinderKing.blurb.toLowerCase()).toContain('haze');
     expect(ENEMIES.ashTitan.blurb.toLowerCase()).toContain('erupt');
   });
+
+  it('holds the Hollow second local until Twin Hex and names the four verbs', () => {
+    expect(specialAt(5, 1, 1)).toBe('shade');
+    expect(specialAt(5, 1, 2)).toBeNull();
+    expect(specialAt(5, 3, 2)).toBe('hexKnight');
+    expect(championAt(5, 1)).toBe('hexWarden');
+    expect(rosterFor(5).boss).toBe('magician');
+    expect(ENEMIES.shade.blurb.toLowerCase()).toContain('hex');
+    expect(ENEMIES.hexKnight.blurb.toLowerCase()).toContain('plate');
+    expect(ENEMIES.hexWarden.blurb.toLowerCase()).toContain('seal');
+    expect(ENEMIES.magician.blurb.toLowerCase()).toContain('warp');
+    expect(ENEMIES.hexWarden.flying).toBe(false);
+    expect(ENEMIES.shade.flying).toBe(true);
+  });
 });
 
 describe('flyers and intros', () => {

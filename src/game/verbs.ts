@@ -16,7 +16,11 @@ export type EnemyVerb =
   | 'smolder'
   | 'crust'
   | 'heat'
-  | 'erupt';
+  | 'erupt'
+  | 'hex'
+  | 'plate'
+  | 'seal'
+  | 'warp';
 
 export const ENEMY_VERBS: Partial<Record<EnemyKind, EnemyVerb>> = {
   scorpion: 'burrow',
@@ -31,6 +35,10 @@ export const ENEMY_VERBS: Partial<Record<EnemyKind, EnemyVerb>> = {
   cinderBrute: 'crust',
   cinderKing: 'heat',
   ashTitan: 'erupt',
+  shade: 'hex',
+  hexKnight: 'plate',
+  hexWarden: 'seal',
+  magician: 'warp',
 };
 
 export const BURROW_UP = 3.2;
@@ -77,6 +85,21 @@ export const ERUPT_FIRST = 5.2;
 export const ERUPT_EVERY = 11;
 export const ERUPT_COUNT = 2;
 
+/** Shade hex. One nearby keep fires slower — not a Wisp flicker. */
+export const MUFFLE_RANGE = u(110);
+export const MUFFLE_FIRE = 0.48;
+
+/** Hex Knight plate. Poison melts it; Cannon pierce ignores it. */
+export const PLATE_ARMOR = 0.62;
+export const PLATE_MELTED = 0.14;
+
+/** Hex Warden seal. Tight bubble — keeps inside cannot fire. Ground, so Cannon still answers. */
+export const SEAL_RANGE = u(88);
+
+/** Magician warp. One skip down the path — cover the landing. */
+export const WARP_AT = 5.5;
+export const WARP_SKIP = 0.16;
+
 export type VerbEvent =
   | { type: 'burrow' }
   | { type: 'emerge' }
@@ -86,7 +109,8 @@ export type VerbEvent =
   | { type: 'slide' }
   | { type: 'freeze' }
   | { type: 'thaw' }
-  | { type: 'summon'; kind: EnemyKind; count: number };
+  | { type: 'summon'; kind: EnemyKind; count: number }
+  | { type: 'warp' };
 
 export function untargetable(e: Enemy): boolean {
   return e.burrowed || e.phased;
@@ -196,6 +220,32 @@ export function stepEnemyVerb(e: Enemy, dt: number): VerbEvent[] {
     }
     return out;
   }
+
+  if (verb === 'hex') {
+    e.verbSpeedMul = 1;
+    return out;
+  }
+
+  if (verb === 'plate') {
+    e.verbSpeedMul = 1;
+    e.armor = e.poisonTimer > 0 ? PLATE_MELTED : PLATE_ARMOR;
+    return out;
+  }
+
+  if (verb === 'seal') {
+    e.verbSpeedMul = 1;
+    return out;
+  }
+
+  if (verb === 'warp') {
+    e.verbSpeedMul = 1;
+    if (!e.warped && e.verbT >= WARP_AT) {
+      e.warped = true;
+      e.progress = Math.min(0.88, e.progress + WARP_SKIP);
+      out.push({ type: 'warp' });
+    }
+    return out;
+  }
   return out;
 }
 
@@ -221,6 +271,33 @@ export function isHeatHaze(towerPos: Vec2, enemies: Enemy[]): boolean {
     if (dist(towerPos, e.pos) <= HEAT_RANGE) return true;
   }
   return false;
+}
+
+export function isWardenSeal(towerPos: Vec2, enemies: Enemy[]): boolean {
+  for (const e of enemies) {
+    if (!e.alive || e.kind !== 'hexWarden') continue;
+    if (dist(towerPos, e.pos) <= SEAL_RANGE) return true;
+  }
+  return false;
+}
+
+/** Each Shade hexes its nearest keep in range. */
+export function muffledTowerIds(towers: { id: number; x: number; y: number }[], enemies: Enemy[]): Set<number> {
+  const ids = new Set<number>();
+  for (const e of enemies) {
+    if (!e.alive || e.kind !== 'shade') continue;
+    let bestId: number | null = null;
+    let bestD = MUFFLE_RANGE;
+    for (const t of towers) {
+      const d = dist({ x: t.x, y: t.y }, e.pos);
+      if (d <= bestD) {
+        bestD = d;
+        bestId = t.id;
+      }
+    }
+    if (bestId != null) ids.add(bestId);
+  }
+  return ids;
 }
 
 export function towerFireMul(towerPos: Vec2, enemies: Enemy[]): number {

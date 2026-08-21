@@ -102,6 +102,7 @@ describe('campaign maps', () => {
     expect(buildSurfaceWord('desert')).toBe('sand');
     expect(buildSurfaceWord('ice')).toBe('ice');
     expect(buildSurfaceWord('fire')).toBe('ash');
+    expect(buildSurfaceWord('hollow')).toBe('rune');
   });
 });
 
@@ -141,6 +142,14 @@ describe('buildWave', () => {
     expect(waveRoster(1, 3, 4).includes('Cinder Brute')).toBe(false);
     expect(waveRoster(1, 7, 4).includes('Cinder King')).toBe(true);
     expect(waveRoster(1, 10, 4).includes('Ash Titan')).toBe(true);
+  });
+
+  it('brings Hollow locals, a wave-7 champion, and a world boss', () => {
+    expect(waveRoster(1, 3, 5).includes('Shade')).toBe(true);
+    expect(waveRoster(3, 6, 5).includes('Hex Knight')).toBe(true);
+    expect(waveRoster(1, 3, 5).includes('Hex Knight')).toBe(false);
+    expect(waveRoster(1, 7, 5).includes('Hex Warden')).toBe(true);
+    expect(waveRoster(1, 10, 5).includes('The Magician')).toBe(true);
   });
 
   it('gives every world its own wave-10 boss and Forest a late champion', () => {

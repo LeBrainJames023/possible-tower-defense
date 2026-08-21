@@ -3,7 +3,7 @@ import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
-import { SANDSTORM_FIRE, isJarlFreeze, isSandstorm, towerDamageMul, untargetable } from './verbs';
+import { MUFFLE_FIRE, SANDSTORM_FIRE, isJarlFreeze, isSandstorm, isWardenSeal, muffledTowerIds, towerDamageMul, untargetable } from './verbs';
 
 export interface CombatWorld {
   enemies: Enemy[];
@@ -198,6 +198,7 @@ export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {
 }
 
 export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = {}): void {
+  const muffles = muffledTowerIds(world.towers, world.enemies);
   for (const t of world.towers) {
     t.cooldown = Math.max(0, t.cooldown - dt);
     t.recoil = Math.max(0, t.recoil - dt * 6);
@@ -212,13 +213,15 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
     }
     t.choked = isSandstorm({ x: t.x, y: t.y }, world.enemies);
     t.frozen = isJarlFreeze({ x: t.x, y: t.y }, world.enemies);
+    t.sealed = isWardenSeal({ x: t.x, y: t.y }, world.enemies);
+    t.muffled = muffles.has(t.id);
     const haze = towerDamageMul(t.kind, { x: t.x, y: t.y }, world.enemies);
     t.hazed = haze < 1;
-    if (t.frozen) continue;
+    if (t.frozen || t.sealed) continue;
     if (t.cooldown > 0) continue;
     const target = pickTarget(t, world.enemies);
     if (!target) continue;
-    const choke = t.choked ? SANDSTORM_FIRE : 1;
+    const choke = (t.choked ? SANDSTORM_FIRE : 1) * (t.muffled ? MUFFLE_FIRE : 1);
     t.cooldown = 1 / (t.fireRate * choke);
     t.targetId = target.id;
     fireTower(t, target, world, { ...hooks, damageMul: (hooks.damageMul ?? 1) * haze });

@@ -47,6 +47,8 @@ Regenerate with `./tools/build-env-assets.sh`.
 
 Fire land is **procedural Canvas** until painted sheets are asked for: cracked ash + lava-vein path in `drawWorld.ts` / `renderer.ts`, lava-rock variants on blocked tiles, jagged ember portals (Fire no longer falls through to Forest `portal-in.png`). Wiring is ready for `public/sprites/terrain/fire-*.png`, `fire-path-*.png`, `public/sprites/fire/*.png`, and `portal-fire-in/out.png` when those files exist.
 
+Hollow land is **procedural Canvas** the same way: rune glyphs + violet motes on the ground, glowing rune-vein path, four prop kinds (menhir / broken tablet / obelisk / ward-post), hex rune gates and a spire keep. HUD says `click rune`. No image-gen this window. Wiring can wait for `public/sprites/terrain/hollow-*.png` and `portal-hollow-in/out.png` when asked. Bodies still costume-swap Imp / Raider / Wyvern / Drake.
+
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
 
 Poly Haven textures are CC0. We downloaded files at bake time (not the live API in-game). Credit: [aerial_grass_rock](https://polyhaven.com/a/aerial_grass_rock), [dirt](https://polyhaven.com/a/dirt).

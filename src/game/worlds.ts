@@ -140,9 +140,9 @@ export const WORLDS: WorldDef[] = [
       grassB: '#221430',
       blade: 'rgba(180, 80, 220, 0.28)',
       pathEdge: '#1a1024',
-      pathMid: '#3a2458',
-      pathLight: '#5a3878',
-      pebble: '#b070e0',
+      pathMid: '#4a2870',
+      pathLight: '#7a50a8',
+      pebble: '#c090ff',
       trunk: '#1a1020',
       canopy: '#6a30a0',
       canopyDark: '#301050',
@@ -170,10 +170,11 @@ export function isWetLevel(level: { world: WorldId; stage: number }): boolean {
   return (level.world === 'forest' && level.stage === 2) || level.world === 'ice';
 }
 
-/** Toast word for the buildable tile. Forest grass, Desert sand, Ice ice, Fire ash. */
+/** Toast word for the buildable tile. Forest grass, Desert sand, Ice ice, Fire ash, Hollow rune. */
 export function buildSurfaceWord(id: WorldId): string {
   if (id === 'desert') return 'sand';
   if (id === 'ice') return 'ice';
   if (id === 'fire') return 'ash';
+  if (id === 'hollow') return 'rune';
   return 'grass';
 }

@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — Hollow land + verbs (Aug 21)
+
+Hollow HUD says **click rune**. Rune-etched stone, glowing vein path, four rune props, hex gates + spire keep. Shade hexes the nearest keep (not a Wisp flicker). Hex Knight plates from Twin Hex. Hex Warden seals a tight bubble and stays on the ground. The Magician warps once — cover the landing. Hollow 8 held without a late gold bump. Forest gold unchanged. Sticky place stayed dead.
+
+Check 1x: Forest 1 smoke (place → wave → damage, path blocked). Hollow 1 rune/vein path. Shade makes one keep cough. Knight shell melts under Poison. Warden hushes keeps beside him; Cannon can still shoot him. Magician yells Warp.
+
 ## This session — Fire land + verbs (Aug 21)
 
 Fire HUD says **click ash**. Fire no longer stamps Forest portals. Magma Hound smolders, Cinder Brute crusts from Twin Caldera, Cinder King heat-haze, Ash Titan erupts (no gold). Late Fire 8–10 openings got the Desert-style gold bump. Forest gold unchanged. Sticky place stayed dead.

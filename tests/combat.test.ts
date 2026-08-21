@@ -4,7 +4,7 @@ import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
 import { pickTarget, splashMultiplier, canTarget, enemyAimPoint } from '../src/game/combat';
-import { BURROW_UP, CRUST_ARMOR, CRUST_MELTED, DASH_EVERY, DASH_MUL, ERUPT_FIRST, FREEZE_EVERY, PHASE_UP, RALLY_MUL, SLIDE_EVERY, SLIDE_MUL, SMOLDER_HP, applyPackRally, stepEnemyVerb } from '../src/game/verbs';
+import { BURROW_UP, CRUST_ARMOR, CRUST_MELTED, DASH_EVERY, DASH_MUL, ERUPT_FIRST, FREEZE_EVERY, PHASE_UP, PLATE_ARMOR, PLATE_MELTED, RALLY_MUL, SLIDE_EVERY, SLIDE_MUL, SMOLDER_HP, WARP_AT, WARP_SKIP, applyPackRally, stepEnemyVerb } from '../src/game/verbs';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('shared combat rules', () => {
@@ -345,5 +345,76 @@ describe('fire verbs', () => {
     titan.verbT = 0;
     const ev = stepEnemyVerb(titan, 0.1);
     expect(ev.some((e) => e.type === 'summon' && e.kind === 'magmaHound' && e.count === 2)).toBe(true);
+  });
+});
+
+describe('hollow verbs', () => {
+  it('lets a shade hex the nearest tower without phasing', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const near = sim.place('arrow', 6, 5);
+    const far = sim.place('arrow', 12, 5);
+    const shade = sim.spawn('shade');
+    shade.pos = { x: near.x + 20, y: near.y };
+    shade.progress = 0.4;
+    shade.verbT = 0;
+    stepEnemyVerb(shade, 0.05);
+    expect(shade.phased).toBe(false);
+    sim.step(1 / 30);
+    expect(near.muffled).toBe(true);
+    expect(far.muffled).toBe(false);
+  });
+
+  it('gives a hex knight plate that poison melts', () => {
+    const sim = new CombatSandbox();
+    const knight = sim.spawn('hexKnight');
+    stepEnemyVerb(knight, 0.05);
+    expect(knight.armor).toBe(PLATE_ARMOR);
+    knight.applyPoison(8, 2);
+    stepEnemyVerb(knight, 0.05);
+    expect(knight.armor).toBe(PLATE_MELTED);
+  });
+
+  it('lets a hex warden seal nearby towers and stays on the ground', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const arrow = sim.place('arrow', 6, 5);
+    const cannon = sim.place('cannon', 7, 5);
+    const warden = sim.spawn('hexWarden');
+    const grunt = sim.spawn('grunt');
+    warden.pos = { x: arrow.x + 16, y: arrow.y };
+    grunt.pos = { x: arrow.x + 36, y: arrow.y };
+    warden.progress = 0.4;
+    grunt.progress = 0.5;
+    expect(warden.flying).toBe(false);
+    expect(canTarget(cannon, warden)).toBe(true);
+    sim.step(1 / 30);
+    expect(arrow.sealed).toBe(true);
+    expect(sim.projectiles.length).toBe(0);
+  });
+
+  it('has the magician warp once down the path', () => {
+    const sim = new CombatSandbox();
+    const mage = sim.spawn('magician');
+    mage.progress = 0.2;
+    mage.verbT = 0;
+    const before = mage.progress;
+    const ev = stepEnemyVerb(mage, WARP_AT + 0.05);
+    expect(mage.warped).toBe(true);
+    expect(mage.progress).toBeCloseTo(Math.min(0.88, before + WARP_SKIP), 5);
+    expect(ev.some((e) => e.type === 'warp')).toBe(true);
+    const again = stepEnemyVerb(mage, 2);
+    expect(again.some((e) => e.type === 'warp')).toBe(false);
+  });
+
+  it('keeps cannon off shades and on hollow ground foes', () => {
+    const cannon = new Tower('cannon', 6, 5, 100, 100);
+    const sim = new CombatSandbox();
+    const shade = sim.spawn('shade');
+    const knight = sim.spawn('hexKnight');
+    const mage = sim.spawn('magician');
+    expect(canTarget(cannon, shade)).toBe(false);
+    expect(canTarget(cannon, knight)).toBe(true);
+    expect(canTarget(cannon, mage)).toBe(true);
   });
 });

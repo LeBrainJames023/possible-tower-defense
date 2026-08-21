@@ -159,10 +159,11 @@ function drawSpawnArch(
   ctx.lineWidth = 5 * PX;
   ctx.beginPath();
   if (world === 'hollow') {
-    ctx.moveTo(4 * PX, -20 * PX);
-    ctx.lineTo(18 * PX, -8 * PX);
-    ctx.lineTo(18 * PX, 8 * PX);
-    ctx.lineTo(4 * PX, 20 * PX);
+    ctx.moveTo(2 * PX, -22 * PX);
+    ctx.lineTo(14 * PX, -12 * PX);
+    ctx.lineTo(20 * PX, 0);
+    ctx.lineTo(14 * PX, 12 * PX);
+    ctx.lineTo(2 * PX, 22 * PX);
   } else if (world === 'fire') {
     ctx.moveTo(2 * PX, -22 * PX);
     ctx.lineTo(16 * PX, -10 * PX);
@@ -186,6 +187,15 @@ function drawSpawnArch(
   ctx.strokeStyle = theme.glow;
   ctx.lineWidth = 2.4 * PX;
   ctx.stroke();
+  if (world === 'hollow') {
+    ctx.strokeStyle = `rgba(220, 150, 255, ${0.45 + heat * 0.3})`;
+    ctx.lineWidth = 1.8 * PX;
+    ctx.beginPath();
+    ctx.moveTo(8 * PX, -8 * PX);
+    ctx.lineTo(14 * PX, 0);
+    ctx.lineTo(8 * PX, 8 * PX);
+    ctx.stroke();
+  }
 
   ctx.restore();
 }
@@ -260,7 +270,11 @@ function drawExitKeep(
     ctx.lineTo(22 * PX, -22 * PX);
     ctx.lineTo(22 * PX, -8 * PX);
   } else if (world === 'hollow') {
-    ctx.rect(-10 * PX, -32 * PX, 20 * PX, 24 * PX);
+    ctx.moveTo(-8 * PX, -8 * PX);
+    ctx.lineTo(-6 * PX, -28 * PX);
+    ctx.lineTo(0, -40 * PX);
+    ctx.lineTo(6 * PX, -28 * PX);
+    ctx.lineTo(8 * PX, -8 * PX);
   } else {
     ctx.moveTo(-22 * PX, -8 * PX);
     ctx.lineTo(0, -28 * PX);
@@ -273,7 +287,11 @@ function drawExitKeep(
   if (world === 'desert') {
     ctx.rect(-16 * PX, -16 * PX, 32 * PX, 8 * PX);
   } else if (world === 'hollow') {
-    ctx.rect(-7 * PX, -28 * PX, 14 * PX, 16 * PX);
+    ctx.moveTo(-5 * PX, -8 * PX);
+    ctx.lineTo(-3 * PX, -24 * PX);
+    ctx.lineTo(0, -34 * PX);
+    ctx.lineTo(3 * PX, -24 * PX);
+    ctx.lineTo(5 * PX, -8 * PX);
   } else {
     ctx.moveTo(-16 * PX, -8 * PX);
     ctx.lineTo(0, -22 * PX);
@@ -287,7 +305,7 @@ function drawExitKeep(
     desert: -14,
     ice: -28,
     fire: -16,
-    hollow: -26,
+    hollow: -32,
   };
   ctx.fillStyle = '#f4d35e';
   ctx.globalAlpha = 0.55 + Math.sin(time * 4) * 0.2;

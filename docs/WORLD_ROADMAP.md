@@ -1,8 +1,8 @@
-# World roadmap — Fire done, Hollow next
+# World roadmap — five lands done
 
-One land per agent. Finish, play, write lessons, then open a **new chat** for the next land. Do not start Hollow while Fire is mid-paint.
+One land per agent. Finish, play, write lessons. Hollow was the last land. Next chat is the **dedicated art pass** (Fire + Hollow unique bodies; Desert/Ice already have 4-dir sheets — compare to Forest keepers before regenerating). Do not start parked forks, music, endless, or a 7th tower in that thread.
 
-Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire is a place (ash, four verbs; unique bodies still costume-swap until image-gen). Hollow still wears a palette: **unique paths exist**, **names exist**, **art and verbs do not**.
+Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire is a place (ash, four verbs; unique bodies still costume-swap until image-gen). Hollow is a place (runes, four verbs; unique bodies still costume-swap until image-gen).
 
 This file is the pickup brief. `docs/FUTURE_FEATURES.md` points here. Campaign shape lives in `docs/CAMPAIGN.md`.
 
@@ -24,7 +24,7 @@ Parked for every world pass: 7th tower, endless, Ice/lightning/fire/poison forks
 
 ## Lessons already in the bag
 
-Copy these forward. Add a short “Lessons from Hollow” block here when Hollow ships.
+Copy these forward. Hollow shipped — lessons are below.
 
 ### Forest
 - Tutorial home. Stage 1 has no locals and no champion.
@@ -56,8 +56,15 @@ Copy these forward. Add a short “Lessons from Hollow” block here when Hollow
 - Fire `hpMul` is 1.5 — stage 1 already buys six arrows. Bodies still wear Warg / Ogre / Drake until you ask for painted sheets.
 - Hollow should steal: land + four verbs + play all ten + late-opening bump only if wave 1 dies. Do not start anything past Hollow in that window.
 
-### Ceiling (read before pouring Hollow)
-Two more worlds of unique 4-dir walk sheets is the expensive part (4 bodies × 4 dirs × 4 frames, plus tiles, props, two portals). **One world per agent.** New chat for Hollow — don’t start parked forks in that thread.
+### Hollow (Aug 21)
+- Land first: rune-etched stone, glowing vein path, menhir / broken tablet / obelisk / ward-post. Hex rune gates and a spire keep — Hollow no longer looks like purple Forest. HUD says **click rune**.
+- **One verb per body.** Shade **hexes** the nearest keep (it fires slower). Flying; not a Wisp flicker. Knight **plate** from Twin Hex (Poison melts it; Cannon pierces it). Warden **seals** a tight bubble (keeps inside cannot fire — constant, small, not a Jarl pulse). Magician **warps** once down the path (cover the landing). No gold summons.
+- Do not copy Wisp phase onto Shade. Do not copy freeze/sandstorm/haze onto the same body. Warden stays **ground** (wyvern is a costume) so Cannon is not trash; Arrow/Lightning stay the air answer; Knight plate gives ground a reason.
+- Hollow 1–4 leaked 0. Twin Hex (3) is where plate shows. Hollow 5–8 bite wave 1 and still win. **Hollow 8 held without the Desert/Ice/Fire late gold bump** — do not copy it for symmetry. Bot dies on Hollow 9–10 rim (`Siege Cult` left-wall rite, `Last Spire` climb) — first keeps at the gate, not a purse. Forest 10 still 320g.
+- Bodies still wear Imp / Raider / Wyvern / Drake until you ask for painted sheets.
+
+### Ceiling (read before the art pass)
+Unique 4-dir walk sheets are the expensive part (4 bodies × 4 dirs × 4 frames, plus tiles, props, two portals). **Fire and Hollow need them.** Desert and Ice already have unique 4-dir bodies — compare to Forest keepers before regenerating. Ask before image-gen. One dedicated art chat. Do not start parked forks in that thread.
 
 Verbs live in `src/game/verbs.ts`. Combat asks “may I shoot this?” from there. Do not put timers in `combat.ts`. Bodies and names in `src/game/enemies.ts` / `worldRoster.ts`. Paths already authored in `src/game/worldPaths.ts`. Balance in `constants.ts` / `levels.ts` / `worlds.ts`.
 
@@ -76,8 +83,6 @@ Land, four unique bodies, four verbs, whole-world sim, late-opening gold bump. L
 
 HUD: `click ice`. Late Ice 8–10 openings use the Desert-style gold bump. Forest 10 gold unchanged.
 
-**Do not start Fire in this thread.** New chat tomorrow.
-
 ---
 
 ## Fire (done Aug 21)
@@ -93,42 +98,27 @@ Land, four verbs, whole-world sim, late-opening gold bump. Unique painted bodies
 
 HUD: `click ash`. Late Fire 8–10 openings use the Desert-style gold bump. Forest 10 gold unchanged. Costume-swap bodies (Warg / Ogre / Drake) until painted.
 
-**Do not start Hollow in this thread.** New chat.
-
 ---
 
-## Hollow (after Fire lessons)
+## Hollow (done Aug 21)
 
-**Roster:** Shade (flying), Hex Knight (stage 3+), Hex Warden (wave 7), The Magician (wave 10). Today: Imp / Raider / Wyvern / Drake palettes.
+Land, four verbs, whole-world sim. No late gold bump — Hollow 8 held without it. Unique painted bodies still wait on image-gen. Lessons are above.
 
-**Land today:** procedural rune stones, purple palette, unique paths (`Rune Gate` drops from above — watch the first keep). Finale world. Magician should feel like a **decision**, not a bigger Drake.
+| Role | Kind | Verb (shipped) |
+| --- | --- | --- |
+| Special 1 (stage 1+) | Shade | **Hex** — nearest keep fires slower. Flying. Not a Wisp phase. Cannon cannot lock. |
+| Special 2 (stage 3+) | Hex Knight | **Plate** — extra armor. Poison melts it; Cannon pierces it. |
+| Wave 7 | Hex Warden | **Seal** — nearby keeps cannot fire while he walks past. Ground (wyvern is a costume). |
+| Wave 10 | The Magician | **Warp** — one skip down the path. Cover the landing. |
 
-**Carry from Fire:** don’t let flying Shade + Hex Warden (wyvern body) turn the world into “Cannon is trash.” Arrow / Lightning must remain the air answer; give ground a reason to exist (Knight plate).
+HUD: `click rune`. Hollow 8–10 openings stay on world HP (no Desert bump). Forest 10 gold unchanged. Costume-swap bodies (Imp / Raider / Wyvern / Drake) until painted. `Rune Gate` drops from above — first keeps at the gate.
 
-**Verb direction (bets):** Shade (not a carbon-copy of Wisp phase — Ice already taught flicker; maybe a hex that muffles one nearby tower, or a slower untargetable beat). Knight (plate — Poison and Cannon). Warden (seal / silence). Magician (the last door — one signature trick, not four). **One verb each.**
-
-**Ask before image-gen.** New chat. After Hollow play, campaign art+verbs are complete; then parked forks / music / endless are allowed to come back.
-
-### Hollow continue prompt (paste into a new chat)
-
-```
-Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only, on-screen cursor, no drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
-
-This window is HOLLOW ONLY. Read docs/WORLD_ROADMAP.md first — especially Lessons from Fire. Forest, Desert, Ice, and Fire are the bar: land is a place, four bodies, one verb each, play the whole world, retune only if it feels wrong. Do not start parked forks. Do not bring sticky place back.
-
-Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm. Hollow HUD should say click rune, not grass.
-
-Hollow roster: Shade (flying), Hex Knight from stage 3, Hex Warden wave 7, The Magician wave 10. Verbs in verbs.ts. Paths already in worldPaths.ts. Ask before any image-gen. Log assets in docs/ASSETS.md.
-
-Job: (1) Smoke Forest 1. (2) Make Hollow a place + verbs. (3) Play Hollow 1 → 2 → 3, then the whole Hollow world. (4) Write “Lessons from Hollow” into WORLD_ROADMAP.md before you stop.
-
-Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked.
-```
+**Do not start parked forks, music, endless, or a 7th tower.** Next chat is the art pass. The paste-ready prompt lives in `docs/FUTURE_FEATURES.md`.
 
 ---
 
 ## After each world ships
 
-The agent writes 5–10 lines under **Lessons from {Ice,Fire,Hollow}** in this file: what changed the decision vs wallpaper, gold, rim maps, which verb to steal or never copy. Then stop. Next land is a new chat.
+The agent writes 5–10 lines under **Lessons from {Ice,Fire,Hollow}** in this file: what changed the decision vs wallpaper, gold, rim maps, which verb to steal or never copy. Then stop. Hollow was the last land. Next is the art pass.
 
 Quality gates stay: `npm test`, `npm run build`, smoke title → Forest 1 → place → wave → damage. Path placement blocked. UI large-click.
