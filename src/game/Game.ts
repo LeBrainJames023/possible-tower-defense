@@ -57,8 +57,10 @@ export class Game {
   waveIndex = 0; // completed waves
   phase: GamePhase = 'prepare';
   selectedKind: TowerKind | null = null;
-  /** Last built tower — next grass click places another. */
+  /** Last built tower — the next grass click asks before placing another. */
   placeKind: TowerKind | null = null;
+  /** Grass tile waiting for the sticky Build confirm (tray stays closed). */
+  placeCell: { c: number; r: number } | null = null;
   selectedTowerId: number | null = null;
   selectedEnemyId: number | null = null;
   /** Grass cell waiting for the on-map Build menu. */
@@ -131,6 +133,7 @@ export class Game {
     this.waveActive = false;
     this.selectedKind = null;
     this.placeKind = null;
+    this.placeCell = null;
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
     this.buildCell = null;
@@ -527,7 +530,7 @@ export class Game {
     }
     this.renderer.clear();
     this.renderer.drawPathGlow(this.waypoints);
-    const focus = this.buildCell ?? this.hover;
+    const focus = this.buildCell ?? this.placeCell ?? this.hover;
     const hoverBuildable =
       !!focus &&
       canPlaceOnCell(this.grid, focus.c, focus.r) &&
@@ -540,7 +543,7 @@ export class Game {
       focus,
       canPlace,
       brush,
-      !!this.buildCell,
+      !!this.buildCell || !!this.placeCell,
     );
     this.renderer.drawSpawnExit(this.waypoints);
     const units: Array<{ y: number; z: number; draw: () => void }> = [];

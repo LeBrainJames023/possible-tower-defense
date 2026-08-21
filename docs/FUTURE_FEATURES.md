@@ -42,7 +42,7 @@ Done since MVP:
 - Forest tree set + mixed grass/path tiles; cannon carriage stays, barrel turns
 - On-map 2×3 build tray, compact upgrade/sell, HUD chips, match vignette
 - Forest path/grass split, bigger towers + shots, y-sort, spinning portal halos, HUD hearts/gold/wave, trays that sit toward empty grass, 4-frame enemy walks
-- Sticky place after Build, Done placing to stop, range ghost while the brush is hot, no inspect-after-build
+- Sticky place after Build: range ghost on the cursor, then Build-here confirm (not auto-drop). Done placing to stop.
 - 4-dir walk/fly sheets (e/w files match the path; magenta fringe keyed off)
 - Painted Forest campaign thumbs; hashed (not checker) thumbs on later worlds
 - Flying vs ground targeting (cannon cannot lock air; Arrow and Lightning can)

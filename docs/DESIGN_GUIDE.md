@@ -11,7 +11,7 @@
 ## Interaction (BCI)
 
 - Minimum control height ~48–52px
-- Click grass → tray → Build. After that, click more grass to place the same tower. Done placing (or the tray ×) stops that. Right-click grass to pick another.
+- Click grass → tray → Build. After that, the same tower follows the cursor as a range ghost. Click grass, then Build if that spot is right. Done placing (or the tray ×) stops that. Right-click grass to pick another.
 - Click owned tower → upgrade / sell
 - No drag-and-drop; no hover-only actions. Range ghost on hover is a preview, not a control.
 

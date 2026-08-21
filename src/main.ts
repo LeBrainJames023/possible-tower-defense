@@ -52,6 +52,9 @@ const btnSpeed = document.getElementById('btn-speed') as HTMLButtonElement;
 const btnPause = document.getElementById('btn-pause') as HTMLButtonElement;
 const placeStrip = document.getElementById('place-strip')!;
 const placeStripLabel = document.getElementById('place-strip-label')!;
+const btnPlaceBuild = document.getElementById('btn-place-build') as HTMLButtonElement;
+const btnPlaceNot = document.getElementById('btn-place-not') as HTMLButtonElement;
+const btnPlaceDone = document.getElementById('btn-place-done') as HTMLButtonElement;
 const pauseStrip = document.getElementById('pause-strip')!;
 const leaveStrip = document.getElementById('leave-strip')!;
 const restartStrip = document.getElementById('restart-strip')!;
@@ -288,18 +291,46 @@ function closeBuildMenu(): void {
 
 function stopPlacing(): void {
   game.placeKind = null;
+  game.placeCell = null;
   closeBuildMenu();
   updateHud();
 }
 
 function syncPlaceStrip(): void {
   const kind = game.placeKind;
-  if (kind) {
-    placeStrip.classList.remove('hidden');
-    placeStripLabel.textContent = `${TOWERS[kind].name} ready — click grass for another.`;
-  } else {
+  if (!kind) {
     placeStrip.classList.add('hidden');
+    return;
   }
+  placeStrip.classList.remove('hidden');
+  const pending = game.placeCell;
+  const def = TOWERS[kind];
+  btnPlaceBuild.classList.toggle('hidden', !pending);
+  btnPlaceNot.classList.toggle('hidden', !pending);
+  btnPlaceDone.classList.toggle('btn-primary', !pending);
+  btnPlaceDone.classList.toggle('btn-ghost', !!pending);
+  if (pending) {
+    placeStripLabel.textContent = `Build ${def.name} here?`;
+    const short = !!(game.level && game.gold < def.cost);
+    btnPlaceBuild.disabled = short;
+    btnPlaceBuild.textContent = short ? `Need ${def.cost}g` : `Build ${def.cost}g`;
+  } else {
+    placeStripLabel.textContent = `${def.name} ready — click grass, then Build if that spot is right.`;
+  }
+}
+
+function confirmStickyPlace(): void {
+  const cell = game.placeCell;
+  const kind = game.placeKind;
+  if (!cell || !kind) return;
+  game.selectedKind = kind;
+  const ok = game.tryPlace(cell.c, cell.r);
+  game.selectedKind = null;
+  game.placeCell = null;
+  if (ok) {
+    showToast(`${TOWERS[kind].name} ready — click grass, then Build if that spot is right.`);
+  }
+  updateHud();
 }
 
 function openBuildMenu(c: number, r: number): void {
@@ -307,6 +338,7 @@ function openBuildMenu(c: number, r: number): void {
   game.selectedEnemyId = null;
   game.upgradePreview = false;
   inspectStep = 'idle';
+  game.placeCell = null;
   game.buildCell = { c, r };
   if (game.placeKind) {
     game.selectedKind = game.placeKind;
@@ -744,6 +776,11 @@ document.getElementById('btn-inspect-close')!.addEventListener('click', () => {
   updateHud();
 });
 document.getElementById('btn-place-done')!.addEventListener('click', () => stopPlacing());
+document.getElementById('btn-place-build')!.addEventListener('click', () => confirmStickyPlace());
+document.getElementById('btn-place-not')!.addEventListener('click', () => {
+  game.placeCell = null;
+  updateHud();
+});
 document.getElementById('btn-build-close')!.addEventListener('click', () => {
   if (game.placeKind) stopPlacing();
   else closeBuildMenu();
@@ -760,7 +797,7 @@ btnBuild.addEventListener('click', () => {
   const ok = game.tryPlace(cell.c, cell.r);
   if (ok) {
     closeBuildMenu();
-    showToast(`${TOWERS[kind].name} ready — click grass for another, or Done placing.`);
+    showToast(`${TOWERS[kind].name} ready — click grass, then Build if that spot is right.`);
   }
   updateHud();
 });
@@ -793,6 +830,7 @@ canvas.addEventListener('pointerdown', (e) => {
   game.setPointerFromEvent(e);
   if (e.button === 0 && game.selectEnemyAt()) {
     game.buildCell = null;
+    game.placeCell = null;
     game.selectedKind = null;
     updateHud();
     return;
@@ -801,6 +839,7 @@ canvas.addEventListener('pointerdown', (e) => {
   if (!cell) return;
   if (e.button === 0 && game.selectTowerAt(cell.c, cell.r)) {
     game.buildCell = null;
+    game.placeCell = null;
     game.selectedKind = null;
     updateHud();
     return;
@@ -811,10 +850,9 @@ canvas.addEventListener('pointerdown', (e) => {
       return;
     }
     if (game.placeKind && !game.buildCell) {
-      game.selectedKind = game.placeKind;
-      const ok = game.tryPlace(cell.c, cell.r);
-      game.selectedKind = null;
-      if (!ok) openBuildMenu(cell.c, cell.r);
+      game.placeCell = { c: cell.c, r: cell.r };
+      game.selectedTowerId = null;
+      game.selectedEnemyId = null;
       updateHud();
       return;
     }

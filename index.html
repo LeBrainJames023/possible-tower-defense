@@ -55,7 +55,8 @@
           <ul class="howto">
             <li>
               <strong>Click grass</strong> beside the path — a 2×3 tray opens next to that tile.
-              Pick a tower, then Build. After that, click more grass to place the same tower.
+              Pick a tower, then Build. After that, the same tower follows your cursor.
+              Click grass, then <strong>Build</strong> if that spot is right — it will not drop on its own.
               <strong>Done placing</strong> stops that. Right-click grass to pick a different one.
             </li>
             <li><strong>Five worlds</strong> — Forest, then Desert, Ice, Fire, The Hollow. Each land has two local foes, a wave-7 champion, and its own wave-10 boss. You can open a locked land to see its maps; playing it waits until you beat the previous world.</li>
@@ -133,7 +134,9 @@
 
           <div id="place-strip" class="place-strip hidden">
             <span id="place-strip-label">Click grass to place another.</span>
-            <button type="button" class="btn btn-primary btn-hud" id="btn-place-done">Done placing</button>
+            <button type="button" class="btn btn-primary btn-hud hidden" id="btn-place-build">Build</button>
+            <button type="button" class="btn btn-ghost btn-hud hidden" id="btn-place-not">Not this tile</button>
+            <button type="button" class="btn btn-ghost btn-hud" id="btn-place-done">Done placing</button>
           </div>
 
           <div id="pause-strip" class="pause-strip hidden">

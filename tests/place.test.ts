@@ -36,6 +36,10 @@ describe('tryPlace', () => {
     expect(game.towers).toHaveLength(1);
     expect(game.selectedTowerId).toBeNull();
     expect(game.placeKind).toBe('arrow');
+    expect(game.placeCell).toBeNull();
+    game.placeCell = { c: grass.c, r: grass.r };
+    expect(game.placeCell).toEqual({ c: grass.c, r: grass.r });
+    game.placeCell = null;
     game.placeKind = null;
     expect(game.placeKind).toBeNull();
   });
