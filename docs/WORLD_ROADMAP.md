@@ -1,6 +1,6 @@
 # World roadmap — five lands done, art pass shipped
 
-One land per agent. Finish, play, write lessons. Hollow was the last land. The **dedicated art pass** (Aug 21) painted Fire + Hollow land and unique 4-dir bodies. Desert/Ice already held Forest quality — no regen. Do not start parked forks, music, endless, or a 7th tower in the next thread.
+One land per agent. Finish, play, write lessons. Hollow was the last land. The **dedicated art pass** (Aug 21) painted Fire + Hollow land and unique 4-dir bodies. Desert/Ice already held Forest quality — no regen. Worlds are done. Next thread they asked for is **tower revamp** (looks + remaining forks + talk a 7th). Paste lives in `docs/FUTURE_FEATURES.md`. Do not start endless or music. Do not regen world keepers.
 
 Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire is a place (ash, four verbs, unique painted bodies). Hollow is a place (runes, four verbs, unique painted bodies).
 
@@ -63,7 +63,7 @@ Copy these forward. Hollow shipped — lessons are below.
 - Hollow 1–4 leaked 0. Twin Hex (3) is where plate shows. Hollow 5–8 bite wave 1 and still win. **Hollow 8 held without the Desert/Ice/Fire late gold bump** — do not copy it for symmetry. Bot dies on Hollow 9–10 rim (`Siege Cult` left-wall rite, `Last Spire` climb) — first keeps at the gate, not a purse. Forest 10 still 320g.
 
 ### Ceiling (art pass shipped Aug 21)
-Unique 4-dir walk sheets were the expensive part. Fire and Hollow now have them, plus Forest-parity land (tiles, props, two portals each). Desert and Ice already held the Forest bar — no regen. East filenames face right (no Forest e/w swap this pass). Do not start parked forks, music, endless, or a 7th tower. Next is play-after-art, not more worlds.
+Unique 4-dir walk sheets were the expensive part. Fire and Hollow now have them, plus Forest-parity land (tiles, props, two portals each). Desert and Ice already held the Forest bar — no regen. East filenames face right (no Forest e/w swap this pass). Play-after-art checked out — not more worlds. Tower revamp (looks + remaining forks + a possible 7th) is the next window.
 
 Verbs live in `src/game/verbs.ts`. Combat asks “may I shoot this?” from there. Do not put timers in `combat.ts`. Bodies and names in `src/game/enemies.ts` / `worldRoster.ts`. Paths already authored in `src/game/worldPaths.ts`. Balance in `constants.ts` / `levels.ts` / `worlds.ts`.
 
@@ -112,7 +112,7 @@ Land, four verbs, whole-world sim. No late gold bump — Hollow 8 held without i
 
 HUD: `click rune`. Hollow 8–10 openings stay on world HP (no Desert bump). Forest 10 gold unchanged. Unique painted bodies (Shade flying / Hex Knight / Hex Warden / The Magician). `Rune Gate` drops from above — first keeps at the gate.
 
-**Do not start parked forks, music, endless, or a 7th tower.** Art pass shipped. Next is play-after-art if the new sprites change feel. The paste-ready prompt lives in `docs/FUTURE_FEATURES.md`.
+Art pass shipped. Play-after-art (Aug 21) checked out — unique bodies show, verbs still fire, gold untouched. Next window is tower revamp; paste lives in `docs/FUTURE_FEATURES.md`. Still parked: endless, music, world-themed fodder until they look at those lands.
 
 ---
 

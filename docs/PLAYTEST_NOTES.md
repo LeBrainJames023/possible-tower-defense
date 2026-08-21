@@ -1,5 +1,17 @@
 # Playtest notes
 
+## This session — play after art (Aug 21)
+
+Vite had been running since before the art pass, so the first glance still said **click grass** on Fire/Hollow and showed leftover intro blurbs. Restarted the dev server (your Forest save was not wiped). After a refresh, HUD words are **click grass / sand / ice / ash / rune**.
+
+Forest 1 smoke: title → Meadow Gate → grass opens the 2×3 tray → Arrow → Build → done. Second grass opens the tray again, not inspect. Path click blocked. Opening stretch Raiders face **right** and take damage. Sticky place stayed dead.
+
+Every world 1 still feels like a place: Forest grass/trees, Desert sand/cacti, Ice snow/crystals, Fire cracked ash + lava path + ember portals (not Forest blue stone), Hollow rune-stone + vein path + hex gates. Magma Hound is a lava-rock dog, not a Warg. Shade flies. Hex Warden walks on the ground with a ward-disk; Cannon can still shoot him.
+
+Verbs still fire (not wallpaper): Desert burrow / dash / sandstorm / caravan; Ice phase / slide / freeze; Fire smolder / crust / haze / erupt (two Magma Hound pups, no gold); Hollow hex / plate / seal / warp. Intros now match those verbs.
+
+Headless sim (isolated storage): Ice 10 still holds. Bot still dies on rim maps (Forest 9, Desert 10, Fire 9–10, Hollow 9–10). Hollow 8 still holds without a late gold bump. Forest 10 still 320g. Did not retune gold. Did not regen any keeper.
+
 ## This session — world art pass (Aug 21)
 
 Fire and Hollow got Forest-parity painted land and unique 4-dir keepers. Desert/Ice already held the bar — left them. East filenames face right. Magma Hound is a lava-hound, not a recolored Warg. Hex Warden is a walking seal-keeper, not a wyvern. Forest gold unchanged. Sticky place stayed dead.

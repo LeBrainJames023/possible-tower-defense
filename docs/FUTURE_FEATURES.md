@@ -1,38 +1,45 @@
 # Future features
 
-## Last window — world art pass (Aug 21)
+## Last window — play after art (Aug 21)
 
-Fire and Hollow now have Forest-parity painted land and unique 4-dir bodies. Desert/Ice keepers already held the bar — no regen. East filenames face right (no Forest e/w swap). Verbs and gold untouched. Sticky place stayed dead. Forest save not wiped.
+Playtest after the Fire/Hollow art pass. Vite had gone stale (started before the pass); restarted it. Forest save not wiped. HUD words and unique bodies check out. Verbs still fire. No gold retune. No regen. Sticky place stayed dead.
 
-### What the art pass did
-- Fire: ash tiles, lava-path, lava-rock / ember-stump / fumarole / slag, Fire portals, Magma Hound / Cinder Brute / Cinder King / Ash Titan walks.
-- Hollow: rune-stone tiles, rune-vein path, menhir / tablet / obelisk / ward-post, Hollow portals, Shade (flying) / Hex Knight / Hex Warden (ground seal-keeper) / The Magician walks.
-- Logged keepers in `docs/ASSETS.md`. Raw sheets stay in `public/preview/` — do not commit unless asked.
+### What play showed
+- Forest 1 smoke: grass tray → Arrow → Build; second grass is a new tray, not inspect; path blocked; Raiders face right and take damage.
+- Fire 1 is ash + lava path + ember portals; Magma Hound is a lava dog. Hollow 1 is rune-stone + vein path + hex gates; Shade flies; Hex Warden walks (Cannon can hit him).
+- Headless sim still dies on rim maps (Forest 9, Desert 10, Fire 9–10, Hollow 9–10). Hollow 8 holds without a late gold bump. Forest 10 still 320g.
 
 ### Next
-Play-after-art if the new sprites change feel. Do not retune gold unless a wave dies because of art, not numbers. Parked: 7th tower, endless, forks, music, Forest Boar still using the troll sprite unless asked.
+They asked for a **new window**: revamp tower looks, forks for the four keeps that don’t have them yet, and talk through a 7th tower. Paste prompt below. Do not start that work in an enemy/world window.
 
 ### Parked
-7th tower, endless, splash retune, 14-arrow Forest 10 start gold, Ice/lightning/fire/poison forks.
+Endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar still using the troll sprite, world-themed fodder (Raider/Goblin/Troll/Imp on Desert–Hollow) until they look at those lands, committing `public/preview/`.
 
 ### Watch-outs
 - Fixed-path TD; towers never on path. BCI: large buttons, no drag, no hover-only.
 - Forest save may be 8/10 — do not wipe localStorage.
 - Leftover untracked preview folders — do not commit unless asked.
-- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → start wave → damage. Then glance Fire 1 ash and Hollow 1 runes.
+- If the game tab looks like old Fire/Hollow, right-click the page → Reload. Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → start wave → damage.
 
 ### Continue prompt (paste into a new chat)
 
 ```
-Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only, on-screen cursor, no drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-This window is PLAY AFTER ART. Art pass already shipped: Fire and Hollow have unique 4-dir bodies + Forest-parity land. Desert/Ice were left (they held the Forest bar). East filenames face right. Read docs/WORLD_ROADMAP.md and docs/ASSETS.md. Do not start parked forks, music, endless, or a 7th tower. Do not bring sticky place back. Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked. Do not regen Forest/Desert/Ice keepers unless play shows a clearly broken sprite.
+This window is TOWER REVAMP. Worlds and enemy art are done (play-after-art checked Fire/Hollow land + unique bodies; 4-dir walks/flaps toward/away/side look correct). Do not regen Forest/Desert/Ice/Fire/Hollow keepers. Do not start world-themed fodder (other lands still use Forest Raider/Goblin/Troll/Imp on wave 1) unless they ask after looking. Do not start endless or music. Do not bring sticky place back. Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked. Read docs/FUTURE_FEATURES.md, docs/PLAYTEST_NOTES.md, docs/ASSETS.md.
 
-Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm.
+Place UX (locked): click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade is two-click on the same button (preview, then pay). After Lv3, Arrow and Cannon already pick a path (two large buttons, same two-click pay): Faster vs Heavier, Rapid-fire vs Mortar. Sell sits at the bottom; click once, then Keep or confirm Sell. Path tiles refuse towers.
 
-Smoke Forest 1 first (place → wave → damage, path blocked). Then glance Fire 1 (ash, lava path, Magma Hound body) and Hollow 1 (runes, Shade flying, Warden is ground). Retune gold only if a wave dies because of the new art, not for symmetry.
+Live kit today: Arrow, Cannon, Ice, Lightning, Fire, Poison (TOWER_ORDER fills a 2×3 tray). Arrow = empty base + rotating ballista. Cannon = still carriage + rotating barrel. Ice/lightning/fire/poison are still stills. Forks live in src/game/forks.ts — only arrow + cannon. Combat stays in combat.ts.
 
-Parked: 7th tower, endless, forks, music, Forest Boar still using the troll sprite unless they ask.
+CEILING — three jobs, do not dump them in one pile:
+1) Looks: refresh Ice / Lightning / Fire / Poison (and Arrow/Cannon if they still look cheap next to painted land). Use generate2dsprite; log keepers in docs/ASSETS.md; raw sheets stay untracked in public/preview/. Image-gen only for towers they asked to paint.
+2) Forks: same two-path idea for Ice, Lightning, Fire, Poison. Two large buttons after Lv3, preview then pay, sell refunds the path. One verb difference per path (not a 4th upgrade number). Ask them the pair before generating art for fork looks.
+3) 7th tower: the 2×3 tray is full. Adding a seventh keep is a layout decision first (bigger card vs second page vs replacing a slot) — BCI buttons must stay large. Pick the niche WITH them (do not clone splash/slow/burn/chain). Then art. Do not silently add a 7th.
+
+Suggested order: agree 7th-tower tray plan (or park it), then Ice/Lightning/Fire/Poison forks in data + UI, then paint looks. Play Forest 1 smoke after any tray/combat change: title → grass → Arrow → Build → Start wave → Raider takes damage. Path blocked. Sticky place stays dead.
+
+Quality gates: npm test, npm run build, that Forest 1 smoke. Last commit on main: 820625d (Fire/Hollow unique bodies). Branch may be ahead of origin; not pushed unless they ask.
 ```
 
 ## Last window — Fire world (Aug 21)
