@@ -30,6 +30,10 @@ const CREATURES: CreatureSprite[] = [
   'dunerunner',
   'dunetyrant',
   'sandkhan',
+  'frostwisp',
+  'icewolf',
+  'packlord',
+  'frostjarl',
 ];
 
 function walkSheet(name: CreatureSprite): Array<HTMLImageElement | null> {
@@ -69,6 +73,12 @@ export const TEX = {
     loadImage('/sprites/desert/boulder.png'),
     loadImage('/sprites/desert/agave.png'),
   ],
+  iceProps: [
+    loadImage('/sprites/ice/crystal.png'),
+    loadImage('/sprites/ice/pine.png'),
+    loadImage('/sprites/ice/boulder.png'),
+    loadImage('/sprites/ice/shrub.png'),
+  ],
   grassTiles: [
     loadImage('/sprites/terrain/grass-1.png'),
     loadImage('/sprites/terrain/grass-2.png'),
@@ -93,10 +103,24 @@ export const TEX = {
     loadImage('/sprites/terrain/sand-path-3.png'),
     loadImage('/sprites/terrain/sand-path-4.png'),
   ],
+  iceTiles: [
+    loadImage('/sprites/terrain/ice-1.png'),
+    loadImage('/sprites/terrain/ice-2.png'),
+    loadImage('/sprites/terrain/ice-3.png'),
+    loadImage('/sprites/terrain/ice-4.png'),
+  ],
+  icePathTiles: [
+    loadImage('/sprites/terrain/ice-path-1.png'),
+    loadImage('/sprites/terrain/ice-path-2.png'),
+    loadImage('/sprites/terrain/ice-path-3.png'),
+    loadImage('/sprites/terrain/ice-path-4.png'),
+  ],
   portalIn: loadImage('/sprites/landmarks/portal-in.png'),
   portalOut: loadImage('/sprites/landmarks/portal-out.png'),
   portalDesertIn: loadImage('/sprites/landmarks/portal-desert-in.png'),
   portalDesertOut: loadImage('/sprites/landmarks/portal-desert-out.png'),
+  portalIceIn: loadImage('/sprites/landmarks/portal-ice-in.png'),
+  portalIceOut: loadImage('/sprites/landmarks/portal-ice-out.png'),
   creatures: Object.fromEntries(CREATURES.map((name) => [name, loadImage(`/sprites/enemies/${name}.png`)])) as Record<
     CreatureSprite,
     HTMLImageElement | null

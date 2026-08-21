@@ -3,7 +3,7 @@ import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
-import { SANDSTORM_FIRE, towerFireMul } from './verbs';
+import { SANDSTORM_FIRE, isJarlFreeze, isSandstorm, untargetable } from './verbs';
 
 export interface CombatWorld {
   enemies: Enemy[];
@@ -42,7 +42,7 @@ function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
 
 export function canTarget(t: Tower, e: Enemy): boolean {
   if (!e.alive) return false;
-  if (e.burrowed) return false;
+  if (untargetable(e)) return false;
   if (t.kind === 'cannon' && e.flying) return false;
   return true;
 }
@@ -174,19 +174,19 @@ export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {
     const origin = tgt?.pos ?? { x: p.x, y: p.y };
     for (const e of enemies) {
       if (!e.alive) continue;
-      if (e.burrowed) continue;
+      if (untargetable(e)) continue;
       if (p.kind === 'cannon' && e.flying) continue;
       const mul = splashMultiplier(dist(origin, e.pos), p.splash);
       if (mul > 0) applyPayload(e, p, mul, hooks);
     }
   } else if (p.targetId != null) {
     const tgt = enemies.find((e) => e.alive && e.id === p.targetId);
-    if (tgt && !tgt.burrowed && !(p.kind === 'cannon' && tgt.flying)) applyPayload(tgt, p, 1, hooks);
+    if (tgt && !untargetable(tgt) && !(p.kind === 'cannon' && tgt.flying)) applyPayload(tgt, p, 1, hooks);
     else {
       const near = enemies.find(
         (e) =>
           e.alive &&
-          !e.burrowed &&
+          !untargetable(e) &&
           !(p.kind === 'cannon' && e.flying) &&
           dist({ x: p.x, y: p.y }, e.pos) < u(20),
       );
@@ -210,7 +210,9 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
       const desired = Math.atan2(lock.y - muzzle.y, lock.x - muzzle.x);
       t.aim = lerpAngle(t.aim, desired, 1 - Math.pow(0.0008, dt));
     }
-    t.choked = towerFireMul({ x: t.x, y: t.y }, world.enemies) < 1;
+    t.choked = isSandstorm({ x: t.x, y: t.y }, world.enemies);
+    t.frozen = isJarlFreeze({ x: t.x, y: t.y }, world.enemies);
+    if (t.frozen) continue;
     if (t.cooldown > 0) continue;
     const target = pickTarget(t, world.enemies);
     if (!target) continue;
@@ -224,7 +226,7 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
 export function stepProjectiles(world: CombatWorld, dt: number, hooks: CombatHooks = {}): void {
   for (const p of world.projectiles) {
     if (p.targetId != null && p.homing > 0) {
-      const tgt = world.enemies.find((e) => e.alive && !e.burrowed && e.id === p.targetId);
+      const tgt = world.enemies.find((e) => e.alive && !untargetable(e) && e.id === p.targetId);
       if (tgt) {
         const k = 1 - Math.pow(1 - p.homing, dt * 8);
         const lock = enemyAimPoint(tgt);

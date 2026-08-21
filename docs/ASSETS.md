@@ -36,6 +36,13 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/landmarks/portal-desert-out.png` | Same | Desert exit rift. |
 | `public/sprites/enemies/{scorpion,dunerunner,dunetyrant,sandkhan}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Desert bodies. No longer costume-swap hellbat/goblin/wyvern/warlord. |
 | `public/sprites/enemies/walk/{scorpion,dunerunner,dunetyrant,sandkhan}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`feet` align). Raw in `preview/sprite-forge/walk4/`. | Live 4-dir walks. |
+| `public/sprites/terrain/ice-*.png` | Cursor image gen 2×2 snow pack | Ice grass-equivalent. Mixed per cell like Forest grass. |
+| `public/sprites/terrain/ice-path-*.png` | Cursor image gen 2×2 packed-ice path pack | Ice path tiles. |
+| `public/sprites/ice/{crystal,pine,boulder,shrub}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Ice blocked-tile props. |
+| `public/sprites/landmarks/portal-ice-in.png` | Cursor image gen + Sprite Forge | Ice entrance rift (glacier stone + cyan vortex). |
+| `public/sprites/landmarks/portal-ice-out.png` | Same | Ice exit rift. |
+| `public/sprites/enemies/{frostwisp,icewolf,packlord,frostjarl}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Ice bodies. No longer costume-swap imp/warg/ogre. |
+| `public/sprites/enemies/walk/{frostwisp,icewolf,packlord,frostjarl}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`center` wisp, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. | Live 4-dir flap/walks. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
@@ -53,4 +60,4 @@ Enemy meshes are CC0 from [Quaternius](https://quaternius.com/): Ultimate Monste
 | **MagicaVoxel** | Great for 3D voxel props; this game is 2D billboards. Blender covered the one 3D bake. |
 | **Krita / GIMP / LibreSprite / Audacity** | Hand-paint / hand-edit tools. The batch cousins (ImageMagick, sox, ffmpeg) did the repeatable work. |
 
-Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, **enemy**, Forest **and Desert portals**, Forest **trees**, Desert **props**, and **grass/path/sand** tiles use the painted keepers. No paid packs.
+Enemy stills in `public/preview/sprite-forge/` are Cursor-generated (not Grok Imagine API). Live **tower**, **shot**, **enemy**, Forest / Desert / Ice **portals**, Forest **trees**, Desert **props**, Ice **props**, and **grass/path/sand/ice** tiles use the painted keepers. No paid packs.

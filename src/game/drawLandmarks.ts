@@ -99,9 +99,19 @@ function drawSpawnArch(
   heat: number,
 ): void {
   const pulse = 0.7 + Math.sin(time * 3.2) * 0.15 + heat * 0.55;
-  const inImg = world === 'desert' && texReady(TEX.portalDesertIn) ? TEX.portalDesertIn : TEX.portalIn;
+  const inImg =
+    world === 'ice' && texReady(TEX.portalIceIn)
+      ? TEX.portalIceIn
+      : world === 'desert' && texReady(TEX.portalDesertIn)
+        ? TEX.portalDesertIn
+        : TEX.portalIn;
   if (texReady(inImg)) {
-    const tint = world === 'desert' ? `rgba(232, 180, 60, ${0.42 + heat * 0.35})` : `rgba(120, 200, 255, ${0.42 + heat * 0.35})`;
+    const tint =
+      world === 'ice'
+        ? `rgba(154, 228, 247, ${0.42 + heat * 0.35})`
+        : world === 'desert'
+          ? `rgba(232, 180, 60, ${0.42 + heat * 0.35})`
+          : `rgba(120, 200, 255, ${0.42 + heat * 0.35})`;
     drawPortalBillboard(ctx, x, y, inImg, Math.max(heat, 0.2), tint, time, 'in');
     return;
   }
@@ -178,9 +188,19 @@ function drawExitKeep(
   wound = 0,
 ): void {
   const pulse = 0.8 + Math.sin(time * 2.4) * 0.12 + wound * 0.35;
-  const outImg = world === 'desert' && texReady(TEX.portalDesertOut) ? TEX.portalDesertOut : TEX.portalOut;
+  const outImg =
+    world === 'ice' && texReady(TEX.portalIceOut)
+      ? TEX.portalIceOut
+      : world === 'desert' && texReady(TEX.portalDesertOut)
+        ? TEX.portalDesertOut
+        : TEX.portalOut;
   if (texReady(outImg)) {
-    const tint = world === 'desert' ? `rgba(232, 140, 60, ${0.48 + wound * 0.4})` : `rgba(239, 71, 111, ${0.48 + wound * 0.4})`;
+    const tint =
+      world === 'ice'
+        ? `rgba(239, 71, 111, ${0.48 + wound * 0.4})`
+        : world === 'desert'
+          ? `rgba(232, 140, 60, ${0.48 + wound * 0.4})`
+          : `rgba(239, 71, 111, ${0.48 + wound * 0.4})`;
     drawPortalBillboard(
       ctx,
       x,

@@ -4,7 +4,7 @@ import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
 import { pickTarget, splashMultiplier, canTarget, enemyAimPoint } from '../src/game/combat';
-import { BURROW_UP, DASH_EVERY, DASH_MUL, stepEnemyVerb } from '../src/game/verbs';
+import { BURROW_UP, DASH_EVERY, DASH_MUL, FREEZE_EVERY, PHASE_UP, RALLY_MUL, SLIDE_EVERY, SLIDE_MUL, applyPackRally, stepEnemyVerb } from '../src/game/verbs';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('shared combat rules', () => {
@@ -247,5 +247,56 @@ describe('desert verbs', () => {
     khan.verbT = 0;
     const ev = stepEnemyVerb(khan, 0.1);
     expect(ev.some((e) => e.type === 'summon' && e.kind === 'duneRunner' && e.count === 2)).toBe(true);
+  });
+});
+
+describe('ice verbs', () => {
+  it('lets a frost wisp phase so towers cannot lock it', () => {
+    const sim = new CombatSandbox();
+    const arrow = sim.place('arrow', 6, 5);
+    const wisp = sim.spawn('frostWisp');
+    wisp.pos = { x: arrow.x + 40, y: arrow.y };
+    wisp.verbT = 0;
+    stepEnemyVerb(wisp, PHASE_UP + 0.08);
+    expect(wisp.phased).toBe(true);
+    expect(canTarget(arrow, wisp)).toBe(false);
+    expect(pickTarget(arrow, sim.enemies)).toBeNull();
+  });
+
+  it('makes an ice wolf slide for a beat', () => {
+    const sim = new CombatSandbox();
+    const wolf = sim.spawn('iceWolf');
+    wolf.verbT = 0;
+    stepEnemyVerb(wolf, SLIDE_EVERY + 0.05);
+    expect(wolf.verbSpeedMul).toBe(SLIDE_MUL);
+  });
+
+  it('lets a pack lord rally nearby ice wolves', () => {
+    const sim = new CombatSandbox();
+    const wolf = sim.spawn('iceWolf');
+    const lord = sim.spawn('packLord');
+    wolf.pos = { x: 200, y: 200 };
+    lord.pos = { x: 210, y: 200 };
+    stepEnemyVerb(wolf, 0.05);
+    applyPackRally(sim.enemies);
+    expect(wolf.verbSpeedMul).toBe(RALLY_MUL);
+  });
+
+  it('lets a frost jarl freeze nearby tower fire', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const arrow = sim.place('arrow', 6, 5);
+    const jarl = sim.spawn('frostJarl');
+    const grunt = sim.spawn('grunt');
+    jarl.pos = { x: arrow.x + 20, y: arrow.y };
+    grunt.pos = { x: arrow.x + 36, y: arrow.y };
+    jarl.progress = 0.4;
+    grunt.progress = 0.5;
+    jarl.verbT = 0;
+    stepEnemyVerb(jarl, FREEZE_EVERY + 0.08);
+    expect(jarl.freezing).toBe(true);
+    sim.step(1 / 30);
+    expect(arrow.frozen).toBe(true);
+    expect(sim.projectiles.length).toBe(0);
   });
 });

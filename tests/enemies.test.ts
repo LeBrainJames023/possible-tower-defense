@@ -115,6 +115,10 @@ describe('walk frames', () => {
       'dunerunner',
       'dunetyrant',
       'sandkhan',
+      'frostwisp',
+      'icewolf',
+      'packlord',
+      'frostjarl',
     ];
     for (const name of creatures) {
       for (const dir of ['n', 'e', 's', 'w'] as const) {
@@ -137,5 +141,19 @@ describe('walk frames', () => {
     expect(ENEMIES.duneRunner.sprite).toBe('dunerunner');
     expect(ENEMIES.duneTyrant.sprite).toBe('dunetyrant');
     expect(ENEMIES.sandKhan.sprite).toBe('sandkhan');
+  });
+
+  it('has painted Ice tiles, props, portals, and four new bodies', () => {
+    for (const n of [1, 2, 3, 4]) {
+      expect(existsSync(`public/sprites/terrain/ice-${n}.png`)).toBe(true);
+      expect(existsSync(`public/sprites/terrain/ice-path-${n}.png`)).toBe(true);
+    }
+    expect(existsSync('public/sprites/ice/crystal.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-ice-in.png')).toBe(true);
+    expect(existsSync('public/sprites/landmarks/portal-ice-out.png')).toBe(true);
+    expect(ENEMIES.frostWisp.sprite).toBe('frostwisp');
+    expect(ENEMIES.iceWolf.sprite).toBe('icewolf');
+    expect(ENEMIES.packLord.sprite).toBe('packlord');
+    expect(ENEMIES.frostJarl.sprite).toBe('frostjarl');
   });
 });

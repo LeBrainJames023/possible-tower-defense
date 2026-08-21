@@ -862,6 +862,36 @@ h3 {
   gap: 6px;
 }
 
+.tower-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-sell {
+  width: 100%;
+}
+
+.sell-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(196, 176, 120, 0.28);
+}
+
+.sell-confirm.hidden {
+  display: none;
+}
+
+.sell-confirm p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: var(--text);
+  text-shadow: 0 1px 2px #000;
+}
+
 .btn-tray {
   min-width: 0;
   flex: 1;

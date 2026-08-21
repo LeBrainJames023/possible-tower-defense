@@ -1,22 +1,25 @@
 # Future features
 
-## Next window — play Desert, then retune (Aug 21)
+## Last window — Ice world (Aug 21)
 
-The locked Desert/fork build is **committed** (`1ac322c`), not pushed (`main` ~28 ahead of origin). Sticky place stayed dead. Upgrade is two clicks. Do not bring sticky back.
+Ice is a place now: snow tiles, packed-ice path, crystal/pine props, glacier portals, four unique bodies. Verbs: Wisp phases, Wolf slides, Pack Lord rallies, Jarl freezes towers. Late Ice 8–10 openings got the Desert-style gold bump. Forest gold unchanged. HUD says **click ice**. Fire and Hollow wait for their own chats.
 
-### In this window
-1. **Play** Forest 1 (smoke) → Forest 2 → Desert 1 / waves 3 and 7. Did sand + verbs change the decision, or only the wallpaper?
-2. **Then retune** splash / economy / HP only if maps feel wrong. Roster + Desert verbs have landed.
-3. Ice / Fire / Hollow verbs + unique art wait. Other tower forks wait.
+### What play showed
+- Headless sim, normal: Ice 1–4 leak 0. Ice 5–7 bite on wave 1 and still win. Ice 8 holds after the gold bump. Ice 9–10 leak the rim on wave 1, then hold — first keeps at the gate.
+- Jarl freeze is a pulse (towers skip shots), not a copy of Tyrant choke. Pack Lord speeds wolves; it does not sandstorm.
+- Sticky place stayed dead. Upgrade two-click stayed.
+
+### Next
+**Fire world** — new chat. Brief: `docs/WORLD_ROADMAP.md`. Do not start Hollow. Forest 8–10 on the live save can wait.
 
 ### Parked
-7th tower, endless, splash/economy retune (until play says so), 14-arrow Forest 10 start gold, Ice/lightning/fire/poison forks, unique art for Ice/Fire/Hollow.
+7th tower, endless, splash retune, 14-arrow Forest 10 start gold, Ice/lightning/fire/poison forks, unique art for Fire/Hollow.
 
 ### Watch-outs
 - Fixed-path TD; towers never on path. BCI: large buttons, no drag, no hover-only.
 - Forest save may be 8/10 — do not wipe localStorage.
-- Ice/Fire/Hollow still Forest-path flipped + palette.
-- Leftover untracked Forest preview folders (`public/preview/enemy-quality/`, old `walk4` keepers) — do not commit unless asked.
+- Fire/Hollow still lack unique art and verbs.
+- Leftover untracked preview folders (`public/preview/enemy-quality/`, old `walk4` keepers, new Ice `preview/sprite-forge/`) — do not commit unless asked.
 - Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → start wave → damage.
 
 ### Continue prompt (paste into a new chat)
@@ -24,23 +27,28 @@ The locked Desert/fork build is **committed** (`1ac322c`), not pushed (`main` ~2
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only, on-screen cursor, no drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-HEAD is 1ac322c on main (~28 ahead of origin, not pushed): Desert is a place, four Desert bodies + verbs, Arrow/Cannon Lv3 forks, sticky place gone, Upgrade two-click. Keep that UX. Do not bring sticky back.
+This window is FIRE ONLY. Read docs/WORLD_ROADMAP.md first — especially Lessons from Ice. Forest, Desert, and Ice are the bar. Do not start Hollow. Do not bring sticky place back.
 
-Place: click grass → 2×3 tray → pick → Build → done. Want another? Click grass again. No cursor-ghost, no Done placing bar, no auto-drop.
-Upgrade: click Upgrade once to preview current → next stats and the gold range ring. Click that same button again to pay. No third “are you sure?” card. After Lv3, Arrow and Cannon show two large path buttons (Faster/Heavier, Rapid-fire/Mortar), same two-click pay. Sell stays its own button and refunds the path.
+Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm. Fire HUD should say click ash.
 
-Job this window: PLAY first, then retune only if it feels wrong.
-1. Smoke: title → Forest 1 → place tower → start wave → enemy takes damage. Path placement still blocked; UI stays large-click.
-2. Play Forest 2, then Desert 1 and look at Desert waves 3 and 7. Scorpion burrows (untargetable while under). Dune Runner dashes. Dune Tyrant sandstorm chokes nearby towers. Sand Khan summons Dune Runners (no gold on summons).
-3. Take an Arrow to Lv3 and pick Faster vs Heavier; Cannon Rapid-fire vs Mortar. Ice/lightning/fire/poison still number-ups to 3.
-4. Do not wipe localStorage (Forest save may be 8/10). Do not commit leftover Forest preview folders unless asked.
+Fire roster: Magma Hound, Cinder Brute from stage 3, Cinder King wave 7, Ash Titan wave 10. Verbs in verbs.ts. Ask before image-gen. Log assets in docs/ASSETS.md.
 
-Parked: 7th tower, endless, splash/economy retune until play says so, 14-arrow Forest 10 start gold, other tower forks, unique art for Ice/Fire/Hollow.
+Job: (1) Smoke Forest 1. (2) Make Fire a place + verbs. (3) Play the whole Fire world. (4) Write “Lessons from Fire” into WORLD_ROADMAP.md before you stop.
 
-Fixed-path TD; towers never on path. Balance in constants.ts / enemies.ts / levels.ts / worlds.ts. Combat in combat.ts. Verbs in verbs.ts. Forks in forks.ts. Log assets in docs/ASSETS.md.
-
-Full brief also sits at the top of docs/FUTURE_FEATURES.md.
+Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked.
 ```
+
+## Last window — play pass (Aug 21) — Desert landed
+
+Played Forest 1 (smoke) → Forest 2 → **the whole Desert world**. Sticky place stayed dead. Upgrade two-click stayed. Late Desert openings were too thin (maps 9–10 died on wave 1); start gold on Desert 7+ went up. Forest 8/10 gold is unchanged. Desert HUD now says click **sand**, not grass.
+
+### What play showed
+- Smoke: grass → 2×3 tray → Arrow → Build → done. Path click blocked. Wave 1 Raider took damage. Large-click HUD intact.
+- Desert 1–4: classroom. Verbs fire; a real kit leaks 0. Twin Dunes (3) is where Dune Runner **dash** shows.
+- Desert 5–7: the land starts to bite (wave-1 leaks, Broken Mesa corners). Still winnable.
+- Desert 8: Dry Canal holds after the opening-gold bump (Khan summons included).
+- Desert 9–10: spawn runs the **rim**. First keeps want the gate, not the pretty middle. Still a hard finale — not a wave-1 purse problem alone.
+- Copy: locked maps say previous map, not previous world. Desert toast says click sand.
 
 ## Last window — locked long build (Aug 20) — landed
 

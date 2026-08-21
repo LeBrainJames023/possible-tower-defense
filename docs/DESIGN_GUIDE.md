@@ -12,7 +12,7 @@
 
 - Minimum control height ~48–52px
 - Click grass → tray → Build. That keep is placed. Click grass again when you want another.
-- Click owned tower → Upgrade once to see next stats, Upgrade again to pay. After Lv3, Arrow and Cannon pick a path (two large buttons, same two-click pay). Sell is its own button.
+- Click owned tower → Upgrade once to see next stats, Upgrade again to pay. After Lv3, Arrow and Cannon pick a path (two large buttons, same two-click pay). Sell sits at the bottom; click once, then Keep or confirm Sell.
 - No drag-and-drop; no hover-only actions. Range ghost on hover is a preview, not a control.
 
 ## Difficulty philosophy

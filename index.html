@@ -54,14 +54,14 @@
           <h2>How to play</h2>
           <ul class="howto">
             <li>
-              <strong>Click grass</strong> beside the path — a 2×3 tray opens next to that tile.
-              Pick a tower, then Build. That keep is placed — click grass again when you want another.
+              <strong>Click a tile</strong> beside the path — a 2×3 tray opens next to that tile.
+              Pick a tower, then Build. That keep is placed — click beside the path again when you want another.
             </li>
             <li><strong>Five worlds</strong> — Forest, then Desert, Ice, Fire, The Hollow. Each land has two local foes, a wave-7 champion, and its own wave-10 boss. You can open a locked land to see its maps; playing it waits until you beat the previous world.</li>
             <li>
               <strong>Click your towers</strong> to inspect. Upgrade once to see the next stats; Upgrade again to pay.
               After Lv3, Arrow and Cannon pick a path (Faster vs Heavier, Rapid-fire vs Mortar) — same two-click pay, not a 4th number.
-              Sell is its own button and refunds the path you chose. Click enemies to inspect. The map stays on screen.
+              Sell sits at the bottom. Click it once; Keep or Sell on the “are you sure?” row. Refunds the path you chose. Click enemies to inspect. The map stays on screen.
             </li>
             <li><strong>Flyers</strong> stay off the ground. Cannon cannot hit them — Arrow and Lightning can.</li>
           </ul>
@@ -183,13 +183,22 @@
                   </div>
                   <p id="selection-blurb" class="tray-blurb"></p>
                   <div id="selection-stats" class="stat-grid"></div>
-                  <div id="tower-actions" class="dock-actions hidden">
-                    <button type="button" class="btn btn-primary btn-tray" id="btn-upgrade">Upgrade</button>
-                    <button type="button" class="btn btn-danger btn-tray" id="btn-sell">Sell</button>
-                  </div>
-                  <div id="fork-actions" class="dock-actions fork-actions hidden">
-                    <button type="button" class="btn btn-primary btn-tray" id="btn-fork-a">Faster</button>
-                    <button type="button" class="btn btn-primary btn-tray" id="btn-fork-b">Heavier</button>
+                  <div id="tower-actions" class="tower-actions hidden">
+                    <div class="dock-actions" id="upgrade-row">
+                      <button type="button" class="btn btn-primary btn-tray" id="btn-upgrade">Upgrade</button>
+                    </div>
+                    <div id="fork-actions" class="dock-actions fork-actions hidden">
+                      <button type="button" class="btn btn-primary btn-tray" id="btn-fork-a">Faster</button>
+                      <button type="button" class="btn btn-primary btn-tray" id="btn-fork-b">Heavier</button>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-tray btn-sell" id="btn-sell">Sell</button>
+                    <div id="sell-confirm" class="sell-confirm hidden">
+                      <p>Are you sure you want to sell this tower?</p>
+                      <div class="dock-actions">
+                        <button type="button" class="btn btn-ghost btn-tray" id="btn-sell-keep">Keep</button>
+                        <button type="button" class="btn btn-danger btn-tray" id="btn-sell-yes">Sell</button>
+                      </div>
+                    </div>
                   </div>
                 </aside>
               </div>

@@ -20,7 +20,7 @@ import { DIFFICULTY, killPayout, type DifficultyId } from './game/balance';
 import { forkDef, forksFor, type ForkId } from './game/forks';
 import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
-import { WORLDS, worldById, worldByIndex } from './game/worlds';
+import { WORLDS, buildSurfaceWord, worldById, worldByIndex } from './game/worlds';
 import { fitCanvasToHost } from './shared/pointer';
 import { expandRect, pinRectBeside, tileBoxInHost } from './shared/pinPanel';
 
@@ -63,6 +63,11 @@ const levelsLede = document.getElementById('levels-lede')!;
 const selectionTitle = document.getElementById('selection-title')!;
 const selectionStats = document.getElementById('selection-stats')!;
 const towerActions = document.getElementById('tower-actions')!;
+const forkActions = document.getElementById('fork-actions')!;
+const upgradeRow = document.getElementById('upgrade-row')!;
+const sellConfirm = document.getElementById('sell-confirm')!;
+const btnSell = document.getElementById('btn-sell') as HTMLButtonElement;
+const btnSellYes = document.getElementById('btn-sell-yes') as HTMLButtonElement;
 const btnMute = document.getElementById('btn-mute') as HTMLButtonElement;
 const mapOverlay = document.getElementById('map-overlay')!;
 const buildPanel = document.getElementById('build-panel')!;
@@ -118,7 +123,7 @@ let lookMode = false;
 let lastGold = -1;
 let lastLives = -1;
 let introQueue: EnemyKind[] = [];
-type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB';
+type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB' | 'sell';
 let inspectStep: InspectStep = 'idle';
 
 function flashChip(el: HTMLElement, cls: string): void {
@@ -235,12 +240,20 @@ function renderLevels(): void {
     name.className = 'level-name';
     name.textContent = level.name;
     const blurb = document.createElement('span');
-    blurb.textContent = open ? level.blurb : 'Locked - beat the previous world to play.';
+    blurb.textContent = open
+      ? level.blurb
+      : worldOpen
+        ? 'Locked — beat the previous map first.'
+        : 'Locked — beat the previous world to play.';
     btn.append(thumb, badge, label, name, blurb);
     btn.style.borderColor = themeFor(level).ui;
     btn.addEventListener('click', () => {
       if (!open) {
-        showToast('Beat the previous world to play here. Worlds takes you back.');
+        showToast(
+          worldOpen
+            ? 'Beat the previous map first.'
+            : 'Beat the previous world to play here. Worlds takes you back.',
+        );
         return;
       }
       startLevel(level.id);
@@ -465,22 +478,30 @@ function fillInspectTower(t: Tower): void {
   if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);
   selectionStats.innerHTML = statGridHtml(rows);
 
+  const selling = inspectStep === 'sell';
   const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
-  const forkRow = document.getElementById('fork-actions')!;
   const forking = t.canFork();
-  up.classList.toggle('hidden', forking);
-  forkRow.classList.toggle('hidden', !forking);
-  up.disabled = t.isMaxed() || (inspectStep === 'preview' && game.gold < t.upgradeCost());
-  up.textContent = t.isMaxed() ? 'Max' : `Upgrade ${t.upgradeCost()}g`;
-  if (forking) {
-    const forks = forksFor(t.kind)!;
-    const cost = t.upgradeCost();
-    const a = document.getElementById('btn-fork-a') as HTMLButtonElement;
-    const b = document.getElementById('btn-fork-b') as HTMLButtonElement;
-    a.textContent = inspectStep === 'forkA' ? `Pay ${forks.a.name} ${cost}g` : `${forks.a.name} ${cost}g`;
-    b.textContent = inspectStep === 'forkB' ? `Pay ${forks.b.name} ${cost}g` : `${forks.b.name} ${cost}g`;
-    a.disabled = inspectStep === 'forkA' && game.gold < cost;
-    b.disabled = inspectStep === 'forkB' && game.gold < cost;
+  upgradeRow.classList.toggle('hidden', selling);
+  forkActions.classList.toggle('hidden', selling || !forking);
+  up.classList.toggle('hidden', selling || forking);
+  btnSell.classList.toggle('hidden', selling);
+  sellConfirm.classList.toggle('hidden', !selling);
+  if (!selling) {
+    up.disabled = t.isMaxed() || (inspectStep === 'preview' && game.gold < t.upgradeCost());
+    up.textContent = t.isMaxed() ? 'Max' : `Upgrade ${t.upgradeCost()}g`;
+    btnSell.textContent = `Sell ${t.sellValue()}g`;
+    if (forking) {
+      const forks = forksFor(t.kind)!;
+      const cost = t.upgradeCost();
+      const a = document.getElementById('btn-fork-a') as HTMLButtonElement;
+      const b = document.getElementById('btn-fork-b') as HTMLButtonElement;
+      a.textContent = inspectStep === 'forkA' ? `Pay ${forks.a.name} ${cost}g` : `${forks.a.name} ${cost}g`;
+      b.textContent = inspectStep === 'forkB' ? `Pay ${forks.b.name} ${cost}g` : `${forks.b.name} ${cost}g`;
+      a.disabled = inspectStep === 'forkA' && game.gold < cost;
+      b.disabled = inspectStep === 'forkB' && game.gold < cost;
+    }
+  } else {
+    btnSellYes.textContent = `Sell ${t.sellValue()}g`;
   }
   towerActions.classList.remove('hidden');
 }
@@ -492,8 +513,13 @@ function fillInspectEnemy(enemy: Enemy): void {
     enemy.burnTimer > 0 ? 'burning' : '',
     enemy.poisonTimer > 0 ? 'poisoned' : '',
     enemy.burrowed ? 'burrowed' : '',
-    enemy.verbSpeedMul > 1.4 ? 'dashing' : '',
+    enemy.phased ? 'phased' : '',
+    enemy.kind === 'duneRunner' && enemy.verbSpeedMul > 1.4 ? 'dashing' : '',
+    enemy.kind === 'iceWolf' && enemy.verbSpeedMul > 1.5 ? 'sliding' : '',
+    enemy.kind === 'iceWolf' && enemy.verbSpeedMul > 1.15 && enemy.verbSpeedMul <= 1.5 ? 'rallied' : '',
     enemy.kind === 'duneTyrant' ? 'sandstorm' : '',
+    enemy.kind === 'packLord' ? 'rally' : '',
+    enemy.freezing ? 'freezing towers' : '',
   ]
     .filter(Boolean)
     .join(', ');
@@ -510,7 +536,6 @@ function fillInspectEnemy(enemy: Enemy): void {
   if (effects) rows.push(['Status', effects]);
   selectionStats.innerHTML = statGridHtml(rows);
   towerActions.classList.add('hidden');
-  document.getElementById('fork-actions')!.classList.add('hidden');
 }
 
 function updateHud(): void {
@@ -547,12 +572,10 @@ function updateHud(): void {
     inspectStep = 'idle';
     game.upgradePreview = false;
     fillInspectEnemy(enemy);
-    document.getElementById('fork-actions')!.classList.add('hidden');
   } else {
     inspectStep = 'idle';
     game.upgradePreview = false;
     towerActions.classList.add('hidden');
-    document.getElementById('fork-actions')!.classList.add('hidden');
     selectionTitle.textContent = 'Inspector';
     selectionBlurb.textContent = '';
     selectionStats.innerHTML = '';
@@ -582,7 +605,8 @@ function startLevel(id: number): void {
   updateHud();
   queueLevelIntros(level);
   const where = `${worldById(level.world).name} ${level.stage}: ${level.name}`;
-  showToast(`${where} - click grass to build`);
+  const clickHint = `click ${buildSurfaceWord(level.world)} to build`;
+  showToast(`${where} - ${clickHint}`);
 }
 
 game.onHud = updateHud;
@@ -750,6 +774,20 @@ function onForkClick(id: ForkId): void {
 document.getElementById('btn-fork-a')!.addEventListener('click', () => onForkClick('a'));
 document.getElementById('btn-fork-b')!.addEventListener('click', () => onForkClick('b'));
 document.getElementById('btn-sell')!.addEventListener('click', () => {
+  const t = game.getSelectedTower();
+  if (!t) return;
+  inspectStep = 'sell';
+  game.upgradePreview = false;
+  t.previewFork = null;
+  updateHud();
+  game.audio.ui();
+});
+document.getElementById('btn-sell-keep')!.addEventListener('click', () => {
+  inspectStep = 'idle';
+  updateHud();
+  game.audio.ui();
+});
+document.getElementById('btn-sell-yes')!.addEventListener('click', () => {
   game.sellSelected();
   inspectStep = 'idle';
   updateHud();

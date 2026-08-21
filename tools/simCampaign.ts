@@ -478,9 +478,14 @@ async function main() {
     .split(',')
     .map((s) => Number(s.trim()))
     .filter((n) => n >= 1 && n <= 10);
+  const worldFilter = (process.env.PTD_SIM_WORLD ?? '').trim();
   for (const diff of difficulties) {
     const limit = Number(process.env.PTD_SIM_MAX || LEVELS.length);
-    const pool = LEVELS.slice(0, limit).filter((l) => !stageFilter.length || stageFilter.includes(l.stage));
+    const pool = LEVELS.slice(0, limit).filter((l) => {
+      if (stageFilter.length && !stageFilter.includes(l.stage)) return false;
+      if (worldFilter && l.world !== worldFilter) return false;
+      return true;
+    });
     for (const level of pool) {
       const row = simLevel(level.id, diff);
       all.push(row);

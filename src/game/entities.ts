@@ -40,6 +40,8 @@ export class Enemy {
   bob = Math.random() * Math.PI * 2;
   footfall = false;
   burrowed = false;
+  phased = false;
+  freezing = false;
   verbSpeedMul = 1;
   verbT = Math.random() * 1.4;
   nextSummonAt = 5.2;
@@ -175,6 +177,7 @@ export class Tower {
   /** Inspect preview of a path — not paid yet. */
   previewFork: ForkId | null = null;
   choked = false;
+  frozen = false;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;

@@ -17,9 +17,12 @@ export function drawLevelThumb(ctx: CanvasRenderingContext2D, level: LevelDef, w
   const pathImgs = TEX.pathTiles.filter(texReady);
   const sand = TEX.sandTiles.filter(texReady);
   const sandPath = TEX.sandPathTiles.filter(texReady);
+  const ice = TEX.iceTiles.filter(texReady);
+  const icePath = TEX.icePathTiles.filter(texReady);
   const paintedForest = level.world === 'forest' && grass.length > 0 && pathImgs.length > 0;
   const paintedDesert = level.world === 'desert' && sand.length > 0 && sandPath.length > 0;
-  const painted = paintedForest || paintedDesert;
+  const paintedIce = level.world === 'ice' && ice.length > 0 && icePath.length > 0;
+  const painted = paintedForest || paintedDesert || paintedIce;
   const onPath = new Set(level.pathTiles.map((p) => `${p.c},${p.r}`));
 
   for (let r = 0; r < ROWS; r++) {
@@ -28,7 +31,7 @@ export function drawLevelThumb(ctx: CanvasRenderingContext2D, level: LevelDef, w
       const y = r * th;
       if (onPath.has(`${c},${r}`)) {
         if (painted) {
-          const pack = paintedDesert ? sandPath : pathImgs;
+          const pack = paintedIce ? icePath : paintedDesert ? sandPath : pathImgs;
           const img = pack[Math.floor(hash(c, r, 5) * pack.length) % pack.length];
           ctx.drawImage(img, x, y, tw + 0.6, th + 0.6);
         } else {
@@ -36,7 +39,7 @@ export function drawLevelThumb(ctx: CanvasRenderingContext2D, level: LevelDef, w
           ctx.fillRect(x, y, tw + 0.6, th + 0.6);
         }
       } else if (painted) {
-        const pack = paintedDesert ? sand : grass;
+        const pack = paintedIce ? ice : paintedDesert ? sand : grass;
         const img = pack[Math.floor(hash(c, r, 2) * pack.length) % pack.length];
         ctx.drawImage(img, x, y, tw, th);
       } else {
@@ -64,7 +67,14 @@ export function paintLevelThumb(canvas: HTMLCanvasElement, level: LevelDef): voi
     if (ctx) drawLevelThumb(ctx, level, canvas.width, canvas.height);
   };
   paint();
-  for (const img of [...TEX.grassTiles, ...TEX.pathTiles, ...TEX.sandTiles, ...TEX.sandPathTiles]) {
+  for (const img of [
+    ...TEX.grassTiles,
+    ...TEX.pathTiles,
+    ...TEX.sandTiles,
+    ...TEX.sandPathTiles,
+    ...TEX.iceTiles,
+    ...TEX.icePathTiles,
+  ]) {
     if (img && !img.complete) img.addEventListener('load', paint, { once: true });
   }
 }

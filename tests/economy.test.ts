@@ -152,4 +152,22 @@ describe('difficulty levers', () => {
     expect(Math.floor(fire1.startingGold / TOWERS.arrow.cost)).toBeGreaterThanOrEqual(6);
     expect(Math.floor(hollow1.startingGold / TOWERS.arrow.cost)).toBeGreaterThanOrEqual(7);
   });
+
+  it('gives late Desert a wider opening and leaves Forest 10 gold alone', () => {
+    const d1 = LEVELS.find((l) => l.world === 'desert' && l.stage === 1)!;
+    const d10 = LEVELS.find((l) => l.world === 'desert' && l.stage === 10)!;
+    const f10 = LEVELS.find((l) => l.world === 'forest' && l.stage === 10)!;
+    expect(d1.startingGold).toBe(Math.round(250 * 1.18));
+    expect(Math.floor(d10.startingGold / TOWERS.arrow.cost)).toBeGreaterThanOrEqual(8);
+    expect(f10.startingGold).toBe(320);
+  });
+
+  it('gives late Ice the same opening bump and still leaves Forest 10 alone', () => {
+    const i1 = LEVELS.find((l) => l.world === 'ice' && l.stage === 1)!;
+    const i10 = LEVELS.find((l) => l.world === 'ice' && l.stage === 10)!;
+    const f10 = LEVELS.find((l) => l.world === 'forest' && l.stage === 10)!;
+    expect(i1.startingGold).toBe(Math.round(250 * 1.34));
+    expect(Math.floor(i10.startingGold / TOWERS.arrow.cost)).toBeGreaterThanOrEqual(8);
+    expect(f10.startingGold).toBe(320);
+  });
 });

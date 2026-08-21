@@ -169,3 +169,10 @@ export function themeFor(key: WorldId | { world: WorldId }): MapTheme {
 export function isWetLevel(level: { world: WorldId; stage: number }): boolean {
   return (level.world === 'forest' && level.stage === 2) || level.world === 'ice';
 }
+
+/** Toast word for the buildable tile. Forest grass, Desert sand, Ice ice. */
+export function buildSurfaceWord(id: WorldId): string {
+  if (id === 'desert') return 'sand';
+  if (id === 'ice') return 'ice';
+  return 'grass';
+}

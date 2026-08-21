@@ -9,7 +9,7 @@ import {
 } from './constants';
 import { ENEMIES, leakLives } from './enemies';
 import { forkDef, type ForkId } from './forks';
-import { stepEnemyVerb } from './verbs';
+import { applyPackRally, stepEnemyVerb } from './verbs';
 import {
   buildGrid,
   buildWave,
@@ -417,6 +417,16 @@ export class Game {
           this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.4, '#e0c080', 10, 'smoke', -8);
         } else if (ev.type === 'dash') {
           this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.5, '#d4b060', 6, 'smoke', -24);
+        } else if (ev.type === 'phase') {
+          this.fx.burst(e.pos.x, e.pos.y - e.radius, '#b8e8ff', 8, 'shard', -20);
+        } else if (ev.type === 'appear') {
+          this.fx.burst(e.pos.x, e.pos.y - e.radius, '#e8fbff', 10, 'spark', -8);
+        } else if (ev.type === 'slide') {
+          this.fx.burst(e.pos.x, e.pos.y + e.radius * 0.5, '#c8e8ff', 7, 'smoke', -28);
+        } else if (ev.type === 'freeze') {
+          this.fx.ring(e.pos.x, e.pos.y, '#9ae4f7', 52, 4, 0.6);
+          this.fx.burst(e.pos.x, e.pos.y, '#c8f4ff', 14, 'shard', 20);
+          this.floats.push({ x: e.pos.x, y: e.pos.y - 28, text: 'Freeze!', color: '#9ae4f7', life: 1 });
         } else if (ev.type === 'summon') {
           const scale = e.maxHp / ENEMIES[e.kind].hp;
           for (let i = 0; i < ev.count; i++) {
@@ -456,6 +466,7 @@ export class Game {
         });
       }
     }
+    applyPackRally(this.enemies);
     this.collectBounties();
 
     stepCombat(this, dt, this.combatHooks());

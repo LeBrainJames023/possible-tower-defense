@@ -212,6 +212,15 @@ export function drawTower(
     ctx.ellipse(x, y + 8 * PX, 22 * PX, 10 * PX, 0, 0, Math.PI * 2);
     ctx.fill();
   }
+  if (t.frozen) {
+    ctx.fillStyle = 'rgba(154, 228, 247, 0.32)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 8 * PX, 24 * PX, 11 * PX, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(200, 245, 255, 0.55)';
+    ctx.lineWidth = 2 * PX;
+    ctx.stroke();
+  }
 
   if (t.level >= 3) {
     const pulse = 0.35 + Math.sin(time * 4) * 0.12;
@@ -346,6 +355,20 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.ellipse(e.pos.x, e.pos.y + r * 0.2, r * 2.4, r * 1.1, time * 0.4, 0, Math.PI * 2);
     ctx.stroke();
   }
+  if (e.kind === 'packLord') {
+    ctx.strokeStyle = `rgba(154, 228, 247, ${0.32 + Math.sin(time * 3) * 0.12})`;
+    ctx.lineWidth = 2.2 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.2, r * 2.5, r * 1.15, time * 0.35, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (e.kind === 'frostJarl' && e.freezing) {
+    ctx.strokeStyle = `rgba(180, 240, 255, ${0.45 + Math.sin(time * 6) * 0.15})`;
+    ctx.lineWidth = 2.6 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.15, r * 2.8, r * 1.25, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   if (e.burrowed) {
     ctx.fillStyle = 'rgba(196, 160, 96, 0.45)';
     ctx.beginPath();
@@ -359,6 +382,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     const w = h * (img.naturalWidth / img.naturalHeight);
     ctx.save();
     ctx.translate(x, y);
+    ctx.globalAlpha = e.phased ? 0.38 : 1;
     ctx.scale(flip * (1 + squash), (1 - squash) * sink);
     ctx.shadowColor = 'rgba(0,0,0,0.72)';
     ctx.shadowBlur = 3;
@@ -415,7 +439,11 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   if (e.burnTimer > 0) icons.push('#ff6b4a');
   if (e.poisonTimer > 0) icons.push('#7be38a');
   if (e.burrowed) icons.push('#c4a060');
-  if (e.verbSpeedMul > 1.4) icons.push('#e0b050');
+  if (e.phased) icons.push('#b8e8ff');
+  if (e.kind === 'duneRunner' && e.verbSpeedMul > 1.4) icons.push('#e0b050');
+  if (e.kind === 'iceWolf' && e.verbSpeedMul > 1.5) icons.push('#9ae4f7');
+  if (e.kind === 'iceWolf' && e.verbSpeedMul > 1.15 && e.verbSpeedMul <= 1.5) icons.push('#d0e8f4');
+  if (e.freezing) icons.push('#9ae4f7');
   icons.forEach((color, i) => {
     ctx.fillStyle = color;
     ctx.beginPath();

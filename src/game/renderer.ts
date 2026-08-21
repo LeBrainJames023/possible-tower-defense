@@ -151,6 +151,7 @@ export class Renderer {
     const { ctx, theme } = this;
     const forestTiles = TEX.grassTiles.filter(texReady);
     const sandTiles = TEX.sandTiles.filter(texReady);
+    const iceTiles = TEX.iceTiles.filter(texReady);
     if (this.world === 'forest' && forestTiles.length) {
       const img = forestTiles[Math.floor(hash(c, r, 2) * forestTiles.length) % forestTiles.length];
       ctx.drawImage(img, x, y, TILE, TILE);
@@ -173,6 +174,17 @@ export class Renderer {
       ctx.fillRect(x, y, TILE, TILE);
       return;
     }
+    if (this.world === 'ice' && iceTiles.length) {
+      const img = iceTiles[Math.floor(hash(c, r, 2) * iceTiles.length) % iceTiles.length];
+      ctx.drawImage(img, x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = 'rgba(150, 200, 220, 0.28)';
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(220, 245, 255, 0.1)';
+      ctx.fillRect(x, y, TILE, TILE);
+      return;
+    }
     const mix = hash(c, r, 2);
     ctx.fillStyle = mix > 0.55 ? theme.grassA : theme.grassB;
     ctx.fillRect(x, y, TILE, TILE);
@@ -191,20 +203,33 @@ export class Renderer {
     const { ctx, theme } = this;
     const forestPath = TEX.pathTiles.filter(texReady);
     const sandPath = TEX.sandPathTiles.filter(texReady);
+    const icePath = TEX.icePathTiles.filter(texReady);
     const painted =
-      (this.world === 'forest' && forestPath.length) || (this.world === 'desert' && sandPath.length);
+      (this.world === 'forest' && forestPath.length) ||
+      (this.world === 'desert' && sandPath.length) ||
+      (this.world === 'ice' && icePath.length);
     if (painted) {
-      const tiles = this.world === 'desert' ? sandPath : forestPath;
+      const tiles = this.world === 'ice' ? icePath : this.world === 'desert' ? sandPath : forestPath;
       const img = tiles[Math.floor(hash(c, r, 5) * tiles.length) % tiles.length];
       const bleed = 3 * PX;
       ctx.drawImage(img, x - bleed, y - bleed, TILE + bleed * 2, TILE + bleed * 2);
       ctx.globalCompositeOperation = 'overlay';
-      ctx.fillStyle = this.world === 'desert' ? 'rgba(186, 128, 48, 0.36)' : 'rgba(186, 128, 64, 0.42)';
+      ctx.fillStyle =
+        this.world === 'ice'
+          ? 'rgba(90, 130, 160, 0.32)'
+          : this.world === 'desert'
+            ? 'rgba(186, 128, 48, 0.36)'
+            : 'rgba(186, 128, 64, 0.42)';
       ctx.fillRect(x, y, TILE, TILE);
       ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = this.world === 'desert' ? 'rgba(232, 186, 90, 0.12)' : 'rgba(232, 186, 120, 0.14)';
+      ctx.fillStyle =
+        this.world === 'ice'
+          ? 'rgba(200, 230, 245, 0.14)'
+          : this.world === 'desert'
+            ? 'rgba(232, 186, 90, 0.12)'
+            : 'rgba(232, 186, 120, 0.14)';
       ctx.fillRect(x, y, TILE, TILE);
-      ctx.strokeStyle = 'rgba(42, 24, 12, 0.42)';
+      ctx.strokeStyle = this.world === 'ice' ? 'rgba(40, 70, 90, 0.38)' : 'rgba(42, 24, 12, 0.42)';
       ctx.lineWidth = 1.4 * PX;
       ctx.strokeRect(x + 0.7 * PX, y + 0.7 * PX, TILE - 1.4 * PX, TILE - 1.4 * PX);
       this.stampWater(x, y);
@@ -248,7 +273,8 @@ export class Renderer {
     const { ctx, theme } = this;
     const painted =
       (this.world === 'forest' && TEX.pathTiles.some(texReady)) ||
-      (this.world === 'desert' && TEX.sandPathTiles.some(texReady));
+      (this.world === 'desert' && TEX.sandPathTiles.some(texReady)) ||
+      (this.world === 'ice' && TEX.icePathTiles.some(texReady));
     ctx.strokeStyle = theme.glow;
     ctx.lineWidth = (painted ? 22 : 32) * PX;
     ctx.globalAlpha = painted ? 0.48 : 1;

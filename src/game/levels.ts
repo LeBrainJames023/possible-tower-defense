@@ -378,6 +378,16 @@ const TEMPLATES: PathTemplate[] = [
   },
 ];
 
+/** Desert and Ice extra bodies showed up in play before the opening kit did. Late maps only. Forest start gold stays put. */
+function startGoldFor(world: (typeof WORLDS)[number], stage: number, templateGold: number): number {
+  let mul = world.hpMul;
+  if (world.id === 'desert' || world.id === 'ice') {
+    if (stage >= 8) mul *= 1.38;
+    else if (stage >= 7) mul *= 1.15;
+  }
+  return Math.round(templateGold * mul);
+}
+
 function buildLevels(): LevelDef[] {
   const out: LevelDef[] = [];
   for (const world of WORLDS) {
@@ -397,7 +407,7 @@ function buildLevels(): LevelDef[] {
         pathTiles,
         blocked: scatterWorldDecor(world.id, pathTiles, authored),
         hpScale: Math.round(t.hpScale * world.hpMul * 100) / 100,
-        startingGold: Math.round(t.gold * world.hpMul),
+        startingGold: startGoldFor(world, stage, t.gold),
         lives: t.lives,
       });
     });
