@@ -36,5 +36,7 @@ describe('tryPlace', () => {
     expect(game.towers).toHaveLength(1);
     expect(game.selectedTowerId).toBeNull();
     expect(game.placeKind).toBe('arrow');
+    game.placeKind = null;
+    expect(game.placeKind).toBeNull();
   });
 });

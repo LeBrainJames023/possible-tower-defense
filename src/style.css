@@ -933,6 +933,7 @@ h3 {
   display: none;
 }
 
+.place-strip,
 .pause-strip,
 .leave-strip {
   display: flex;
@@ -942,6 +943,11 @@ h3 {
   padding: 10px 18px;
   border-bottom: 1px solid var(--line);
   font-weight: 700;
+}
+
+.place-strip {
+  background: rgba(87, 204, 153, 0.14);
+  color: #b8f0d4;
 }
 
 .pause-strip {
@@ -954,6 +960,7 @@ h3 {
   color: #ffb3c1;
 }
 
+.place-strip.hidden,
 .pause-strip.hidden,
 .leave-strip.hidden,
 .hidden {

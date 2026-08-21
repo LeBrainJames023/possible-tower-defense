@@ -56,7 +56,7 @@
             <li>
               <strong>Click grass</strong> beside the path — a 2×3 tray opens next to that tile.
               Pick a tower, then Build. After that, click more grass to place the same tower.
-              Right-click grass to pick a different one.
+              <strong>Done placing</strong> stops that. Right-click grass to pick a different one.
             </li>
             <li><strong>Five worlds</strong> — Forest, then Desert, Ice, Fire, The Hollow. Each land has two local foes, a wave-7 champion, and its own wave-10 boss. You can open a locked land to see its maps; playing it waits until you beat the previous world.</li>
             <li><strong>Click your towers or enemies</strong> to inspect, upgrade, or sell — the map stays on screen.</li>
@@ -130,6 +130,11 @@
               <button type="button" class="btn btn-ghost btn-hud btn-quiet" id="btn-leave">Leave</button>
             </div>
           </header>
+
+          <div id="place-strip" class="place-strip hidden">
+            <span id="place-strip-label">Click grass to place another.</span>
+            <button type="button" class="btn btn-primary btn-hud" id="btn-place-done">Done placing</button>
+          </div>
 
           <div id="pause-strip" class="pause-strip hidden">
             <span>Paused — map stays visible. Inspect towers &amp; enemies, then resume.</span>

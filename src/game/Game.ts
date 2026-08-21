@@ -532,8 +532,7 @@ export class Game {
       !!focus &&
       canPlaceOnCell(this.grid, focus.c, focus.r) &&
       !this.occupied.has(`${focus.c},${focus.r}`);
-    // Sticky brush, else Arrow so you can shop a tile with your eyes before opening the tray.
-    const brush = this.selectedKind ?? this.placeKind ?? (hoverBuildable ? 'arrow' : null);
+    const brush = this.selectedKind ?? this.placeKind;
     const canPlace = hoverBuildable && !!brush && this.gold >= TOWERS[brush].cost;
 
     this.renderer.drawGrid(

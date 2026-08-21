@@ -50,6 +50,8 @@ const chipGold = document.getElementById('chip-gold')!;
 const btnWave = document.getElementById('btn-wave') as HTMLButtonElement;
 const btnSpeed = document.getElementById('btn-speed') as HTMLButtonElement;
 const btnPause = document.getElementById('btn-pause') as HTMLButtonElement;
+const placeStrip = document.getElementById('place-strip')!;
+const placeStripLabel = document.getElementById('place-strip-label')!;
 const pauseStrip = document.getElementById('pause-strip')!;
 const leaveStrip = document.getElementById('leave-strip')!;
 const restartStrip = document.getElementById('restart-strip')!;
@@ -284,6 +286,22 @@ function closeBuildMenu(): void {
   syncOverlay();
 }
 
+function stopPlacing(): void {
+  game.placeKind = null;
+  closeBuildMenu();
+  updateHud();
+}
+
+function syncPlaceStrip(): void {
+  const kind = game.placeKind;
+  if (kind) {
+    placeStrip.classList.remove('hidden');
+    placeStripLabel.textContent = `${TOWERS[kind].name} ready — click grass for another.`;
+  } else {
+    placeStrip.classList.add('hidden');
+  }
+}
+
 function openBuildMenu(c: number, r: number): void {
   game.selectedTowerId = null;
   game.selectedEnemyId = null;
@@ -511,6 +529,7 @@ function updateHud(): void {
       : game.phase === 'wave'
         ? 'Wave running'
         : `Start wave ${game.waveIndex + 1}`;
+  syncPlaceStrip();
   updatePauseUi();
 
   const tower = game.getSelectedTower();
@@ -724,7 +743,11 @@ document.getElementById('btn-inspect-close')!.addEventListener('click', () => {
   game.upgradePreview = false;
   updateHud();
 });
-document.getElementById('btn-build-close')!.addEventListener('click', () => closeBuildMenu());
+document.getElementById('btn-place-done')!.addEventListener('click', () => stopPlacing());
+document.getElementById('btn-build-close')!.addEventListener('click', () => {
+  if (game.placeKind) stopPlacing();
+  else closeBuildMenu();
+});
 document.getElementById('btn-build-back')!.addEventListener('click', () => {
   game.selectedKind = null;
   syncShopSelection();
@@ -737,7 +760,7 @@ btnBuild.addEventListener('click', () => {
   const ok = game.tryPlace(cell.c, cell.r);
   if (ok) {
     closeBuildMenu();
-    showToast(`${TOWERS[kind].name} ready — click grass to place more. Right-click to pick another.`);
+    showToast(`${TOWERS[kind].name} ready — click grass for another, or Done placing.`);
   }
   updateHud();
 });
