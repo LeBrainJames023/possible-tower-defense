@@ -1,6 +1,12 @@
 # Playtest notes
 
-## This session — audit fix pass (Aug 20)
+## This session — Desert + forks landed (Aug 20/21)
+
+Committed `1ac322c`, not pushed. Next window is **play**, then retune if it feels wrong.
+
+Check 1x: Forest 1 smoke (place → wave → damage, path blocked). Desert 1 sand/portals. Scorpion ducks underground. Dune Runner zips. Tyrant makes nearby towers cough sand. Khan yells Caravan. Arrow Lv3 → two path buttons, click once to preview, again to pay. Sell refunds the path.
+
+## Prior session — audit fix pass (Aug 20)
 
 Walk east/west files were backwards (Meadow Gate’s opening stretch moonwalked). Swapped e/w walk + face frames for all ten keepers; raider-e now faces right. Re-keyed magenta halos on the 160 dir-walk frames (`tools/defringeWalks.py`). Dir-walk no longer gets the old bob/squash/sway on top — the four frames carry the gait.
 
