@@ -4,7 +4,7 @@ import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
 import { pickTarget, splashMultiplier, canTarget, enemyAimPoint } from '../src/game/combat';
-import { BURROW_UP, DASH_EVERY, DASH_MUL, FREEZE_EVERY, PHASE_UP, RALLY_MUL, SLIDE_EVERY, SLIDE_MUL, applyPackRally, stepEnemyVerb } from '../src/game/verbs';
+import { BURROW_UP, CRUST_ARMOR, CRUST_MELTED, DASH_EVERY, DASH_MUL, ERUPT_FIRST, FREEZE_EVERY, PHASE_UP, RALLY_MUL, SLIDE_EVERY, SLIDE_MUL, SMOLDER_HP, applyPackRally, stepEnemyVerb } from '../src/game/verbs';
 import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('shared combat rules', () => {
@@ -298,5 +298,52 @@ describe('ice verbs', () => {
     sim.step(1 / 30);
     expect(arrow.frozen).toBe(true);
     expect(sim.projectiles.length).toBe(0);
+  });
+});
+
+describe('fire verbs', () => {
+  it('lets a magma hound smolder unless it is burning', () => {
+    const sim = new CombatSandbox();
+    const hound = sim.spawn('magmaHound');
+    hound.hp = 40;
+    hound.verbT = 0;
+    stepEnemyVerb(hound, 1);
+    expect(hound.hp).toBe(40 + SMOLDER_HP);
+    hound.applyBurn(12, 2);
+    stepEnemyVerb(hound, 1);
+    expect(hound.hp).toBe(40 + SMOLDER_HP);
+  });
+
+  it('gives a cinder brute a crust that fire burn melts', () => {
+    const sim = new CombatSandbox();
+    const brute = sim.spawn('cinderBrute');
+    stepEnemyVerb(brute, 0.05);
+    expect(brute.armor).toBe(CRUST_ARMOR);
+    brute.applyBurn(12, 2);
+    stepEnemyVerb(brute, 0.05);
+    expect(brute.armor).toBe(CRUST_MELTED);
+  });
+
+  it('lets a cinder king haze nearby non-fire towers', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const arrow = sim.place('arrow', 6, 5);
+    const fire = sim.place('fire', 7, 5);
+    const king = sim.spawn('cinderKing');
+    king.pos = { x: arrow.x + 20, y: arrow.y };
+    king.progress = 0.4;
+    sim.step(1 / 30);
+    expect(arrow.hazed).toBe(true);
+    expect(fire.hazed).toBe(false);
+  });
+
+  it('has the ash titan erupt magma hounds', () => {
+    const sim = new CombatSandbox();
+    const titan = sim.spawn('ashTitan');
+    expect(titan.nextSummonAt).toBe(ERUPT_FIRST);
+    titan.nextSummonAt = 0.05;
+    titan.verbT = 0;
+    const ev = stepEnemyVerb(titan, 0.1);
+    expect(ev.some((e) => e.type === 'summon' && e.kind === 'magmaHound' && e.count === 2)).toBe(true);
   });
 });

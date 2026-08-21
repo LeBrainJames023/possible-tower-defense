@@ -1,16 +1,16 @@
 # Future features
 
-## Last window — Ice world (Aug 21)
+## Last window — Fire world (Aug 21)
 
-Ice is a place now: snow tiles, packed-ice path, crystal/pine props, glacier portals, four unique bodies. Verbs: Wisp phases, Wolf slides, Pack Lord rallies, Jarl freezes towers. Late Ice 8–10 openings got the Desert-style gold bump. Forest gold unchanged. HUD says **click ice**. Fire and Hollow wait for their own chats.
+Fire is a place now: cracked ash, lava-vein path, lava-rock props, Fire portals no longer steal Forest’s painted rifts. Verbs: Hound smolders, Brute crusts, King heat-haze, Titan erupts Magma Hounds (no gold). Late Fire 8–10 openings got the Desert-style gold bump. Forest gold unchanged. HUD says **click ash**. Unique Fire bodies still costume-swap (Warg / Ogre / Drake) until image-gen is asked. Hollow waits for its own chat.
 
 ### What play showed
-- Headless sim, normal: Ice 1–4 leak 0. Ice 5–7 bite on wave 1 and still win. Ice 8 holds after the gold bump. Ice 9–10 leak the rim on wave 1, then hold — first keeps at the gate.
-- Jarl freeze is a pulse (towers skip shots), not a copy of Tyrant choke. Pack Lord speeds wolves; it does not sandstorm.
+- Headless sim, normal: Fire 1–4 leak 0. Fire 5–7 bite on wave 1 and still win. Fire 8 holds after the gold bump. Fire 9–10 die on the rim — first keeps at the gate, not a second gold bump.
+- Heat haze is softer shots (Fire keeps ignore it), not a copy of Jarl freeze or Tyrant choke. Smolder makes Fire the hound answer. Crust makes Fire + Cannon the brute answer.
 - Sticky place stayed dead. Upgrade two-click stayed.
 
 ### Next
-**Fire world** — new chat. Brief: `docs/WORLD_ROADMAP.md`. Do not start Hollow. Forest 8–10 on the live save can wait.
+**Hollow** — new chat. Brief: `docs/WORLD_ROADMAP.md`. Forest 8–10 on the live save can wait.
 
 ### Parked
 7th tower, endless, splash retune, 14-arrow Forest 10 start gold, Ice/lightning/fire/poison forks, unique art for Fire/Hollow.
@@ -18,8 +18,8 @@ Ice is a place now: snow tiles, packed-ice path, crystal/pine props, glacier por
 ### Watch-outs
 - Fixed-path TD; towers never on path. BCI: large buttons, no drag, no hover-only.
 - Forest save may be 8/10 — do not wipe localStorage.
-- Fire/Hollow still lack unique art and verbs.
-- Leftover untracked preview folders (`public/preview/enemy-quality/`, old `walk4` keepers, new Ice `preview/sprite-forge/`) — do not commit unless asked.
+- Hollow still lacks unique art and verbs. Fire painted tiles/props/portals/bodies wait on an image-gen ask.
+- Leftover untracked preview folders (`public/preview/enemy-quality/`, old `walk4` keepers, Ice `preview/sprite-forge/`) — do not commit unless asked.
 - Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → start wave → damage.
 
 ### Continue prompt (paste into a new chat)
@@ -27,13 +27,13 @@ Ice is a place now: snow tiles, packed-ice path, crystal/pine props, glacier por
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only, on-screen cursor, no drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-This window is FIRE ONLY. Read docs/WORLD_ROADMAP.md first — especially Lessons from Ice. Forest, Desert, and Ice are the bar. Do not start Hollow. Do not bring sticky place back.
+This window is HOLLOW ONLY. Read docs/WORLD_ROADMAP.md first — especially Lessons from Fire. Forest, Desert, Ice, and Fire are the bar. Do not start parked forks. Do not bring sticky place back.
 
-Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm. Fire HUD should say click ash.
+Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm. Hollow HUD should say click rune.
 
-Fire roster: Magma Hound, Cinder Brute from stage 3, Cinder King wave 7, Ash Titan wave 10. Verbs in verbs.ts. Ask before image-gen. Log assets in docs/ASSETS.md.
+Hollow roster: Shade (flying), Hex Knight from stage 3, Hex Warden wave 7, The Magician wave 10. Verbs in verbs.ts. Ask before image-gen. Log assets in docs/ASSETS.md.
 
-Job: (1) Smoke Forest 1. (2) Make Fire a place + verbs. (3) Play the whole Fire world. (4) Write “Lessons from Fire” into WORLD_ROADMAP.md before you stop.
+Job: (1) Smoke Forest 1. (2) Make Hollow a place + verbs. (3) Play the whole Hollow world. (4) Write “Lessons from Hollow” into WORLD_ROADMAP.md before you stop.
 
 Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked.
 ```

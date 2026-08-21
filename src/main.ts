@@ -476,6 +476,8 @@ function fillInspectTower(t: Tower): void {
           ['Fire', `${curRate.toFixed(1)} /s`],
         ];
   if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);
+  if (t.frozen) rows.push(['Status', 'Frozen — cannot fire']);
+  if (t.hazed) rows.push(['Status', 'Heat haze — shots weaker']);
   selectionStats.innerHTML = statGridHtml(rows);
 
   const selling = inspectStep === 'sell';
@@ -519,6 +521,10 @@ function fillInspectEnemy(enemy: Enemy): void {
     enemy.kind === 'iceWolf' && enemy.verbSpeedMul > 1.15 && enemy.verbSpeedMul <= 1.5 ? 'rallied' : '',
     enemy.kind === 'duneTyrant' ? 'sandstorm' : '',
     enemy.kind === 'packLord' ? 'rally' : '',
+    enemy.kind === 'cinderKing' ? 'heat haze' : '',
+    enemy.kind === 'magmaHound' && enemy.burnTimer <= 0 ? 'smoldering' : '',
+    enemy.kind === 'cinderBrute' && enemy.armor > 0.4 ? 'crusted' : '',
+    enemy.kind === 'cinderBrute' && enemy.burnTimer > 0 ? 'crust melted' : '',
     enemy.freezing ? 'freezing towers' : '',
   ]
     .filter(Boolean)
@@ -529,7 +535,7 @@ function fillInspectEnemy(enemy: Enemy): void {
   selectionBlurb.textContent = def.flying ? `${def.blurb} Flying - cannon cannot hit.` : def.blurb;
   const rows: Array<[string, string]> = [
     ['HP', `${Math.ceil(enemy.hp)} / ${enemy.maxHp}`],
-    ['Armor', `${Math.round(def.armor * 100)}%`],
+    ['Armor', `${Math.round(enemy.armor * 100)}%`],
     ['Speed', `${(def.speed / TILE).toFixed(2)} /s`],
     ['Gold', `${killPayout(def.reward, game.level.worldIndex, game.mods.gold)}g`],
   ];

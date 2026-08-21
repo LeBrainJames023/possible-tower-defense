@@ -1,4 +1,4 @@
-import { u } from './constants';
+import { u, type TowerKind } from './constants';
 import { Enemy } from './entities';
 import type { EnemyKind } from './enemies';
 import { dist } from '../shared/math';
@@ -12,7 +12,11 @@ export type EnemyVerb =
   | 'phase'
   | 'slide'
   | 'rally'
-  | 'freeze';
+  | 'freeze'
+  | 'smolder'
+  | 'crust'
+  | 'heat'
+  | 'erupt';
 
 export const ENEMY_VERBS: Partial<Record<EnemyKind, EnemyVerb>> = {
   scorpion: 'burrow',
@@ -23,6 +27,10 @@ export const ENEMY_VERBS: Partial<Record<EnemyKind, EnemyVerb>> = {
   iceWolf: 'slide',
   packLord: 'rally',
   frostJarl: 'freeze',
+  magmaHound: 'smolder',
+  cinderBrute: 'crust',
+  cinderKing: 'heat',
+  ashTitan: 'erupt',
 };
 
 export const BURROW_UP = 3.2;
@@ -53,6 +61,21 @@ export const RALLY_MUL = 1.38;
 export const FREEZE_EVERY = 7.6;
 export const FREEZE_FOR = 2.05;
 export const FREEZE_RANGE = u(122);
+
+/** Magma Hound knits HP back unless a Fire tower has it burning. */
+export const SMOLDER_HP = 9;
+
+/** Cinder Brute shell. Fire burn cracks it; Cannon pierce ignores it. */
+export const CRUST_ARMOR = 0.58;
+export const CRUST_MELTED = 0.14;
+
+/** Cinder King haze. Shots still leave — they just hit softer. Fire keeps ignore it. */
+export const HEAT_RANGE = u(124);
+export const HEAT_DMG = 0.5;
+
+export const ERUPT_FIRST = 5.2;
+export const ERUPT_EVERY = 11;
+export const ERUPT_COUNT = 2;
 
 export type VerbEvent =
   | { type: 'burrow' }
@@ -143,6 +166,35 @@ export function stepEnemyVerb(e: Enemy, dt: number): VerbEvent[] {
       out.push(next ? { type: 'freeze' } : { type: 'thaw' });
     }
     e.verbSpeedMul = 1;
+    return out;
+  }
+
+  if (verb === 'smolder') {
+    e.verbSpeedMul = 1;
+    if (e.burnTimer <= 0) {
+      e.hp = Math.min(e.maxHp, e.hp + SMOLDER_HP * dt);
+    }
+    return out;
+  }
+
+  if (verb === 'crust') {
+    e.verbSpeedMul = 1;
+    e.armor = e.burnTimer > 0 ? CRUST_MELTED : CRUST_ARMOR;
+    return out;
+  }
+
+  if (verb === 'heat') {
+    e.verbSpeedMul = 1;
+    return out;
+  }
+
+  if (verb === 'erupt') {
+    e.verbSpeedMul = 1;
+    if (e.verbT >= e.nextSummonAt) {
+      e.nextSummonAt = e.verbT + ERUPT_EVERY;
+      out.push({ type: 'summon', kind: 'magmaHound', count: ERUPT_COUNT });
+    }
+    return out;
   }
   return out;
 }
@@ -163,8 +215,23 @@ export function isJarlFreeze(towerPos: Vec2, enemies: Enemy[]): boolean {
   return false;
 }
 
+export function isHeatHaze(towerPos: Vec2, enemies: Enemy[]): boolean {
+  for (const e of enemies) {
+    if (!e.alive || e.kind !== 'cinderKing') continue;
+    if (dist(towerPos, e.pos) <= HEAT_RANGE) return true;
+  }
+  return false;
+}
+
 export function towerFireMul(towerPos: Vec2, enemies: Enemy[]): number {
   if (isSandstorm(towerPos, enemies)) return SANDSTORM_FIRE;
+  return 1;
+}
+
+/** Fire keeps were born in this heat — everyone else hits at half. */
+export function towerDamageMul(kind: TowerKind, towerPos: Vec2, enemies: Enemy[]): number {
+  if (kind === 'fire') return 1;
+  if (isHeatHaze(towerPos, enemies)) return HEAT_DMG;
   return 1;
 }
 

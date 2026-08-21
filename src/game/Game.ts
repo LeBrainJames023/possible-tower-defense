@@ -436,9 +436,17 @@ export class Game {
             pup.update(0, this.waypoints);
             this.enemies.push(pup);
           }
-          this.fx.ring(e.pos.x, e.pos.y, '#e0b050', 42, 4, 0.55);
-          this.fx.burst(e.pos.x, e.pos.y, '#e0b050', 16, 'smoke', -10);
-          this.floats.push({ x: e.pos.x, y: e.pos.y - 28, text: 'Caravan!', color: '#e0b050', life: 1 });
+          const erupt = ev.kind === 'magmaHound';
+          const tint = erupt ? '#ff6b4a' : '#e0b050';
+          this.fx.ring(e.pos.x, e.pos.y, tint, erupt ? 52 : 42, 4, 0.55);
+          this.fx.burst(e.pos.x, e.pos.y, tint, 16, erupt ? 'spark' : 'smoke', -10);
+          this.floats.push({
+            x: e.pos.x,
+            y: e.pos.y - 28,
+            text: erupt ? 'Erupt!' : 'Caravan!',
+            color: tint,
+            life: 1,
+          });
         }
       }
       this.fx.statusTicks(e, dt);

@@ -221,6 +221,15 @@ export function drawTower(
     ctx.lineWidth = 2 * PX;
     ctx.stroke();
   }
+  if (t.hazed) {
+    ctx.fillStyle = 'rgba(255, 90, 30, 0.22)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 8 * PX, 24 * PX, 11 * PX, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 160, 60, ${0.35 + Math.sin(time * 5) * 0.12})`;
+    ctx.lineWidth = 2 * PX;
+    ctx.stroke();
+  }
 
   if (t.level >= 3) {
     const pulse = 0.35 + Math.sin(time * 4) * 0.12;
@@ -369,6 +378,26 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
     ctx.ellipse(e.pos.x, e.pos.y + r * 0.15, r * 2.8, r * 1.25, 0, 0, Math.PI * 2);
     ctx.stroke();
   }
+  if (e.kind === 'cinderKing') {
+    ctx.strokeStyle = `rgba(255, 90, 30, ${0.35 + Math.sin(time * 3.2) * 0.14})`;
+    ctx.lineWidth = 2.2 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.2, r * 2.5, r * 1.15, time * 0.45, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (e.kind === 'magmaHound' && e.burnTimer <= 0) {
+    ctx.fillStyle = `rgba(255, 110, 40, ${0.28 + Math.sin(time * 4) * 0.12})`;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y + r * 0.15, r * 1.15, r * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (e.kind === 'cinderBrute' && e.armor > 0.4) {
+    ctx.strokeStyle = `rgba(255, 140, 50, ${0.4 + Math.sin(time * 2.4) * 0.12})`;
+    ctx.lineWidth = 2.4 * PX;
+    ctx.beginPath();
+    ctx.ellipse(e.pos.x, e.pos.y, r * 1.35, r * 1.05, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   if (e.burrowed) {
     ctx.fillStyle = 'rgba(196, 160, 96, 0.45)';
     ctx.beginPath();
@@ -444,6 +473,9 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   if (e.kind === 'iceWolf' && e.verbSpeedMul > 1.5) icons.push('#9ae4f7');
   if (e.kind === 'iceWolf' && e.verbSpeedMul > 1.15 && e.verbSpeedMul <= 1.5) icons.push('#d0e8f4');
   if (e.freezing) icons.push('#9ae4f7');
+  if (e.kind === 'magmaHound' && e.burnTimer <= 0) icons.push('#ff7040');
+  if (e.kind === 'cinderBrute' && e.armor > 0.4) icons.push('#e05020');
+  if (e.kind === 'cinderKing') icons.push('#ff6020');
   icons.forEach((color, i) => {
     ctx.fillStyle = color;
     ctx.beginPath();

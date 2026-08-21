@@ -45,6 +45,8 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/enemies/walk/{frostwisp,icewolf,packlord,frostjarl}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`center` wisp, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. | Live 4-dir flap/walks. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
+Fire land is **procedural Canvas** until painted sheets are asked for: cracked ash + lava-vein path in `drawWorld.ts` / `renderer.ts`, lava-rock variants on blocked tiles, jagged ember portals (Fire no longer falls through to Forest `portal-in.png`). Wiring is ready for `public/sprites/terrain/fire-*.png`, `fire-path-*.png`, `public/sprites/fire/*.png`, and `portal-fire-in/out.png` when those files exist.
+
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
 
 Poly Haven textures are CC0. We downloaded files at bake time (not the live API in-game). Credit: [aerial_grass_rock](https://polyhaven.com/a/aerial_grass_rock), [dirt](https://polyhaven.com/a/dirt).

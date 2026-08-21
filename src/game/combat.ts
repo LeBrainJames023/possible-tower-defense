@@ -3,7 +3,7 @@ import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
-import { SANDSTORM_FIRE, isJarlFreeze, isSandstorm, untargetable } from './verbs';
+import { SANDSTORM_FIRE, isJarlFreeze, isSandstorm, towerDamageMul, untargetable } from './verbs';
 
 export interface CombatWorld {
   enemies: Enemy[];
@@ -212,6 +212,8 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
     }
     t.choked = isSandstorm({ x: t.x, y: t.y }, world.enemies);
     t.frozen = isJarlFreeze({ x: t.x, y: t.y }, world.enemies);
+    const haze = towerDamageMul(t.kind, { x: t.x, y: t.y }, world.enemies);
+    t.hazed = haze < 1;
     if (t.frozen) continue;
     if (t.cooldown > 0) continue;
     const target = pickTarget(t, world.enemies);
@@ -219,7 +221,7 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
     const choke = t.choked ? SANDSTORM_FIRE : 1;
     t.cooldown = 1 / (t.fireRate * choke);
     t.targetId = target.id;
-    fireTower(t, target, world, hooks);
+    fireTower(t, target, world, { ...hooks, damageMul: (hooks.damageMul ?? 1) * haze });
   }
 }
 

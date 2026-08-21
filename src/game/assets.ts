@@ -79,6 +79,12 @@ export const TEX = {
     loadImage('/sprites/ice/boulder.png'),
     loadImage('/sprites/ice/shrub.png'),
   ],
+  fireProps: [
+    loadImage('/sprites/fire/lava-rock.png'),
+    loadImage('/sprites/fire/ember-stump.png'),
+    loadImage('/sprites/fire/fumarole.png'),
+    loadImage('/sprites/fire/slag.png'),
+  ],
   grassTiles: [
     loadImage('/sprites/terrain/grass-1.png'),
     loadImage('/sprites/terrain/grass-2.png'),
@@ -115,12 +121,26 @@ export const TEX = {
     loadImage('/sprites/terrain/ice-path-3.png'),
     loadImage('/sprites/terrain/ice-path-4.png'),
   ],
+  fireTiles: [
+    loadImage('/sprites/terrain/fire-1.png'),
+    loadImage('/sprites/terrain/fire-2.png'),
+    loadImage('/sprites/terrain/fire-3.png'),
+    loadImage('/sprites/terrain/fire-4.png'),
+  ],
+  firePathTiles: [
+    loadImage('/sprites/terrain/fire-path-1.png'),
+    loadImage('/sprites/terrain/fire-path-2.png'),
+    loadImage('/sprites/terrain/fire-path-3.png'),
+    loadImage('/sprites/terrain/fire-path-4.png'),
+  ],
   portalIn: loadImage('/sprites/landmarks/portal-in.png'),
   portalOut: loadImage('/sprites/landmarks/portal-out.png'),
   portalDesertIn: loadImage('/sprites/landmarks/portal-desert-in.png'),
   portalDesertOut: loadImage('/sprites/landmarks/portal-desert-out.png'),
   portalIceIn: loadImage('/sprites/landmarks/portal-ice-in.png'),
   portalIceOut: loadImage('/sprites/landmarks/portal-ice-out.png'),
+  portalFireIn: loadImage('/sprites/landmarks/portal-fire-in.png'),
+  portalFireOut: loadImage('/sprites/landmarks/portal-fire-out.png'),
   creatures: Object.fromEntries(CREATURES.map((name) => [name, loadImage(`/sprites/enemies/${name}.png`)])) as Record<
     CreatureSprite,
     HTMLImageElement | null

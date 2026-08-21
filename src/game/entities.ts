@@ -178,6 +178,7 @@ export class Tower {
   previewFork: ForkId | null = null;
   choked = false;
   frozen = false;
+  hazed = false;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;

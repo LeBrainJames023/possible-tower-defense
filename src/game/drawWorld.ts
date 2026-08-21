@@ -76,19 +76,36 @@ export function drawWorldGround(
   }
 
   if (world === 'fire') {
-    ctx.strokeStyle = 'rgba(20, 8, 4, 0.45)';
-    ctx.lineWidth = 1.2 * PX;
+    ctx.strokeStyle = 'rgba(20, 8, 4, 0.55)';
+    ctx.lineWidth = 1.35 * PX;
     ctx.beginPath();
-    ctx.moveTo(x + 8 * PX, y + 20 * PX);
-    ctx.lineTo(x + 28 * PX, y + 36 * PX);
-    ctx.moveTo(x + 20 * PX, y + 10 * PX);
-    ctx.lineTo(x + 44 * PX, y + 22 * PX);
+    for (let i = 0; i < 5; i++) {
+      const hx = hash(c, r, i);
+      const hy = hash(c, r, i + 7);
+      const px = x + 6 * PX + hx * (TILE - 12 * PX);
+      const py = y + 8 * PX + hy * (TILE - 16 * PX);
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + (8 + hy * 10) * PX, py + (4 + hx * 8) * PX);
+    }
     ctx.stroke();
-    const glow = 0.12 + Math.abs(Math.sin(time * 3 + r)) * 0.2;
-    ctx.fillStyle = `rgba(255, 90, 30, ${glow})`;
+    const ember = 0.16 + Math.abs(Math.sin(time * 2.8 + r * 0.6 + c)) * 0.28;
+    ctx.fillStyle = `rgba(255, 90, 30, ${ember})`;
     ctx.beginPath();
-    ctx.arc(x + 12 * PX + hash(c, r, 5) * 36 * PX, y + 14 * PX + hash(c, r, 6) * 30 * PX, 2 * PX, 0, Math.PI * 2);
+    ctx.arc(
+      x + 10 * PX + hash(c, r, 5) * 36 * PX,
+      y + 12 * PX + hash(c, r, 6) * 30 * PX,
+      (1.6 + hash(c, r, 8) * 1.8) * PX,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
+    ctx.fillStyle = 'rgba(12, 4, 2, 0.28)';
+    ctx.fillRect(
+      x + 4 * PX + hash(c, r, 12) * 20 * PX,
+      y + 18 * PX + hash(c, r, 13) * 16 * PX,
+      10 * PX,
+      3 * PX,
+    );
     return;
   }
 
@@ -112,9 +129,11 @@ export function drawWorldPath(
   time: number,
 ): void {
   if (world === 'fire') {
-    const pulse = 0.1 + Math.abs(Math.sin(time * 2.2 + x * 0.01)) * 0.16;
-    ctx.fillStyle = `rgba(255, 80, 20, ${pulse})`;
-    ctx.fillRect(x + 6 * PX, y + 22 * PX, TILE - 12 * PX, 6 * PX);
+    const pulse = 0.16 + Math.abs(Math.sin(time * 2.4 + x * 0.01 + y * 0.008)) * 0.28;
+    ctx.fillStyle = `rgba(255, 70, 16, ${pulse})`;
+    ctx.fillRect(x + 8 * PX, y + 20 * PX, TILE - 16 * PX, 8 * PX);
+    ctx.fillStyle = `rgba(255, 180, 60, ${pulse * 0.7})`;
+    ctx.fillRect(x + 16 * PX, y + 22 * PX, TILE - 32 * PX, 4 * PX);
     return;
   }
   if (world === 'hollow') {
@@ -177,6 +196,15 @@ export function drawWorldDecor(
     return;
   }
   if (world === 'fire') {
+    const painted = TEX.fireProps.filter(texReady);
+    if (painted.length) {
+      const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
+      const scale = 1.06 + hash(c, r, 8) * 0.22;
+      const tw = TILE * 1.04 * scale;
+      const th = TILE * 1.42 * scale;
+      ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      return;
+    }
     drawLavaRock(ctx, theme, cx, cy, c, r, time);
     return;
   }
@@ -287,24 +315,48 @@ function drawLavaRock(
   theme: MapTheme,
   cx: number,
   cy: number,
-  _c: number,
+  c: number,
   r: number,
   time: number,
 ): void {
+  const kind = Math.floor(hash(c, r, 4) * 4);
+  const pulse = 0.35 + Math.abs(Math.sin(time * 3 + r)) * 0.4;
   ctx.fillStyle = theme.trunk;
   ctx.beginPath();
-  ctx.moveTo(cx - 16 * PX, cy + 12 * PX);
-  ctx.lineTo(cx - 6 * PX, cy - 8 * PX);
-  ctx.lineTo(cx + 8 * PX, cy - 4 * PX);
-  ctx.lineTo(cx + 16 * PX, cy + 10 * PX);
-  ctx.lineTo(cx + 4 * PX, cy + 16 * PX);
-  ctx.lineTo(cx - 10 * PX, cy + 16 * PX);
+  if (kind === 0) {
+    ctx.moveTo(cx - 16 * PX, cy + 12 * PX);
+    ctx.lineTo(cx - 6 * PX, cy - 8 * PX);
+    ctx.lineTo(cx + 8 * PX, cy - 4 * PX);
+    ctx.lineTo(cx + 16 * PX, cy + 10 * PX);
+    ctx.lineTo(cx + 4 * PX, cy + 16 * PX);
+    ctx.lineTo(cx - 10 * PX, cy + 16 * PX);
+  } else if (kind === 1) {
+    ctx.moveTo(cx - 8 * PX, cy + 16 * PX);
+    ctx.lineTo(cx - 10 * PX, cy - 6 * PX);
+    ctx.lineTo(cx - 2 * PX, cy - 18 * PX);
+    ctx.lineTo(cx + 6 * PX, cy - 4 * PX);
+    ctx.lineTo(cx + 10 * PX, cy + 16 * PX);
+  } else if (kind === 2) {
+    ctx.ellipse(cx, cy + 6 * PX, 14 * PX, 10 * PX, 0, 0, Math.PI * 2);
+  } else {
+    ctx.moveTo(cx - 14 * PX, cy + 16 * PX);
+    ctx.lineTo(cx - 12 * PX, cy - 2 * PX);
+    ctx.lineTo(cx, cy - 12 * PX);
+    ctx.lineTo(cx + 14 * PX, cy + 2 * PX);
+    ctx.lineTo(cx + 12 * PX, cy + 16 * PX);
+  }
   ctx.closePath();
   ctx.fill();
-  const pulse = 0.35 + Math.abs(Math.sin(time * 3 + r)) * 0.4;
   ctx.fillStyle = `rgba(255, 90, 20, ${pulse})`;
   ctx.beginPath();
-  ctx.ellipse(cx, cy + 4 * PX, 7 * PX, 4 * PX, 0, 0, Math.PI * 2);
+  if (kind === 1) {
+    ctx.moveTo(cx - 2 * PX, cy + 16 * PX);
+    ctx.lineTo(cx, cy - 10 * PX);
+    ctx.lineTo(cx + 2 * PX, cy + 16 * PX);
+    ctx.closePath();
+  } else {
+    ctx.ellipse(cx, cy + 4 * PX, 7 * PX, 4 * PX, 0, 0, Math.PI * 2);
+  }
   ctx.fill();
 }
 

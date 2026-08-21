@@ -4,6 +4,22 @@ import type { Vec2 } from '../shared/math';
 import type { WorldId } from './worlds';
 import { TEX, texReady } from './assets';
 
+function paintedPortalIn(world: WorldId): HTMLImageElement | null {
+  if (world === 'ice' && texReady(TEX.portalIceIn)) return TEX.portalIceIn;
+  if (world === 'desert' && texReady(TEX.portalDesertIn)) return TEX.portalDesertIn;
+  if (world === 'fire' && texReady(TEX.portalFireIn)) return TEX.portalFireIn;
+  if (world === 'forest' && texReady(TEX.portalIn)) return TEX.portalIn;
+  return null;
+}
+
+function paintedPortalOut(world: WorldId): HTMLImageElement | null {
+  if (world === 'ice' && texReady(TEX.portalIceOut)) return TEX.portalIceOut;
+  if (world === 'desert' && texReady(TEX.portalDesertOut)) return TEX.portalDesertOut;
+  if (world === 'fire' && texReady(TEX.portalFireOut)) return TEX.portalFireOut;
+  if (world === 'forest' && texReady(TEX.portalOut)) return TEX.portalOut;
+  return null;
+}
+
 /** Gate at path start, keep at path end. Sit on path tiles — not on grass. */
 export function drawLandmarks(
   ctx: CanvasRenderingContext2D,
@@ -99,19 +115,16 @@ function drawSpawnArch(
   heat: number,
 ): void {
   const pulse = 0.7 + Math.sin(time * 3.2) * 0.15 + heat * 0.55;
-  const inImg =
-    world === 'ice' && texReady(TEX.portalIceIn)
-      ? TEX.portalIceIn
-      : world === 'desert' && texReady(TEX.portalDesertIn)
-        ? TEX.portalDesertIn
-        : TEX.portalIn;
-  if (texReady(inImg)) {
+  const inImg = paintedPortalIn(world);
+  if (inImg) {
     const tint =
       world === 'ice'
         ? `rgba(154, 228, 247, ${0.42 + heat * 0.35})`
         : world === 'desert'
           ? `rgba(232, 180, 60, ${0.42 + heat * 0.35})`
-          : `rgba(120, 200, 255, ${0.42 + heat * 0.35})`;
+          : world === 'fire'
+            ? `rgba(255, 100, 40, ${0.42 + heat * 0.35})`
+            : `rgba(120, 200, 255, ${0.42 + heat * 0.35})`;
     drawPortalBillboard(ctx, x, y, inImg, Math.max(heat, 0.2), tint, time, 'in');
     return;
   }
@@ -188,19 +201,16 @@ function drawExitKeep(
   wound = 0,
 ): void {
   const pulse = 0.8 + Math.sin(time * 2.4) * 0.12 + wound * 0.35;
-  const outImg =
-    world === 'ice' && texReady(TEX.portalIceOut)
-      ? TEX.portalIceOut
-      : world === 'desert' && texReady(TEX.portalDesertOut)
-        ? TEX.portalDesertOut
-        : TEX.portalOut;
-  if (texReady(outImg)) {
+  const outImg = paintedPortalOut(world);
+  if (outImg) {
     const tint =
       world === 'ice'
         ? `rgba(239, 71, 111, ${0.48 + wound * 0.4})`
         : world === 'desert'
           ? `rgba(232, 140, 60, ${0.48 + wound * 0.4})`
-          : `rgba(239, 71, 111, ${0.48 + wound * 0.4})`;
+          : world === 'fire'
+            ? `rgba(255, 90, 30, ${0.48 + wound * 0.4})`
+            : `rgba(239, 71, 111, ${0.48 + wound * 0.4})`;
     drawPortalBillboard(
       ctx,
       x,

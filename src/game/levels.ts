@@ -378,10 +378,10 @@ const TEMPLATES: PathTemplate[] = [
   },
 ];
 
-/** Desert and Ice extra bodies showed up in play before the opening kit did. Late maps only. Forest start gold stays put. */
+/** Desert, Ice, and Fire extra bodies showed up in play before the opening kit did. Late maps only. Forest start gold stays put. */
 function startGoldFor(world: (typeof WORLDS)[number], stage: number, templateGold: number): number {
   let mul = world.hpMul;
-  if (world.id === 'desert' || world.id === 'ice') {
+  if (world.id === 'desert' || world.id === 'ice' || world.id === 'fire') {
     if (stage >= 8) mul *= 1.38;
     else if (stage >= 7) mul *= 1.15;
   }

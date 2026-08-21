@@ -1,8 +1,8 @@
-# World roadmap — Ice, then Fire, then Hollow
+# World roadmap — Fire done, Hollow next
 
-One land per agent. Finish, play, write lessons, then open a **new chat** for the next land. Do not start Fire while Ice is mid-paint.
+One land per agent. Finish, play, write lessons, then open a **new chat** for the next land. Do not start Hollow while Fire is mid-paint.
 
-Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire / Hollow still wear a palette: **unique paths exist**, **names exist**, **art and verbs do not**.
+Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire is a place (ash, four verbs; unique bodies still costume-swap until image-gen). Hollow still wears a palette: **unique paths exist**, **names exist**, **art and verbs do not**.
 
 This file is the pickup brief. `docs/FUTURE_FEATURES.md` points here. Campaign shape lives in `docs/CAMPAIGN.md`.
 
@@ -24,7 +24,7 @@ Parked for every world pass: 7th tower, endless, Ice/lightning/fire/poison forks
 
 ## Lessons already in the bag
 
-Copy these forward. Add a short “Lessons from Ice” block here when Ice ships, before Fire starts.
+Copy these forward. Add a short “Lessons from Hollow” block here when Hollow ships.
 
 ### Forest
 - Tutorial home. Stage 1 has no locals and no champion.
@@ -48,8 +48,16 @@ Copy these forward. Add a short “Lessons from Ice” block here when Ice ships
 - Ice 1–4 leaked 0 in the headless sim. Twin Floes (3) is where slide/rally show.
 - Fire should steal: land + four verbs + play all ten + late-opening bump only if wave 1 dies. Do not start Hollow in the Fire window.
 
-### Ceiling (read before pouring Fire)
-Two more worlds of unique 4-dir walk sheets is the expensive part (4 bodies × 4 dirs × 4 frames, plus tiles, props, two portals). **One world per agent.** New chat for Fire — don’t start Hollow in that thread.
+### Fire (Aug 21)
+- Land first: cracked ash, lava-vein path, lava-rock / ember-stump / fumarole / slag props. Fire no longer borrows the Forest painted portals — jagged ember arches until painted rifts exist. HUD says **click ash**.
+- **One verb per body.** Hound **smolders** (knits HP unless Fire has it burning). Brute **crust** from stage 3 (Fire melts the shell; Cannon pierce ignores it). King **heat haze** (nearby towers still shoot, hits come in at half — not a freeze pulse and not a sandstorm choke; Fire keeps ignore the haze). Titan **erupts** Magma Hounds (no gold on pups).
+- Do not copy Jarl freeze or Wisp phase onto Fire. Heat is softer shots, not skipped shots.
+- Fire 1–4 leaked 0. Twin Caldera (3) is where crust shows. Fire 5–7 bite wave 1 and still win. Late Fire 8–10 got the Desert/Ice gold bump; Fire 8 then leaked 0. Bot still dies on Fire 9–10 rim (`Siege Cinder` up the left wall, `Last Crucible`) — placement, not a second gold bump. Forest 10 still 320g.
+- Fire `hpMul` is 1.5 — stage 1 already buys six arrows. Bodies still wear Warg / Ogre / Drake until you ask for painted sheets.
+- Hollow should steal: land + four verbs + play all ten + late-opening bump only if wave 1 dies. Do not start anything past Hollow in that window.
+
+### Ceiling (read before pouring Hollow)
+Two more worlds of unique 4-dir walk sheets is the expensive part (4 bodies × 4 dirs × 4 frames, plus tiles, props, two portals). **One world per agent.** New chat for Hollow — don’t start parked forks in that thread.
 
 Verbs live in `src/game/verbs.ts`. Combat asks “may I shoot this?” from there. Do not put timers in `combat.ts`. Bodies and names in `src/game/enemies.ts` / `worldRoster.ts`. Paths already authored in `src/game/worldPaths.ts`. Balance in `constants.ts` / `levels.ts` / `worlds.ts`.
 
@@ -72,33 +80,20 @@ HUD: `click ice`. Late Ice 8–10 openings use the Desert-style gold bump. Fores
 
 ---
 
-## Fire (next — new chat)
+## Fire (done Aug 21)
 
-**Roster:** Magma Hound, Cinder Brute (stage 3+), Cinder King (wave 7), Ash Titan (wave 10). Today: Warg / Ogre / Drake palettes.
+Land, four verbs, whole-world sim, late-opening gold bump. Unique painted bodies still wait on image-gen. Lessons are above.
 
-**Land today:** procedural lava-rock props, fire palette, unique paths (`Ember Gate` … `Last Crucible`). No painted ash tiles, no fire portals.
+| Role | Kind | Verb (shipped) |
+| --- | --- | --- |
+| Special 1 (stage 1+) | Magma Hound | **Smolder** — knits HP unless Fire burn is on it. |
+| Special 2 (stage 3+) | Cinder Brute | **Crust** — extra armor. Fire melts it; Cannon pierces it. |
+| Wave 7 | Cinder King | **Heat haze** — nearby non-Fire towers hit at half. They still shoot. |
+| Wave 10 | Ash Titan | **Erupt** — Magma Hound pups. No gold on the summons. |
 
-**Carry from Ice:** land + one verb each + play all ten. Late-opening gold bump only if wave 1 dies. Rim maps: first keeps at the gate. Do not copy Jarl freeze or Wisp phase onto Fire. Fire `hpMul` is 1.5 — stage 1 already buys more arrows than Forest; still **play** before buffing gold.
+HUD: `click ash`. Late Fire 8–10 openings use the Desert-style gold bump. Forest 10 gold unchanged. Costume-swap bodies (Warg / Ogre / Drake) until painted.
 
-**Verb direction (bets, not locked):** Hound (burn trail or sprint), Brute (armor / magma pop on death — on-death tricks were parked; only if play wants it), King (heat aura, not a freeze clone), Titan (erupt / summons, no gold on pups). Fire tower and Cannon pierce should feel like the intended answers.
-
-**Ask before image-gen.** Don’t open Hollow in the Fire thread.
-
-### Fire continue prompt (paste into a new chat)
-
-```
-Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only, on-screen cursor, no drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
-
-This window is FIRE ONLY. Read docs/WORLD_ROADMAP.md first — especially Lessons from Ice. Forest, Desert, and Ice are the bar: land is a place, four bodies, one verb each, play the whole world, retune only if it feels wrong. Do not start Hollow. Do not bring sticky place back.
-
-Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm. Fire HUD should say click ash, not grass.
-
-Fire roster: Magma Hound, Cinder Brute from stage 3, Cinder King wave 7, Ash Titan wave 10. Verbs in verbs.ts. Paths already in worldPaths.ts. Ask before any image-gen. Log assets in docs/ASSETS.md.
-
-Job: (1) Smoke Forest 1. (2) Make Fire a place + verbs. (3) Play Fire 1 → 2 → 3, then the whole Fire world. (4) Write “Lessons from Fire” into WORLD_ROADMAP.md before you stop.
-
-Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked.
-```
+**Do not start Hollow in this thread.** New chat.
 
 ---
 
@@ -113,6 +108,22 @@ Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview
 **Verb direction (bets):** Shade (not a carbon-copy of Wisp phase — Ice already taught flicker; maybe a hex that muffles one nearby tower, or a slower untargetable beat). Knight (plate — Poison and Cannon). Warden (seal / silence). Magician (the last door — one signature trick, not four). **One verb each.**
 
 **Ask before image-gen.** New chat. After Hollow play, campaign art+verbs are complete; then parked forks / music / endless are allowed to come back.
+
+### Hollow continue prompt (paste into a new chat)
+
+```
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only, on-screen cursor, no drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+
+This window is HOLLOW ONLY. Read docs/WORLD_ROADMAP.md first — especially Lessons from Fire. Forest, Desert, Ice, and Fire are the bar: land is a place, four bodies, one verb each, play the whole world, retune only if it feels wrong. Do not start parked forks. Do not bring sticky place back.
+
+Place: click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade two-click. Sell at the bottom; Keep / confirm. Hollow HUD should say click rune, not grass.
+
+Hollow roster: Shade (flying), Hex Knight from stage 3, Hex Warden wave 7, The Magician wave 10. Verbs in verbs.ts. Paths already in worldPaths.ts. Ask before any image-gen. Log assets in docs/ASSETS.md.
+
+Job: (1) Smoke Forest 1. (2) Make Hollow a place + verbs. (3) Play Hollow 1 → 2 → 3, then the whole Hollow world. (4) Write “Lessons from Hollow” into WORLD_ROADMAP.md before you stop.
+
+Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked.
+```
 
 ---
 

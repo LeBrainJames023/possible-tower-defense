@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — Fire land + verbs (Aug 21)
+
+Fire HUD says **click ash**. Fire no longer stamps Forest portals. Magma Hound smolders, Cinder Brute crusts from Twin Caldera, Cinder King heat-haze, Ash Titan erupts (no gold). Late Fire 8–10 openings got the Desert-style gold bump. Forest gold unchanged. Sticky place stayed dead.
+
+Check 1x: Forest 1 smoke (place → wave → damage, path blocked). Fire 1 ash/lava path. Hound knits unless burning. Brute shell melts under Fire. King makes Arrow hits feel weak; a Fire keep still punches. Titan yells Erupt.
+
 ## This session — Desert + forks landed (Aug 20/21)
 
 Committed `1ac322c`, not pushed. Next window is **play**, then retune if it feels wrong.

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS, waveRoster } from '../src/game/levels';
 import { COLS, ROWS, STAGES_PER_WORLD, WAVES_PER_LEVEL, WORLD_COUNT } from '../src/game/constants';
 import { PATH_OVERRIDES } from '../src/game/worldPaths';
-import { WORLDS } from '../src/game/worlds';
+import { WORLDS, buildSurfaceWord } from '../src/game/worlds';
 
 describe('expandPath', () => {
   it('fills orthogonal steps between corners', () => {
@@ -96,6 +96,13 @@ describe('campaign maps', () => {
     expect(LEVELS[30].pathTiles[0]).toEqual({ c: 0, r: 11 });
     expect(LEVELS[40].pathTiles[0]).toEqual({ c: 9, r: 0 });
   });
+
+  it('names the buildable tile per world', () => {
+    expect(buildSurfaceWord('forest')).toBe('grass');
+    expect(buildSurfaceWord('desert')).toBe('sand');
+    expect(buildSurfaceWord('ice')).toBe('ice');
+    expect(buildSurfaceWord('fire')).toBe('ash');
+  });
 });
 
 describe('buildWave', () => {
@@ -126,6 +133,14 @@ describe('buildWave', () => {
     expect(waveRoster(1, 7, 2).includes('Dune Tyrant')).toBe(true);
     expect(waveRoster(1, 10, 2).includes('Sand Khan')).toBe(true);
     expect(waveRoster(1, 10, 2).includes('Warlord')).toBe(false);
+  });
+
+  it('brings Fire locals, a wave-7 champion, and a world boss', () => {
+    expect(waveRoster(1, 3, 4).includes('Magma Hound')).toBe(true);
+    expect(waveRoster(3, 6, 4).includes('Cinder Brute')).toBe(true);
+    expect(waveRoster(1, 3, 4).includes('Cinder Brute')).toBe(false);
+    expect(waveRoster(1, 7, 4).includes('Cinder King')).toBe(true);
+    expect(waveRoster(1, 10, 4).includes('Ash Titan')).toBe(true);
   });
 
   it('gives every world its own wave-10 boss and Forest a late champion', () => {

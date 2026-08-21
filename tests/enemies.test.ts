@@ -28,6 +28,18 @@ describe('world roster', () => {
     expect(leakLives('sandKhan')).toBe(5);
     expect(leakLives('grunt')).toBe(1);
   });
+
+  it('holds the Fire second local until Twin Caldera and names the four verbs', () => {
+    expect(specialAt(4, 1, 1)).toBe('magmaHound');
+    expect(specialAt(4, 1, 2)).toBeNull();
+    expect(specialAt(4, 3, 2)).toBe('cinderBrute');
+    expect(championAt(4, 1)).toBe('cinderKing');
+    expect(rosterFor(4).boss).toBe('ashTitan');
+    expect(ENEMIES.magmaHound.blurb.toLowerCase()).toContain('smolder');
+    expect(ENEMIES.cinderBrute.blurb.toLowerCase()).toContain('crust');
+    expect(ENEMIES.cinderKing.blurb.toLowerCase()).toContain('haze');
+    expect(ENEMIES.ashTitan.blurb.toLowerCase()).toContain('erupt');
+  });
 });
 
 describe('flyers and intros', () => {
