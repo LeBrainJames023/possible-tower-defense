@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tower roadmap picks</title>
+    <style>
+      :root {
+        --bg: #0b0b0d;
+        --panel: #16141a;
+        --line: #3a342c;
+        --text: #f3ece3;
+        --muted: #a89888;
+        --gold: #e8c878;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        padding: 20px 20px 160px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.8rem;
+      }
+      p {
+        color: var(--muted);
+        max-width: 46rem;
+        line-height: 1.45;
+        margin: 0 0 18px;
+      }
+      .kind {
+        margin: 0 0 22px;
+      }
+      .kind h2 {
+        margin: 0 0 8px;
+        font-size: 1.15rem;
+        color: var(--gold);
+      }
+      .kind .hint {
+        margin: 0 0 10px;
+        font-size: 0.95rem;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .card {
+        flex: 1 1 260px;
+        max-width: 420px;
+        min-height: 88px;
+        margin: 0;
+        padding: 16px 18px;
+        background: var(--panel);
+        border: 3px solid var(--line);
+        border-radius: 16px;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+      }
+      .card:focus,
+      .card.picked {
+        border-color: var(--gold);
+        outline: 3px solid var(--gold);
+      }
+      .card strong {
+        display: block;
+        font-size: 1.15rem;
+      }
+      .card span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .tray {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 14px 20px;
+        background: #120e0c;
+        border-top: 3px solid var(--line);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      .tray button {
+        min-height: 48px;
+        padding: 10px 18px;
+        border-radius: 12px;
+        border: 3px solid var(--gold);
+        background: #3a2a14;
+        color: var(--text);
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      #picks {
+        flex: 1 1 220px;
+        color: var(--muted);
+        margin: 0;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tower roadmap picks</h1>
+    <p>
+      Click one card per question, then <strong>Copy picks</strong> and paste that in chat.
+      Barracks and forks stay later — this only locks the doc.
+    </p>
+    <div id="kinds"></div>
+    <div class="tray">
+      <p id="picks">No picks yet.</p>
+      <button type="button" id="copy">Copy picks</button>
+    </div>
+    <script>
+      const KINDS = [
+        {
+          id: 'names',
+          name: 'Names',
+          hint: 'The four new keeps.',
+          options: [
+            {
+              id: 'working',
+              label: 'Longshot, Void, Muster, Chapter',
+              blurb: 'Use these working names. Easy to rename later.',
+            },
+            {
+              id: 'chat',
+              label: 'I’ll send my own names',
+              blurb: 'Paste the four words in chat after you copy.',
+            },
+          ],
+        },
+        {
+          id: 'longshotAir',
+          name: 'Longshot vs flyers',
+          hint: 'Cannon cannot hit air. Arrow and Lightning can.',
+          options: [
+            {
+              id: 'yes',
+              label: 'Hits flyers',
+              blurb: 'Long, slow poke for Imps, Wisps, and Shades.',
+            },
+            {
+              id: 'no',
+              label: 'Ground only',
+              blurb: 'Same air rule as Cannon.',
+            },
+          ],
+        },
+        {
+          id: 'voidAir',
+          name: 'Void vs flyers',
+          hint: 'Everyday dark orbs, not the later black hole.',
+          options: [
+            {
+              id: 'yes',
+              label: 'Hits flyers',
+              blurb: 'Orbs can lock air.',
+            },
+            {
+              id: 'no',
+              label: 'Ground only',
+              blurb: 'Leaves air to Arrow, Lightning, and maybe Longshot.',
+            },
+          ],
+        },
+        {
+          id: 'tabs',
+          name: 'Tray tabs',
+          hint: 'Two pages of the same 2×3. Buttons stay large.',
+          options: [
+            {
+              id: 'keeps',
+              label: 'Keeps / Elements',
+              blurb: 'Keeps = Arrow, Cannon, Longshot, Muster, Chapter.',
+            },
+            {
+              id: 'physical',
+              label: 'Physical / Magic',
+              blurb: 'Same split, different words.',
+            },
+          ],
+        },
+        {
+          id: 'voidShot',
+          name: 'Void everyday shot',
+          hint: 'The black-hole pile-up stays later.',
+          options: [
+            {
+              id: 'single',
+              label: 'Single orb',
+              blurb: 'One foe. Stays off Fire splash and Poison melt.',
+            },
+            {
+              id: 'splash',
+              label: 'Small splash orb',
+              blurb: 'A little boom. Closer to Fire’s lawn.',
+            },
+          ],
+        },
+        {
+          id: 'docs',
+          name: 'Where the roadmap lives',
+          hint: 'A new chat pastes from FUTURE_FEATURES.',
+          options: [
+            {
+              id: 'both',
+              label: 'Both files',
+              blurb: 'Pickup in FUTURE_FEATURES plus a full TOWER_ROADMAP.',
+            },
+            {
+              id: 'future',
+              label: 'FUTURE_FEATURES only',
+              blurb: 'One file. Shorter.',
+            },
+          ],
+        },
+      ];
+
+      const picks = {};
+      const root = document.getElementById('kinds');
+      const picksEl = document.getElementById('picks');
+
+      function renderPicks() {
+        const lines = KINDS.map((k) => {
+          const id = picks[k.id];
+          const opt = k.options.find((o) => o.id === id);
+          return opt ? `${k.name}: ${opt.label}` : `${k.name}: —`;
+        });
+        picksEl.textContent = lines.join('\n');
+      }
+
+      KINDS.forEach((kind) => {
+        const wrap = document.createElement('section');
+        wrap.className = 'kind';
+        wrap.innerHTML = `<h2>${kind.name}</h2><p class="hint">${kind.hint}</p><div class="row"></div>`;
+        const row = wrap.querySelector('.row');
+        kind.options.forEach((opt) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'card';
+          btn.dataset.kind = kind.id;
+          btn.dataset.opt = opt.id;
+          btn.innerHTML = `<strong>${opt.label}</strong><span>${opt.blurb}</span>`;
+          btn.addEventListener('click', () => {
+            picks[kind.id] = opt.id;
+            row.querySelectorAll('.card').forEach((c) => {
+              c.classList.toggle('picked', c.dataset.opt === picks[kind.id]);
+            });
+            renderPicks();
+          });
+          row.append(btn);
+        });
+        root.append(wrap);
+      });
+
+      document.getElementById('copy').addEventListener('click', async () => {
+        await navigator.clipboard.writeText(picksEl.textContent);
+        document.getElementById('copy').textContent = 'Copied';
+      });
+      renderPicks();
+    </script>
+  </body>
+</html>

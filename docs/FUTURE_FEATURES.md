@@ -1,5 +1,46 @@
 # Future features
 
+## Last window — ten-keep plan (Aug 21)
+
+Tower looks and unique-world bodies are live. Next era is **ten keeps**: five Keeps (Arrow, Cannon, Longshot, Muster, Chapter) and five Elements (Ice, Lightning, Fire, Poison, Void). Full plan: `docs/TOWER_ROADMAP.md`.
+
+Locked: Longshot and Void **hit flyers**. Void’s everyday shot is a **small splash orb** (black-hole pile-up later). Tray tabs **Keeps / Elements**. Buildings stay off the path; Muster/Chapter troops may stand on it. Forks (Faster vs Heavier for all ten, plus fork art) wait until all ten play.
+
+### Next window
+Chunks **1–3 only**: tabbed tray, then Longshot (draw + shoot), then Void (draw + shoot). Do not start barracks, rally, melee, or forks. Paste prompt below.
+
+### Parked
+Muster / Chapter, troop engine, forks + fork art, Void vortex, endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
+
+### Watch-outs
+- Fixed-path TD; **buildings** never on path. BCI: large buttons, no drag, no hover-only.
+- Forest save may be 8/10 — do not wipe localStorage.
+- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → start wave → damage.
+
+### Continue prompt (paste into a new chat)
+
+```
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+
+This window is TOWER CHUNKS 1–3. Read docs/TOWER_ROADMAP.md, docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md first. Worlds and unique bodies are done — do not regen keepers, do not start endless/music/fodder, do not bring sticky place back, do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked.
+
+Place UX (locked): click grass beside the path → 2×3 tray → pick → Build → done. Upgrade is two-click on the same button. Arrow/Cannon already fork after Lv3; do not add forks this window. Sell at the bottom. Path tiles refuse buildings.
+
+Live kit today: Arrow, Cannon, Ice, Lightning, Fire, Poison in one 2×3. After this window it should be two tabs, same 2×3 size: Keeps (Arrow, Cannon, Longshot + two empty) and Elements (Ice, Lightning, Fire, Poison, Void + one empty).
+
+Do these three chunks, in order. Stop after 3 unless they say continue.
+
+1) Two-tab tray — labels Keeps / Elements. Big tab targets. Empty slots stay empty (do not shrink buttons to fill). Forest 1 still: title → grass → Keeps → Arrow → Build → Start wave → Raider takes damage. Path blocked.
+
+2) Longshot — add kind longshot. Long, slow, fat single-target poke. Hits flyers (Cannon cannot). Stats in constants.ts. Hits in combat.ts (do not reimplement fire/splash/chain in tests). Draw one building still with generate2dsprite (magenta #FF00FF, log docs/ASSETS.md), wire public/sprites/towers/longshot.png. It must shoot in the live match.
+
+3) Void — add kind void on the Elements page. Everyday shot: small splash dark orb (not Fire napalm, not Poison long melt). Hits flyers. No black-hole vortex this window. Same pipeline: constants + combat + one building still + public/sprites/towers/void.png.
+
+Do not start Muster, Chapter, rally flags, melee troops, or Faster/Heavier forks.
+
+Quality gates after each chunk: npm test, npm run build, that Forest 1 smoke. Last related commits on main: 803dadd (live picks), 97e5d57 (preview sheets). Branch may be ahead of origin; not pushed unless they ask.
+```
+
 ## Last window — play after art (Aug 21)
 
 Playtest after the Fire/Hollow art pass. Vite had gone stale (started before the pass); restarted it. Forest save not wiped. HUD words and unique bodies check out. Verbs still fire. No gold retune. No regen. Sticky place stayed dead.
@@ -10,7 +51,7 @@ Playtest after the Fire/Hollow art pass. Vite had gone stale (started before the
 - Headless sim still dies on rim maps (Forest 9, Desert 10, Fire 9–10, Hollow 9–10). Hollow 8 holds without a late gold bump. Forest 10 still 320g.
 
 ### Next
-They asked for a **new window**: revamp tower looks, forks for the four keeps that don’t have them yet, and talk through a 7th tower. Paste prompt below. Do not start that work in an enemy/world window.
+Ten-keep plan is in `docs/TOWER_ROADMAP.md`. Next window is chunks 1–3 — paste the continue prompt at the top of this file.
 
 ### Parked
 Endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar still using the troll sprite, world-themed fodder (Raider/Goblin/Troll/Imp on Desert–Hollow) until they look at those lands, committing `public/preview/`.
@@ -20,27 +61,6 @@ Endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar still 
 - Forest save may be 8/10 — do not wipe localStorage.
 - Leftover untracked preview folders — do not commit unless asked.
 - If the game tab looks like old Fire/Hollow, right-click the page → Reload. Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → start wave → damage.
-
-### Continue prompt (paste into a new chat)
-
-```
-Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
-
-This window is TOWER REVAMP. Worlds and enemy art are done (play-after-art checked Fire/Hollow land + unique bodies; 4-dir walks/flaps toward/away/side look correct). Do not regen Forest/Desert/Ice/Fire/Hollow keepers. Do not start world-themed fodder (other lands still use Forest Raider/Goblin/Troll/Imp on wave 1) unless they ask after looking. Do not start endless or music. Do not bring sticky place back. Do not wipe localStorage (Forest save may be 8/10). Do not commit public/preview/ unless asked. Read docs/FUTURE_FEATURES.md, docs/PLAYTEST_NOTES.md, docs/ASSETS.md.
-
-Place UX (locked): click a tile beside the path → 2×3 tray → pick → Build → done. Upgrade is two-click on the same button (preview, then pay). After Lv3, Arrow and Cannon already pick a path (two large buttons, same two-click pay): Faster vs Heavier, Rapid-fire vs Mortar. Sell sits at the bottom; click once, then Keep or confirm Sell. Path tiles refuse towers.
-
-Live kit today: Arrow, Cannon, Ice, Lightning, Fire, Poison (TOWER_ORDER fills a 2×3 tray). Arrow = empty base + rotating ballista. Cannon = still carriage + rotating barrel. Ice/lightning/fire/poison are still stills. Forks live in src/game/forks.ts — only arrow + cannon. Combat stays in combat.ts.
-
-CEILING — three jobs, do not dump them in one pile:
-1) Looks: refresh Ice / Lightning / Fire / Poison (and Arrow/Cannon if they still look cheap next to painted land). Use generate2dsprite; log keepers in docs/ASSETS.md; raw sheets stay untracked in public/preview/. Image-gen only for towers they asked to paint.
-2) Forks: same two-path idea for Ice, Lightning, Fire, Poison. Two large buttons after Lv3, preview then pay, sell refunds the path. One verb difference per path (not a 4th upgrade number). Ask them the pair before generating art for fork looks.
-3) 7th tower: the 2×3 tray is full. Adding a seventh keep is a layout decision first (bigger card vs second page vs replacing a slot) — BCI buttons must stay large. Pick the niche WITH them (do not clone splash/slow/burn/chain). Then art. Do not silently add a 7th.
-
-Suggested order: agree 7th-tower tray plan (or park it), then Ice/Lightning/Fire/Poison forks in data + UI, then paint looks. Play Forest 1 smoke after any tray/combat change: title → grass → Arrow → Build → Start wave → Raider takes damage. Path blocked. Sticky place stays dead.
-
-Quality gates: npm test, npm run build, that Forest 1 smoke. Last commit on main: 820625d (Fire/Hollow unique bodies). Branch may be ahead of origin; not pushed unless they ask.
-```
 
 ## Last window — Fire world (Aug 21)
 

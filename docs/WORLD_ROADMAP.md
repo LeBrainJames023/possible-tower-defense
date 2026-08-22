@@ -1,6 +1,6 @@
 # World roadmap — five lands done, art pass shipped
 
-One land per agent. Finish, play, write lessons. Hollow was the last land. The **dedicated art pass** (Aug 21) painted Fire + Hollow land and unique 4-dir bodies. Desert/Ice already held Forest quality — no regen. Worlds are done. Next thread they asked for is **tower revamp** (looks + remaining forks + talk a 7th). Paste lives in `docs/FUTURE_FEATURES.md`. Do not start endless or music. Do not regen world keepers.
+One land per agent. Finish, play, write lessons. Hollow was the last land. The **dedicated art pass** (Aug 21) painted Fire + Hollow land and unique 4-dir bodies. Desert/Ice already held Forest quality — no regen. Worlds are done. Next era is **ten keeps** — `docs/TOWER_ROADMAP.md`. Paste lives in `docs/FUTURE_FEATURES.md`. Do not start endless or music. Do not regen world keepers.
 
 Forest is home. Desert is a place (sand, four bodies, four verbs). Ice is a place (snow, four bodies, four verbs). Fire is a place (ash, four verbs, unique painted bodies). Hollow is a place (runes, four verbs, unique painted bodies).
 
