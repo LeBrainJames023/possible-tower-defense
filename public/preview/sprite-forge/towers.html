@@ -53,8 +53,8 @@
         gap: 12px;
       }
       .card {
-        flex: 1 1 240px;
-        max-width: 340px;
+        flex: 1 1 280px;
+        max-width: 420px;
         min-height: 44px;
         margin: 0;
         padding: 12px;
@@ -116,10 +116,8 @@
   <body>
     <h1>Tower try-ons</h1>
     <p>
-      Not in the live game. Click <strong>A or B</strong> for each tower. Then Copy picks and paste
-      that in chat. Shots:
-      <a href="./projectiles.html">projectile page</a>. Facings:
-      <a href="./facings.html">four-way page</a>.
+      New enemy-quality stills. Not in the live match. Click <strong>A or B</strong> for each keep,
+      then Copy picks and paste that in chat.
     </p>
     <div id="kinds"></div>
     <div class="tray">
@@ -128,12 +126,12 @@
     </div>
     <script>
       const KINDS = [
-        { id: 'arrow', name: 'Arrow', a: 'Wooden ballista', b: 'Longbow watchtower' },
-        { id: 'cannon', name: 'Cannon', a: 'Field bombard', b: 'Dwarven mortar' },
-        { id: 'ice', name: 'Ice', a: 'Crystal spire', b: 'Frozen menhir' },
-        { id: 'lightning', name: 'Lightning', a: 'Copper rods', b: 'Storm totem' },
-        { id: 'fire', name: 'Fire', a: 'Brazier', b: 'Dragon-mouth furnace' },
-        { id: 'poison', name: 'Poison', a: 'Poison vat', b: 'Mushroom still' },
+        { id: 'arrow', name: 'Arrow', a: 'Siege Ballista Keep', b: 'Ranger Watch-Spire' },
+        { id: 'cannon', name: 'Cannon', a: 'Iron Bombard', b: 'Gilded Thunder-Mortar' },
+        { id: 'ice', name: 'Ice', a: 'Glacier Crystal Keep', b: 'Frozen Orb Shrine' },
+        { id: 'lightning', name: 'Lightning', a: 'Twin Storm Coils', b: 'Thunder Obelisk' },
+        { id: 'fire', name: 'Fire', a: 'Ember Brazier Keep', b: 'Magma Forge Spire' },
+        { id: 'poison', name: 'Poison', a: 'Venom Cauldron Keep', b: 'Plague Menhir' },
       ];
       const picks = {};
       const root = document.getElementById('kinds');
@@ -158,7 +156,7 @@
           btn.className = 'card';
           btn.dataset.kind = kind.id;
           btn.dataset.opt = opt;
-          btn.innerHTML = `<img src="./towers/${kind.id}/${opt}/clean.png" alt="${kind.name} ${opt}" /><strong>${opt.toUpperCase()} — ${kind[opt]}</strong>`;
+          btn.innerHTML = `<img src="./towers-v2/${kind.id}/${opt}/clean.png" alt="${kind.name} ${opt}" /><strong>${opt.toUpperCase()} — ${kind[opt]}</strong>`;
           btn.addEventListener('click', () => {
             picks[kind.id] = opt;
             row.querySelectorAll('.card').forEach((c) => c.classList.toggle('picked', c.dataset.opt === opt));
