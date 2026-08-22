@@ -2,9 +2,10 @@
  * Headless combat helpers — same hit rules as the live game, no canvas/audio.
  */
 import { MAP_H, MAP_W, TILE, type TowerKind } from '../../src/game/constants';
-import { buildWave, LEVELS, pathWaypoints } from '../../src/game/levels';
+import { buildGrid, buildWave, LEVELS, pathWaypoints } from '../../src/game/levels';
 import { Enemy, Tower, Projectile, type BeamFx } from '../../src/game/entities';
 import { stepCombat, type CombatWorld } from '../../src/game/combat';
+import { stepHalls, type Troop, type TroopWorld } from '../../src/game/troops';
 
 export function makeFakeCanvas(): HTMLCanvasElement {
   const noop = () => {};
@@ -32,6 +33,9 @@ export function makeFakeCanvas(): HTMLCanvasElement {
     translate: noop,
     rotate: noop,
     scale: noop,
+    setTransform: noop,
+    clip: noop,
+    rect: noop,
     quadraticCurveTo: noop,
     setLineDash: noop,
     createLinearGradient: () => ({ addColorStop: noop }),
@@ -56,10 +60,12 @@ export function makeFakeCanvas(): HTMLCanvasElement {
 }
 
 /** Minimal combat sandbox without the full Game class UI hooks. */
-export class CombatSandbox implements CombatWorld {
+export class CombatSandbox implements CombatWorld, TroopWorld {
   waypoints = pathWaypoints(LEVELS[0]);
+  grid = buildGrid(LEVELS[0]);
   enemies: Enemy[] = [];
   towers: Tower[] = [];
+  troops: Troop[] = [];
   projectiles: Projectile[] = [];
   beams: BeamFx[] = [];
   kills = 0;
@@ -84,6 +90,7 @@ export class CombatSandbox implements CombatWorld {
       for (const e of this.enemies) e.update(dt, this.waypoints);
     }
 
+    stepHalls(this, dt);
     stepCombat(this, dt, {
       onDamage: (_e, amount) => {
         this.damageDealt += amount;

@@ -7,6 +7,7 @@ const SHOT_SIZE: Record<Projectile['kind'], number> = {
   arrow: 22,
   cannon: 48,
   longshot: 36,
+  hall: 20,
   ice: 38,
   lightning: 40,
   fire: 42,

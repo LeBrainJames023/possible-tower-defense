@@ -5,6 +5,7 @@ import {
   MAP_W,
   MAP_H,
   u,
+  isTroopHall,
   type TowerKind,
 } from './constants';
 import { ENEMIES, leakLives } from './enemies';
@@ -22,6 +23,7 @@ import {
 } from './levels';
 import { Enemy, Tower, Projectile, type BeamFx, type FloatingText } from './entities';
 import { stepCombat, type CombatHooks } from './combat';
+import { assignDefaultRally, dropHallLocks, setRallyPoint as applyRallyPoint, stepHalls, type Troop } from './troops';
 import { Renderer } from './renderer';
 import { FxWorld } from './fx';
 import { AudioBus } from './audio';
@@ -65,8 +67,11 @@ export class Game {
   buildCell: { c: number; r: number } | null = null;
   /** After clicking Upgrade — show the wider gold range ring. */
   upgradePreview = false;
+  /** After clicking Rally — show the pick circle; path tiles are legal. */
+  rallyPreview = false;
 
   towers: Tower[] = [];
+  troops: Troop[] = [];
   enemies: Enemy[] = [];
   projectiles: Projectile[] = [];
   beams: BeamFx[] = [];
@@ -122,6 +127,7 @@ export class Game {
     this.waveIndex = 0;
     this.phase = 'prepare';
     this.towers = [];
+    this.troops = [];
     this.enemies = [];
     this.projectiles = [];
     this.beams = [];
@@ -134,6 +140,7 @@ export class Game {
     this.selectedEnemyId = null;
     this.buildCell = null;
     this.upgradePreview = false;
+    this.rallyPreview = false;
     this.clock = 0;
     this.fx.clear();
     this.renderer.spawnHeat = 0;
@@ -238,7 +245,7 @@ export class Game {
     const y = r * TILE + TILE / 2;
     if (!canPlaceOnCell(this.grid, c, r)) {
       this.floats.push({ x, y, text: 'Blocked', color: '#ef476f', life: 0.7 });
-      this.onToast?.('Towers cannot be placed on the path or trees.');
+      this.onToast?.('Buildings cannot be placed on the path or trees.');
       return false;
     }
     const key = `${c},${r}`;
@@ -255,6 +262,7 @@ export class Game {
 
     this.gold -= def.cost;
     const tower = new Tower(this.selectedKind, c, r, x, y);
+    if (isTroopHall(tower.kind)) assignDefaultRally(tower, this.grid);
     this.towers.push(tower);
     this.occupied.add(key);
     this.selectedTowerId = null;
@@ -272,6 +280,7 @@ export class Game {
     this.selectedTowerId = t.id;
     this.selectedEnemyId = null;
     this.upgradePreview = false;
+    this.rallyPreview = false;
     for (const x of this.towers) x.previewFork = null;
     this.onHud?.();
     return true;
@@ -295,6 +304,7 @@ export class Game {
     this.selectedEnemyId = best.id;
     this.selectedTowerId = null;
     this.upgradePreview = false;
+    this.rallyPreview = false;
     this.onHud?.();
     return true;
   }
@@ -358,8 +368,20 @@ export class Game {
     this.gold += t.sellValue();
     this.occupied.delete(`${t.col},${t.row}`);
     this.towers = this.towers.filter((x) => x.id !== t.id);
+    this.troops = this.troops.filter((tr) => tr.hallId !== t.id);
     this.selectedTowerId = null;
     this.upgradePreview = false;
+    this.rallyPreview = false;
+    this.onHud?.();
+    return true;
+  }
+
+  setRallyPoint(c: number, r: number): boolean {
+    const t = this.getSelectedTower();
+    if (!t || !isTroopHall(t.kind)) return false;
+    if (!applyRallyPoint(t, this.grid, c, r)) return false;
+    dropHallLocks(this.troops, t.id);
+    this.rallyPreview = false;
     this.onHud?.();
     return true;
   }
@@ -481,7 +503,7 @@ export class Game {
     }
     applyPackRally(this.enemies);
     this.collectBounties();
-
+    stepHalls(this, dt);
     stepCombat(this, dt, this.combatHooks());
 
     this.floats = this.floats
@@ -491,6 +513,7 @@ export class Game {
     if (this.lives <= 0) {
       this.lives = 0;
       this.enemies = [];
+      this.troops = [];
       this.spawnQueue = [];
       this.waveActive = false;
       if (this.phase === 'wave' || this.phase === 'prepare') {
@@ -618,7 +641,13 @@ export class Game {
       units.push({
         y: t.y,
         z: 0,
-        draw: () => this.renderer.drawTower(t, t.id === this.selectedTowerId, this.upgradePreview),
+        draw: () =>
+          this.renderer.drawTower(
+            t,
+            t.id === this.selectedTowerId,
+            this.upgradePreview,
+            this.rallyPreview && t.id === this.selectedTowerId,
+          ),
       });
     }
     for (const e of this.enemies) {
@@ -626,6 +655,13 @@ export class Game {
         y: e.pos.y,
         z: 1,
         draw: () => this.renderer.drawEnemy(e, e.id === this.selectedEnemyId),
+      });
+    }
+    for (const tr of this.troops) {
+      units.push({
+        y: tr.pos.y,
+        z: 1,
+        draw: () => this.renderer.drawTroop(tr),
       });
     }
     units.sort((a, b) => a.y - b.y || a.z - b.z);

@@ -1,4 +1,5 @@
 import type { Enemy, Tower } from './entities';
+import type { Troop } from './troops';
 import { PX, TILE, TOWER_FEET, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
@@ -191,6 +192,7 @@ export function drawTower(
   selected: boolean,
   time: number,
   upgradePreview = false,
+  rallyPreview = false,
 ): void {
   const def = t.def;
   const { x, y } = t;
@@ -198,12 +200,32 @@ export function drawTower(
   const recoil = t.recoil * 5 * PX;
 
   if (selected) {
-    if (upgradePreview) {
+    if (t.kind === 'hall' && rallyPreview) {
+      drawRangeRing(ctx, x, y, t.range, '#f4d35e', true, [], 3 * PX, 'cc');
+    } else if (upgradePreview && t.kind !== 'hall') {
       const fork = t.previewFork ?? t.fork;
       const lv = t.canNumberUpgrade() ? t.level + 1 : t.level;
       drawRangeRing(ctx, x, y, t.rangeAt(lv, fork), '#f4d35e', true, [], 3 * PX, 'cc');
     }
     drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2.2 * PX, '99');
+  }
+
+  if (t.kind === 'hall') {
+    const fx = t.rallyCol * TILE + TILE / 2;
+    const fy = t.rallyRow * TILE + TILE / 2;
+    ctx.strokeStyle = 'rgba(40, 24, 12, 0.85)';
+    ctx.lineWidth = 2 * PX;
+    ctx.beginPath();
+    ctx.moveTo(fx, fy + 6 * PX);
+    ctx.lineTo(fx, fy - 18 * PX);
+    ctx.stroke();
+    ctx.fillStyle = '#c42818';
+    ctx.beginPath();
+    ctx.moveTo(fx, fy - 18 * PX);
+    ctx.lineTo(fx + 12 * PX, fy - 12 * PX);
+    ctx.lineTo(fx, fy - 6 * PX);
+    ctx.closePath();
+    ctx.fill();
   }
 
   if (t.choked) {
@@ -318,6 +340,38 @@ export function drawTower(
           ? { fill: '#d0d6e0', stroke: '#5a6574' }
           : { fill: '#c47a3a', stroke: '#6a3a12' };
   drawRankStar(ctx, x, y + 26 * PX, 7.5 * PX, rank.fill, rank.stroke);
+}
+
+export function drawTroop(ctx: CanvasRenderingContext2D, tr: Troop): void {
+  const { x, y } = tr.pos;
+  const r = tr.radius;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + r * 0.45, r * 0.9, r * 0.35, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = tr.hitFlash > 0.3 ? '#ffffff' : tr.color;
+  ctx.beginPath();
+  ctx.arc(x, y - r * 0.15, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#4a2810';
+  ctx.lineWidth = 1.4 * PX;
+  ctx.stroke();
+  ctx.restore();
+
+  if (tr.hp < tr.maxHp - 0.2 || tr.hitFlash > 0.12) {
+    const bw = Math.max(22, r * 2.2);
+    const bh = 5;
+    const bx = x - bw / 2;
+    const by = y - r - 12;
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    roundRect(ctx, bx, by, bw, bh, 2);
+    ctx.fill();
+    const pct = Math.max(0, tr.hp / tr.maxHp);
+    ctx.fillStyle = pct > 0.45 ? '#57cc99' : pct > 0.2 ? '#f4d35e' : '#ef476f';
+    roundRect(ctx, bx, by, Math.max(2, bw * pct), bh, 2);
+    ctx.fill();
+  }
 }
 
 function enemyBillboard(e: Enemy): { img: HTMLImageElement; flip: number; puppet: boolean } | null {

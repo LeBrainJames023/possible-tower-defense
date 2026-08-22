@@ -145,6 +145,9 @@ export function drawTowerBody(
     case 'longshot':
       drawLongKeep(ctx, def.color, def.colorDark, t.aim, scale, recoil);
       break;
+    case 'hall':
+      drawTestHall(ctx, def.color, def.colorDark, time, scale);
+      break;
     case 'ice':
       drawCrystalSpire(ctx, def.color, def.colorDark, time, scale, t.aim);
       break;
@@ -472,5 +475,32 @@ function drawVoidShrine(
   ctx.fillStyle = '#12081c';
   ctx.beginPath();
   ctx.arc(0, -12 * scale, 2.4 * scale, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/** Invisible-engine hall: a wooden crate and banner until Muster art lands. */
+function drawTestHall(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  dark: string,
+  time: number,
+  scale: number,
+): void {
+  aura(ctx, color, 18 * scale, time);
+  wood(ctx, -14 * scale, -8 * scale, 28 * scale, 20 * scale);
+  goldBand(ctx, -14 * scale, -10 * scale, 28 * scale, 2.4 * scale);
+  ctx.fillStyle = dark;
+  ctx.fillRect(-16 * scale, -12 * scale, 32 * scale, 4 * scale);
+  ctx.fillStyle = '#7a2018';
+  ctx.beginPath();
+  ctx.moveTo(8 * scale, -12 * scale);
+  ctx.lineTo(18 * scale, -6 * scale + Math.sin(time * 3) * scale);
+  ctx.lineTo(8 * scale, -2 * scale);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#3a2418';
+  ctx.fillRect(6.5 * scale, -12 * scale, 2.2 * scale, 22 * scale);
+  ctx.fillStyle = color;
+  roundRect(ctx, -8 * scale, 0, 7 * scale, 10 * scale, 1.5 * scale);
   ctx.fill();
 }

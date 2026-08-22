@@ -25,6 +25,8 @@ export class Enemy {
   progress = 0;
   alive = true;
   reachedEnd = false;
+  /** True while a hall troop is locking this walker — progress does not advance. */
+  meleeHold = false;
   slowMul = 1;
   slowTimer = 0;
   burnDps = 0;
@@ -127,6 +129,8 @@ export class Enemy {
       }
     }
 
+    if (this.meleeHold) return;
+
     const total = pathTotalLength(waypoints);
     if (total <= 0) return;
     const prev = { x: this.pos.x, y: this.pos.y };
@@ -182,6 +186,11 @@ export class Tower {
   hazed = false;
   muffled = false;
   sealed = false;
+  /** Rally tile. Defaults to the hall's own cell until nearest path is assigned. */
+  rallyCol: number;
+  rallyRow: number;
+  /** Seconds until the next troop walks out the door. */
+  trainCooldown = 0;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;
@@ -189,6 +198,8 @@ export class Tower {
     this.row = row;
     this.x = x;
     this.y = y;
+    this.rallyCol = col;
+    this.rallyRow = row;
   }
 
   get def() {
@@ -249,7 +260,7 @@ export class Tower {
   }
 
   canNumberUpgrade(): boolean {
-    return this.level < 3;
+    return this.level < 3 && this.kind !== 'hall';
   }
 
   canFork(): boolean {

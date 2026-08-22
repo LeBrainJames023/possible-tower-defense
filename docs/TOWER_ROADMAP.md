@@ -59,20 +59,11 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ---
 
-## This next window — troop engine (plan first)
+## Last window — troop engine (Aug 22)
 
-This is the hard piece. Do it right. Start in **Plan**, not Agent. Invisible test hall is OK. Do not paint Muster/Chapter or add tray slots until melee + Rally feel correct in tests.
+Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `project-core.mdc` now says troops may stand on the path. No Muster/Chapter art. No forks. No vortex. Title/How-to flyer copy updated.
 
-Locked shape:
-- Buildings still never sit on the path.
-- Troops **may** stand on the path and fight (Kingdom Rush stall). Enemies follow the painted road: stop, melee, then walk on.
-- Rally: click the built hall → inspect → large **Rally** → click a tile inside the circle (path allowed). No drag, no hover.
-- Cap 3. Die and respawn. Troops are ground (Cannon can hit them if they were enemies — they are not; they fight enemies).
-- Same Rally UX later for Muster (faster, thinner) and Chapter (slower, tankier). Engine first, then two halls.
-
-Write the path-troop rule into `project-core.mdc` when the first hall lands, not before.
-
-Do not start Faster/Heavier forks, Void vortex, endless, or music.
+Next: Muster + Chapter (same Rally, different bodies). Hall leaves the tray when Muster lands.
 
 ---
 
@@ -81,7 +72,7 @@ Do not start Faster/Heavier forks, Void vortex, endless, or music.
 - Muster / Chapter names stay; buildings + troop sprites (idle/walk first) after the engine.
 - Warrior vs Knight: same Rally UX, different verb (fast thin vs slow thick).
 - Forks for all ten, then fork looks (two pictures per keep).
-- Leftover copy from chunks 1–3: title still says “Six towers”; How to play still only names Arrow and Lightning for flyers.
+- Leftover copy from chunks 1–3: title/How-to flyer list (done with the troop engine).
 - Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 
 ---

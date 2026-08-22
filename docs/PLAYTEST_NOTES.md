@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — troop engine (Aug 22)
+
+Invisible Hall on Keeps (Arrow, Cannon, Longshot, Hall, two empty). Place on grass only. Inspect → Rally → click a path tile in the circle. Three dots walk to the flag, grab a Raider, stall, die, respawn. Flyers walk through. Path still blocks buildings. Sticky place stayed dead. Forest save not wiped.
+
+Check 1x: Forest 1 smoke (Keeps → Arrow → Build → wave → Raider damage). Then Hall → Rally on the path → three dots melee.
+
 ## This session — tray + Longshot + Void (Aug 22)
 
 Two-tab tray landed. Opening grass starts on **Keeps**. Empty slots stay empty (Keeps has three holes; Elements has one after Void). Forest 1: grass → Keeps → Arrow → Build → wave → Raider took damage. Path click still toasts blocked. Sticky place stayed dead. Forest save not wiped (showed 9/10).

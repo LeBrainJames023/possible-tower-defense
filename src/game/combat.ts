@@ -1,4 +1,4 @@
-import { CHAIN_RANGE, PROJECTILE_FEEL, u } from './constants';
+import { CHAIN_RANGE, PROJECTILE_FEEL, isTroopHall, u } from './constants';
 import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
@@ -224,6 +224,7 @@ export function stepTowers(world: CombatWorld, dt: number, hooks: CombatHooks = 
     t.muffled = muffles.has(t.id);
     const haze = towerDamageMul(t.kind, { x: t.x, y: t.y }, world.enemies);
     t.hazed = haze < 1;
+    if (isTroopHall(t.kind)) continue;
     if (t.frozen || t.sealed) continue;
     if (t.cooldown > 0) continue;
     const target = pickTarget(t, world.enemies);

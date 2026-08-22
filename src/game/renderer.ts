@@ -1,7 +1,8 @@
 import { COLS, ROWS, TILE, PX, type CellKind, type TowerKind, TOWERS } from './constants';
 import type { Enemy, FloatingText, BeamFx, Projectile, Tower } from './entities';
 import type { Vec2 } from '../shared/math';
-import { drawBeams, drawEnemy, drawProjectile, drawTower } from './sprites';
+import { drawBeams, drawEnemy, drawProjectile, drawTower, drawTroop } from './sprites';
+import type { Troop } from './troops';
 import { drawFx, type FxWorld } from './fx';
 import { themeFor, type MapTheme } from './themes';
 import { TEX, texReady } from './assets';
@@ -345,8 +346,12 @@ export class Renderer {
     drawLandmarks(this.ctx, waypoints, this.theme, this.world, this.time, this.spawnHeat, this.keepWound);
   }
 
-  drawTower(t: Tower, selected: boolean, upgradePreview = false): void {
-    drawTower(this.ctx, t, selected, this.time, upgradePreview);
+  drawTower(t: Tower, selected: boolean, upgradePreview = false, rallyPreview = false): void {
+    drawTower(this.ctx, t, selected, this.time, upgradePreview, rallyPreview);
+  }
+
+  drawTroop(tr: Troop): void {
+    drawTroop(this.ctx, tr);
   }
 
   drawEnemy(e: Enemy, selected: boolean): void {

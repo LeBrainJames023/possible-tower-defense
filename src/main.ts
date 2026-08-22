@@ -8,6 +8,7 @@ import {
   TOWER_ORDER,
   TOWERS,
   slotsForTab,
+  isTroopHall,
   type TowerKind,
   type TrayTab,
   WAVES_PER_LEVEL,
@@ -33,6 +34,8 @@ import { forkDef, forksFor, type ForkId } from './game/forks';
 import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
 import { WORLDS, buildSurfaceWord, worldById, worldByIndex } from './game/worlds';
+import { canRallyAt } from './game/troops';
+import { dist } from './shared/math';
 import { fitCanvasToHost } from './shared/pointer';
 import { expandRect, pinRectBeside, tileBoxInHost } from './shared/pinPanel';
 
@@ -77,6 +80,8 @@ const selectionStats = document.getElementById('selection-stats')!;
 const towerActions = document.getElementById('tower-actions')!;
 const forkActions = document.getElementById('fork-actions')!;
 const upgradeRow = document.getElementById('upgrade-row')!;
+const rallyRow = document.getElementById('rally-row')!;
+const btnRally = document.getElementById('btn-rally') as HTMLButtonElement;
 const sellConfirm = document.getElementById('sell-confirm')!;
 const btnSell = document.getElementById('btn-sell') as HTMLButtonElement;
 const btnSellYes = document.getElementById('btn-sell-yes') as HTMLButtonElement;
@@ -135,7 +140,7 @@ let lookMode = false;
 let lastGold = -1;
 let lastLives = -1;
 let introQueue: EnemyKind[] = [];
-type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB' | 'sell';
+type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB' | 'sell' | 'rally';
 let inspectStep: InspectStep = 'idle';
 let buildTab: TrayTab = 'keeps';
 
@@ -329,11 +334,16 @@ function fillBuildDetail(kind: TowerKind): void {
   const def = TOWERS[kind];
   buildBlurb.textContent = def.description;
   const extra = extraTowerLine(def);
-  const rows: Array<[string, string]> = [
-    ['Range', `${(def.range / TILE).toFixed(1)} tiles`],
-    ['Attack', String(def.damage)],
-    ['Fire', `${def.fireRate.toFixed(1)} /s`],
-  ];
+  const rows: Array<[string, string]> = isTroopHall(kind)
+    ? [
+        ['Troops', '3'],
+        ['Rally', `${(def.range / TILE).toFixed(1)} tiles`],
+      ]
+    : [
+        ['Range', `${(def.range / TILE).toFixed(1)} tiles`],
+        ['Attack', String(def.damage)],
+        ['Fire', `${def.fireRate.toFixed(1)} /s`],
+      ];
   if (extra) rows.push(['Extra', extra]);
   buildStats.innerHTML = statGridHtml(rows);
   btnBuild.disabled = !!(game.level && game.gold < def.cost);
@@ -368,8 +378,11 @@ function renderShop(): void {
     btn.className = 'tower-btn';
     btn.dataset.kind = kind;
     btn.setAttribute('aria-label', `${def.name} ${def.cost} gold`);
+    const portrait = isTroopHall(kind)
+      ? `<span class="tower-portrait hall-swatch" aria-hidden="true"></span>`
+      : `<img class="tower-portrait" src="/sprites/towers/${kind}.png" alt="" />`;
     btn.innerHTML = `
-      <img class="tower-portrait" src="/sprites/towers/${kind}.png" alt="" />
+      ${portrait}
       <span class="tower-cost">${def.cost}</span>
     `;
     btn.addEventListener('click', () => {
@@ -428,6 +441,7 @@ function arrowStat(cur: number, next: number, digits = 0): string {
 }
 
 function extraTowerLine(def: (typeof TOWERS)[TowerKind]): string | null {
+  if (def.kind === 'hall') return '3 troops stall walkers on the path';
   if (def.splash > 0) return `Splash ${(def.splash / TILE).toFixed(1)} tiles`;
   if (def.chain > 0) return `Chain ${def.chain}`;
   if (def.slow > 0) return `Slow ${Math.round(def.slow * 100)}%`;
@@ -479,56 +493,78 @@ function updatePauseUi(): void {
 }
 
 function fillInspectTower(t: Tower): void {
+  const hall = isTroopHall(t.kind);
   const curD = Math.round(game.shotDamage(t));
   const curR = t.range / TILE;
   const curRate = t.fireRate;
   const forkName = t.fork ? forkDef(t.kind, t.fork)?.name : null;
-  selectionTitle.textContent = forkName ? `${t.def.name} ${forkName}` : `${t.def.name} Lv ${t.level}`;
+  selectionTitle.textContent = hall
+    ? t.def.name
+    : forkName
+      ? `${t.def.name} ${forkName}`
+      : `${t.def.name} Lv ${t.level}`;
   const previewingFork = inspectStep === 'forkA' || inspectStep === 'forkB';
   const previewFork = inspectStep === 'forkA' ? 'a' : inspectStep === 'forkB' ? 'b' : null;
-  selectionBlurb.textContent =
-    previewFork && forksFor(t.kind) ? forksFor(t.kind)![previewFork].blurb : t.def.description;
+  selectionBlurb.textContent = hall
+    ? inspectStep === 'rally'
+      ? 'Click a tile in the circle. The path is allowed.'
+      : t.def.description
+    : previewFork && forksFor(t.kind)
+      ? forksFor(t.kind)![previewFork].blurb
+      : t.def.description;
   const preview = inspectStep === 'preview' && t.canNumberUpgrade();
-  const rows: Array<[string, string]> = preview
+  const living = game.troops.filter((tr) => tr.hallId === t.id).length;
+  const rows: Array<[string, string]> = hall
     ? [
-        ['Range', arrowStat(curR, t.rangeAt(t.level + 1) / TILE, 1) + ' tiles'],
-        ['Attack', arrowStat(curD, Math.round(t.damageAt(t.level + 1) * game.mods.damage))],
-        ['Fire', arrowStat(curRate, t.fireRateAt(t.level + 1), 1) + ' /s'],
-        ['Cost', `${t.upgradeCost()}g`],
+        ['Troops', `${living} / 3`],
+        ['Rally', `${curR.toFixed(1)} tiles`],
       ]
-    : previewingFork && previewFork
+    : preview
       ? [
-          ['Range', arrowStat(curR, t.rangeAt(3, previewFork) / TILE, 1) + ' tiles'],
-          ['Attack', arrowStat(curD, Math.round(t.damageAt(3, previewFork) * game.mods.damage))],
-          ['Fire', arrowStat(curRate, t.fireRateAt(3, previewFork), 1) + ' /s'],
-          ...(t.def.splash > 0 || t.splashAt(previewFork) > 0
-            ? ([['Splash', arrowStat(t.splash / TILE, t.splashAt(previewFork) / TILE, 1) + ' tiles']] as Array<[string, string]>)
-            : []),
+          ['Range', arrowStat(curR, t.rangeAt(t.level + 1) / TILE, 1) + ' tiles'],
+          ['Attack', arrowStat(curD, Math.round(t.damageAt(t.level + 1) * game.mods.damage))],
+          ['Fire', arrowStat(curRate, t.fireRateAt(t.level + 1), 1) + ' /s'],
           ['Cost', `${t.upgradeCost()}g`],
         ]
-      : [
-          ['Range', `${curR.toFixed(1)} tiles`],
-          ['Attack', String(curD)],
-          ['Fire', `${curRate.toFixed(1)} /s`],
-        ];
-  if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);
-  if (t.frozen) rows.push(['Status', 'Frozen — cannot fire']);
-  if (t.hazed) rows.push(['Status', 'Heat haze — shots weaker']);
-  if (t.muffled) rows.push(['Status', 'Hex — firing slow']);
-  if (t.sealed) rows.push(['Status', 'Sealed — cannot fire']);
+      : previewingFork && previewFork
+        ? [
+            ['Range', arrowStat(curR, t.rangeAt(3, previewFork) / TILE, 1) + ' tiles'],
+            ['Attack', arrowStat(curD, Math.round(t.damageAt(3, previewFork) * game.mods.damage))],
+            ['Fire', arrowStat(curRate, t.fireRateAt(3, previewFork), 1) + ' /s'],
+            ...(t.def.splash > 0 || t.splashAt(previewFork) > 0
+              ? ([['Splash', arrowStat(t.splash / TILE, t.splashAt(previewFork) / TILE, 1) + ' tiles']] as Array<
+                  [string, string]
+                >)
+              : []),
+            ['Cost', `${t.upgradeCost()}g`],
+          ]
+        : [
+            ['Range', `${curR.toFixed(1)} tiles`],
+            ['Attack', String(curD)],
+            ['Fire', `${curRate.toFixed(1)} /s`],
+          ];
+  if (!hall) {
+    if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);
+    if (t.frozen) rows.push(['Status', 'Frozen — cannot fire']);
+    if (t.hazed) rows.push(['Status', 'Heat haze — shots weaker']);
+    if (t.muffled) rows.push(['Status', 'Hex — firing slow']);
+    if (t.sealed) rows.push(['Status', 'Sealed — cannot fire']);
+  }
   selectionStats.innerHTML = statGridHtml(rows);
 
   const selling = inspectStep === 'sell';
   const up = document.getElementById('btn-upgrade') as HTMLButtonElement;
   const forking = t.canFork();
-  upgradeRow.classList.toggle('hidden', selling);
+  upgradeRow.classList.toggle('hidden', selling || hall);
+  rallyRow.classList.toggle('hidden', selling || !hall);
   forkActions.classList.toggle('hidden', selling || !forking);
-  up.classList.toggle('hidden', selling || forking);
+  up.classList.toggle('hidden', selling || forking || hall);
   btnSell.classList.toggle('hidden', selling);
   sellConfirm.classList.toggle('hidden', !selling);
   if (!selling) {
     up.disabled = t.isMaxed() || (inspectStep === 'preview' && game.gold < t.upgradeCost());
     up.textContent = t.isMaxed() ? 'Max' : `Upgrade ${t.upgradeCost()}g`;
+    btnRally.textContent = inspectStep === 'rally' ? 'Cancel rally' : 'Rally';
     btnSell.textContent = `Sell ${t.sellValue()}g`;
     if (forking) {
       const forks = forksFor(t.kind)!;
@@ -817,6 +853,23 @@ function onForkClick(id: ForkId): void {
 }
 document.getElementById('btn-fork-a')!.addEventListener('click', () => onForkClick('a'));
 document.getElementById('btn-fork-b')!.addEventListener('click', () => onForkClick('b'));
+btnRally.addEventListener('click', () => {
+  const t = game.getSelectedTower();
+  if (!t || !isTroopHall(t.kind)) return;
+  if (inspectStep === 'rally') {
+    inspectStep = 'idle';
+    game.rallyPreview = false;
+    updateHud();
+    game.audio.ui();
+    return;
+  }
+  inspectStep = 'rally';
+  game.rallyPreview = true;
+  game.upgradePreview = false;
+  updateHud();
+  showToast('Click a tile in the circle. The path is allowed.');
+  game.audio.ui();
+});
 document.getElementById('btn-sell')!.addEventListener('click', () => {
   const t = game.getSelectedTower();
   if (!t) return;
@@ -841,6 +894,7 @@ document.getElementById('btn-inspect-close')!.addEventListener('click', () => {
   game.selectedEnemyId = null;
   inspectStep = 'idle';
   game.upgradePreview = false;
+  game.rallyPreview = false;
   updateHud();
 });
 document.getElementById('btn-build-close')!.addEventListener('click', () => closeBuildMenu());
@@ -896,6 +950,33 @@ canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 canvas.addEventListener('pointerdown', (e) => {
   if (e.button !== 0 && e.button !== 2) return;
   game.setPointerFromEvent(e);
+  const cell = game.hover;
+  if (inspectStep === 'rally' && e.button === 0) {
+    const hall = game.getSelectedTower();
+    if (!cell || !hall || !isTroopHall(hall.kind)) {
+      inspectStep = 'idle';
+      game.rallyPreview = false;
+      updateHud();
+      return;
+    }
+    if (game.setRallyPoint(cell.c, cell.r)) {
+      inspectStep = 'idle';
+      showToast('Rally set.');
+      updateHud();
+      game.audio.ui();
+      return;
+    }
+    const x = cell.c * TILE + TILE / 2;
+    const y = cell.r * TILE + TILE / 2;
+    if (dist({ x: hall.x, y: hall.y }, { x, y }) > hall.range + 1) {
+      showToast('Outside rally.');
+    } else if (!canRallyAt(hall, game.grid, cell.c, cell.r)) {
+      showToast('Rally needs grass or the path.');
+    } else {
+      showToast('Outside rally.');
+    }
+    return;
+  }
   if (e.button === 0 && game.selectEnemyAt()) {
     game.buildCell = null;
     game.selectedKind = null;
@@ -903,7 +984,6 @@ canvas.addEventListener('pointerdown', (e) => {
     updateHud();
     return;
   }
-  const cell = game.hover;
   if (!cell) return;
   if (e.button === 0 && game.selectTowerAt(cell.c, cell.r)) {
     game.buildCell = null;
@@ -917,7 +997,7 @@ canvas.addEventListener('pointerdown', (e) => {
     return;
   }
   if (e.button === 2) return;
-  showToast('Towers cannot be placed on the path or trees.');
+  showToast('Buildings cannot be placed on the path or trees.');
 });
 
 ensureProgress();
