@@ -21,9 +21,12 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/preview/sprite-forge/raider/{a,b,c}/` | **Cursor image gen** + **Agent Sprite Forge** (`generate2dsprite.py` magenta key) | Human raider stills. Parked — quality was good, species was wrong. |
 | `public/preview/sprite-forge/monsters/{goblin,orc,troll,ghoul,gnome,wyvern,imp,warg,warlord,ogre,hellbat,drake}/` | Same pipeline | Mythic enemy identity stills. Keepers are now the live sprites. |
 | `public/preview/sprite-forge/facings/{creature}/` | Cursor image gen + Sprite Forge 2×2 split | Four path facings (down / left / right / up). Copied into live `public/sprites/enemies/face/` for north/south. |
-| `public/preview/sprite-forge/towers/{kind}/{a,b}/` | Same pipeline | Two painted options per tower. Live match uses all **A**. |
+| `public/preview/sprite-forge/towers/{kind}/{a,b}/` | Same pipeline | Older two painted options per tower. Live match still uses all **A**. |
+| `public/preview/sprite-forge/towers-v2/{kind}/{a,b}/` | Cursor image gen + Sprite Forge (magenta key, 256px stills) | Aug 21 enemy-quality pass. Live picks: Arrow **A**, Cannon **A**, Ice **B**, Lightning **B**, Fire **B**, Poison **A**. |
+| `public/preview/sprite-forge/towers-v2/_parts/` | Same pipeline | Rotate parts from Arrow A / Cannon A. |
+| `public/preview/sprite-forge/world-monsters/{creature}/{a,b}/` | Same pipeline | Two stills each for unique Desert/Ice/Fire/Hollow locals. All winners wired into live stills + 4-dir walks. |
 | `public/preview/sprite-forge/projectiles/{kind}/{a,b}/` | Same pipeline | Shot options. Live match: Arrow A, Cannon B, Ice A, Lightning A, Fire A, Poison A. |
-| `public/sprites/towers/*.png` | Cursor image gen + Sprite Forge | Live tower stills. Arrow = empty base + rotating ballista. Cannon = still carriage + rotating barrel. Ice/fire/lightning/poison stay still. |
+| `public/sprites/towers/*.png` | Cursor image gen + Sprite Forge | Live tower stills from towers-v2 picks. Arrow = empty base + rotating ballista. Cannon = stone battlement + rotating mortar. Ice/lightning/fire/poison stay still. |
 | `public/sprites/projectiles/*.png` | Same pipeline | Live shots matching the picks above. |
 | `public/sprites/landmarks/portal-in.png` | Cursor image gen + Sprite Forge | Forest entrance rift. |
 | `public/sprites/landmarks/portal-out.png` | Same pipeline | Forest exit rift. |
@@ -34,29 +37,29 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/desert/{cactus,dead-tree,boulder,agave}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Desert blocked-tile props. |
 | `public/sprites/landmarks/portal-desert-in.png` | Cursor image gen + Sprite Forge | Desert entrance rift (sandstone + gold vortex). |
 | `public/sprites/landmarks/portal-desert-out.png` | Same | Desert exit rift. |
-| `public/sprites/enemies/{scorpion,dunerunner,dunetyrant,sandkhan}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Desert bodies. No longer costume-swap hellbat/goblin/wyvern/warlord. |
-| `public/sprites/enemies/walk/{scorpion,dunerunner,dunetyrant,sandkhan}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`feet` align). Raw in `preview/sprite-forge/walk4/`. | Live 4-dir walks. |
+| `public/sprites/enemies/{scorpion,dunerunner,dunetyrant,sandkhan}.png` | Cursor image gen stills + Sprite Forge | Live Desert stills from world-monsters picks: Scorpion **B**, Dune Runner **A**, Dune Tyrant **A**, Sand Khan **A**. |
+| `public/sprites/enemies/walk/{scorpion,dunerunner,dunetyrant,sandkhan}-{n,e,s,w}-1..4.png` | Matching 4×4 sheets from those stills (`feet` align). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir walks. |
 | `public/sprites/terrain/ice-*.png` | Cursor image gen 2×2 snow pack | Ice grass-equivalent. Mixed per cell like Forest grass. |
 | `public/sprites/terrain/ice-path-*.png` | Cursor image gen 2×2 packed-ice path pack | Ice path tiles. |
 | `public/sprites/ice/{crystal,pine,boulder,shrub}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Ice blocked-tile props. |
 | `public/sprites/landmarks/portal-ice-in.png` | Cursor image gen + Sprite Forge | Ice entrance rift (glacier stone + cyan vortex). |
 | `public/sprites/landmarks/portal-ice-out.png` | Same | Ice exit rift. |
-| `public/sprites/enemies/{frostwisp,icewolf,packlord,frostjarl}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Ice bodies. No longer costume-swap imp/warg/ogre. |
-| `public/sprites/enemies/walk/{frostwisp,icewolf,packlord,frostjarl}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`center` wisp, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. | Live 4-dir flap/walks. |
+| `public/sprites/enemies/{frostwisp,icewolf,packlord,frostjarl}.png` | Cursor image gen stills + Sprite Forge | Live Ice stills from world-monsters picks: Frost Wisp **A**, Ice Wolf **A**, Pack Lord **B**, Frost Jarl **A**. |
+| `public/sprites/enemies/walk/{frostwisp,icewolf,packlord,frostjarl}-{n,e,s,w}-1..4.png` | Matching 4×4 sheets (`center` wisp, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir flap/walks. |
 | `public/sprites/terrain/fire-*.png` | Cursor image gen 2×2 ash pack | Fire grass-equivalent. Mixed per cell like Forest grass. |
 | `public/sprites/terrain/fire-path-*.png` | Cursor image gen 2×2 lava-path pack | Fire path tiles. |
 | `public/sprites/fire/{lava-rock,ember-stump,fumarole,slag}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Fire blocked-tile props. |
 | `public/sprites/landmarks/portal-fire-in.png` | Cursor image gen + Sprite Forge | Fire entrance rift (obsidian + lava vortex). |
 | `public/sprites/landmarks/portal-fire-out.png` | Same | Fire exit rift (slag keep-arch). |
-| `public/sprites/enemies/{magmahound,cinderbrute,cinderking,ashtitan}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Fire bodies. No longer costume-swap warg/ogre/drake. |
-| `public/sprites/enemies/walk/{magmahound,cinderbrute,cinderking,ashtitan}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`feet` align). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir walks. |
+| `public/sprites/enemies/{magmahound,cinderbrute,cinderking,ashtitan}.png` | Cursor image gen stills + Sprite Forge | Live Fire stills from world-monsters picks: Magma Hound **A**, Cinder Brute **A**, Cinder King **B**, Ash Titan **B**. |
+| `public/sprites/enemies/walk/{magmahound,cinderbrute,cinderking,ashtitan}-{n,e,s,w}-1..4.png` | Matching 4×4 sheets (`feet` align). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir walks. |
 | `public/sprites/terrain/hollow-*.png` | Cursor image gen 2×2 rune-stone pack | Hollow grass-equivalent. Mixed per cell like Forest grass. |
 | `public/sprites/terrain/hollow-path-*.png` | Cursor image gen 2×2 rune-vein path pack | Hollow path tiles. |
 | `public/sprites/hollow/{menhir,tablet,obelisk,ward-post}.png` | Cursor image gen 2×2 prop pack + Sprite Forge | Hollow blocked-tile props. |
 | `public/sprites/landmarks/portal-hollow-in.png` | Cursor image gen + Sprite Forge | Hollow entrance hex-gate (violet vortex). |
 | `public/sprites/landmarks/portal-hollow-out.png` | Same | Hollow exit spire-gate. |
-| `public/sprites/enemies/{shade,hexknight,hexwarden,magician}.png` | Cursor image gen 4×4 walk sheet + Sprite Forge | Live Hollow bodies. No longer costume-swap imp/raider/wyvern/drake. Warden is a walking seal-keeper, not a flyer. |
-| `public/sprites/enemies/walk/{shade,hexknight,hexwarden,magician}-{n,e,s,w}-1..4.png` | Same 4×4 sheets (`center` shade, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir flap/walks. |
+| `public/sprites/enemies/{shade,hexknight,hexwarden,magician}.png` | Cursor image gen stills + Sprite Forge | Live Hollow stills from world-monsters picks: Shade **A**, Hex Knight **B**, Hex Warden **B**, The Magician **A**. Warden stays a grounded lantern-keeper. |
+| `public/sprites/enemies/walk/{shade,hexknight,hexwarden,magician}-{n,e,s,w}-1..4.png` | Matching 4×4 sheets (`center` shade, `feet` walkers). Raw in `preview/sprite-forge/walk4/`. East files face right — no e/w swap. | Live 4-dir flap/walks. |
 | Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
