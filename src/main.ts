@@ -1,5 +1,17 @@
 import './style.css';
-import { COLS, MAP_H, MAP_W, ROWS, TILE, TOWER_ORDER, TOWERS, type TowerKind, WAVES_PER_LEVEL } from './game/constants';
+import {
+  COLS,
+  MAP_H,
+  MAP_W,
+  ROWS,
+  TILE,
+  TOWER_ORDER,
+  TOWERS,
+  slotsForTab,
+  type TowerKind,
+  type TrayTab,
+  WAVES_PER_LEVEL,
+} from './game/constants';
 import { ENEMIES, type EnemyKind } from './game/enemies';
 import { LEVELS, levelsInWorld, waveRoster } from './game/levels';
 import { paintLevelThumb } from './game/levelThumb';
@@ -125,6 +137,10 @@ let lastLives = -1;
 let introQueue: EnemyKind[] = [];
 type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB' | 'sell';
 let inspectStep: InspectStep = 'idle';
+let buildTab: TrayTab = 'keeps';
+
+const tabKeeps = document.getElementById('tab-keeps') as HTMLButtonElement;
+const tabElements = document.getElementById('tab-elements') as HTMLButtonElement;
 
 function flashChip(el: HTMLElement, cls: string): void {
   el.classList.remove(cls);
@@ -304,6 +320,7 @@ function openBuildMenu(c: number, r: number): void {
   inspectStep = 'idle';
   game.buildCell = { c, r };
   game.selectedKind = null;
+  setBuildTab('keeps');
   syncShopSelection();
   syncOverlay();
 }
@@ -323,9 +340,28 @@ function fillBuildDetail(kind: TowerKind): void {
   btnBuild.textContent = game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build ${def.cost}g`;
 }
 
+function setBuildTab(tab: TrayTab): void {
+  buildTab = tab;
+  tabKeeps.classList.toggle('selected', tab === 'keeps');
+  tabElements.classList.toggle('selected', tab === 'elements');
+  tabKeeps.setAttribute('aria-selected', tab === 'keeps' ? 'true' : 'false');
+  tabElements.setAttribute('aria-selected', tab === 'elements' ? 'true' : 'false');
+  if (game.selectedKind && !slotsForTab(tab).includes(game.selectedKind)) {
+    game.selectedKind = null;
+  }
+  renderShop();
+}
+
 function renderShop(): void {
   towerShop.innerHTML = '';
-  for (const kind of TOWER_ORDER) {
+  for (const kind of slotsForTab(buildTab)) {
+    if (!kind) {
+      const empty = document.createElement('div');
+      empty.className = 'tower-slot empty';
+      empty.setAttribute('aria-hidden', 'true');
+      towerShop.appendChild(empty);
+      continue;
+    }
     const def = TOWERS[kind];
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -808,6 +844,16 @@ document.getElementById('btn-inspect-close')!.addEventListener('click', () => {
   updateHud();
 });
 document.getElementById('btn-build-close')!.addEventListener('click', () => closeBuildMenu());
+tabKeeps.addEventListener('click', () => {
+  setBuildTab('keeps');
+  syncOverlay();
+  game.audio.ui();
+});
+tabElements.addEventListener('click', () => {
+  setBuildTab('elements');
+  syncOverlay();
+  game.audio.ui();
+});
 document.getElementById('btn-build-back')!.addEventListener('click', () => {
   game.selectedKind = null;
   syncShopSelection();

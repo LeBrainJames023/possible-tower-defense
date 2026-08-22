@@ -4,7 +4,7 @@ import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
 
-const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison'];
+const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison', 'longshot', 'void'];
 
 function billboardHeight(t: Tower): number {
   return towerPaintHeight(t.level);
@@ -272,7 +272,7 @@ export function drawTower(
     ctx.rotate(t.aim);
     ctx.globalAlpha = t.muzzle;
     const kick = 6 * scale;
-    if (t.kind === 'arrow' || t.kind === 'cannon') {
+    if (t.kind === 'arrow' || t.kind === 'cannon' || t.kind === 'longshot') {
       ctx.fillStyle = '#fff6d0';
       ctx.beginPath();
       ctx.ellipse(kick + 4 * scale, 0, (8 + t.muzzle * 6) * PX, 4 * PX, 0, 0, Math.PI * 2);
@@ -299,6 +299,11 @@ export function drawTower(
       ctx.fillStyle = t.def.color;
       ctx.beginPath();
       ctx.ellipse(kick, 2 * PX, 4 * PX, 6 * PX, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (t.kind === 'void') {
+      ctx.fillStyle = '#c8b0ff';
+      ctx.beginPath();
+      ctx.arc(kick, 0, (5 + t.muzzle * 4) * PX, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();

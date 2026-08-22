@@ -188,10 +188,12 @@ export const TEX = {
   towers: {
     arrow: loadImage('/sprites/towers/arrow.png'),
     cannon: loadImage('/sprites/towers/cannon.png'),
+    longshot: loadImage('/sprites/towers/longshot.png'),
     ice: loadImage('/sprites/towers/ice.png'),
     lightning: loadImage('/sprites/towers/lightning.png'),
     fire: loadImage('/sprites/towers/fire.png'),
     poison: loadImage('/sprites/towers/poison.png'),
+    void: loadImage('/sprites/towers/void.png'),
   } satisfies Record<TowerKind, HTMLImageElement | null>,
   towerParts: {
     arrowBase: loadImage('/sprites/towers/arrow-base.png'),
@@ -202,9 +204,11 @@ export const TEX = {
   projectiles: {
     arrow: loadImage('/sprites/projectiles/arrow.png'),
     cannon: loadImage('/sprites/projectiles/cannon.png'),
+    longshot: loadImage('/sprites/projectiles/longshot.png'),
     ice: loadImage('/sprites/projectiles/ice.png'),
     lightning: loadImage('/sprites/projectiles/lightning.png'),
     fire: loadImage('/sprites/projectiles/fire.png'),
     poison: loadImage('/sprites/projectiles/poison.png'),
+    void: loadImage('/sprites/projectiles/void.png'),
   } satisfies Record<TowerKind, HTMLImageElement | null>,
 };

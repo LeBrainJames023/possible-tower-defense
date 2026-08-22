@@ -27,6 +27,8 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/preview/sprite-forge/world-monsters/{creature}/{a,b}/` | Same pipeline | Two stills each for unique Desert/Ice/Fire/Hollow locals. All winners wired into live stills + 4-dir walks. |
 | `public/preview/sprite-forge/projectiles/{kind}/{a,b}/` | Same pipeline | Shot options. Live match: Arrow A, Cannon B, Ice A, Lightning A, Fire A, Poison A. |
 | `public/sprites/towers/*.png` | Cursor image gen + Sprite Forge | Live tower stills from towers-v2 picks. Arrow = empty base + rotating ballista. Cannon = stone battlement + rotating mortar. Ice/lightning/fire/poison stay still. |
+| `public/sprites/towers/longshot.png` | Cursor image gen + Sprite Forge (`generate2dsprite.py`, magenta `#FF00FF`) | Longshot building still. Raw in `preview/sprite-forge/towers-v2/longshot/`. One still, no rotating parts. |
+| `public/sprites/towers/void.png` | Cursor image gen + Sprite Forge (`generate2dsprite.py`, magenta `#FF00FF`) | Void building still. Raw in `preview/sprite-forge/towers-v2/void/`. Everyday shot is a small splash orb — no vortex art. |
 | `public/sprites/projectiles/*.png` | Same pipeline | Live shots matching the picks above. |
 | `public/sprites/landmarks/portal-in.png` | Cursor image gen + Sprite Forge | Forest entrance rift. |
 | `public/sprites/landmarks/portal-out.png` | Same pipeline | Forest exit rift. |

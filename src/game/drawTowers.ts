@@ -142,6 +142,9 @@ export function drawTowerBody(
     case 'cannon':
       drawFieldGun(ctx, def.color, def.colorDark, t.aim, scale, recoil, time);
       break;
+    case 'longshot':
+      drawLongKeep(ctx, def.color, def.colorDark, t.aim, scale, recoil);
+      break;
     case 'ice':
       drawCrystalSpire(ctx, def.color, def.colorDark, time, scale, t.aim);
       break;
@@ -153,6 +156,9 @@ export function drawTowerBody(
       break;
     case 'poison':
       drawAlchemyVat(ctx, def.color, def.colorDark, time, scale, t.aim);
+      break;
+    case 'void':
+      drawVoidShrine(ctx, def.color, def.colorDark, time, scale);
       break;
   }
 }
@@ -239,6 +245,35 @@ function drawFieldGun(
   ctx.ellipse(26 * scale, -2 * scale, 4 * scale, 2.4 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+function drawLongKeep(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  dark: string,
+  aim: number,
+  scale: number,
+  recoil: number,
+): void {
+  aura(ctx, color, 18 * scale, 0);
+  steel(ctx, -11 * scale, -18 * scale, 22 * scale, 28 * scale, 3);
+  goldBand(ctx, -12 * scale, 6 * scale, 24 * scale, 2.2 * scale);
+  goldBand(ctx, -10 * scale, -16 * scale, 20 * scale, 2 * scale);
+  ctx.save();
+  ctx.rotate(aim);
+  ctx.translate(-recoil * 0.8, 0);
+  wood(ctx, -3 * scale, -4 * scale, 28 * scale, 4 * scale);
+  ctx.fillStyle = '#8a2018';
+  ctx.beginPath();
+  ctx.moveTo(24 * scale, -6 * scale);
+  ctx.lineTo(34 * scale, 0);
+  ctx.lineTo(24 * scale, 6 * scale);
+  ctx.closePath();
+  ctx.fill();
+  crystal(ctx, 28 * scale, -8 * scale, 2.4 * scale, 8 * scale, '#fff4c8', color);
+  ctx.restore();
+  ctx.fillStyle = dark;
+  ctx.fillRect(-6 * scale, 8 * scale, 12 * scale, 3 * scale);
 }
 
 function drawCrystalSpire(
@@ -408,4 +443,34 @@ function drawAlchemyVat(
   ctx.ellipse(18 * scale, 5 * scale + Math.sin(time * 5) * 1.6 * scale, 2 * scale, 3.2 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+function drawVoidShrine(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  dark: string,
+  time: number,
+  scale: number,
+): void {
+  aura(ctx, color, 20 * scale, time);
+  steel(ctx, -12 * scale, -6 * scale, 24 * scale, 16 * scale, 4);
+  goldBand(ctx, -11 * scale, 6 * scale, 22 * scale, 2.2 * scale);
+  ctx.fillStyle = dark;
+  ctx.beginPath();
+  ctx.moveTo(-8 * scale, -6 * scale);
+  ctx.lineTo(-12 * scale, -18 * scale);
+  ctx.lineTo(-3 * scale, -8 * scale);
+  ctx.moveTo(8 * scale, -6 * scale);
+  ctx.lineTo(12 * scale, -18 * scale);
+  ctx.lineTo(3 * scale, -8 * scale);
+  ctx.fill();
+  const pulse = 0.85 + Math.sin(time * 5) * 0.12;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(0, -12 * scale, 5.4 * scale * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#12081c';
+  ctx.beginPath();
+  ctx.arc(0, -12 * scale, 2.4 * scale, 0, Math.PI * 2);
+  ctx.fill();
 }

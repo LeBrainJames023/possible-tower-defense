@@ -42,9 +42,9 @@ Forks wait until all ten play. Then every keep splits **Faster vs Heavier** (ele
 
 ---
 
-## This next window (chunks 1–3 only)
+## Last window (chunks 1–3) — landed Aug 22
 
-Do **not** start Muster, Chapter, rally, melee, forks, or vortex.
+Tray tabs, Longshot, and Void shoot. Next window is the troop engine — plan first, then build. Do **not** start Muster/Chapter art, forks, or vortex until the invisible hall works.
 
 ### 1. Two-tab tray
 Add Keeps / Elements tabs on the 2×3 build card. Same button size. Empty slots stay empty (do not shrink to fill). Forest 1: grass → Keeps tab → Arrow → Build → wave → Raider takes damage.
@@ -59,11 +59,29 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ---
 
-## Later (not this window)
+## This next window — troop engine (plan first)
 
-- Muster / Chapter names stay; buildings + troop sprites (idle/walk first).
+This is the hard piece. Do it right. Start in **Plan**, not Agent. Invisible test hall is OK. Do not paint Muster/Chapter or add tray slots until melee + Rally feel correct in tests.
+
+Locked shape:
+- Buildings still never sit on the path.
+- Troops **may** stand on the path and fight (Kingdom Rush stall). Enemies follow the painted road: stop, melee, then walk on.
+- Rally: click the built hall → inspect → large **Rally** → click a tile inside the circle (path allowed). No drag, no hover.
+- Cap 3. Die and respawn. Troops are ground (Cannon can hit them if they were enemies — they are not; they fight enemies).
+- Same Rally UX later for Muster (faster, thinner) and Chapter (slower, tankier). Engine first, then two halls.
+
+Write the path-troop rule into `project-core.mdc` when the first hall lands, not before.
+
+Do not start Faster/Heavier forks, Void vortex, endless, or music.
+
+---
+
+## Later (not the troop-engine window)
+
+- Muster / Chapter names stay; buildings + troop sprites (idle/walk first) after the engine.
 - Warrior vs Knight: same Rally UX, different verb (fast thin vs slow thick).
 - Forks for all ten, then fork looks (two pictures per keep).
+- Leftover copy from chunks 1–3: title still says “Six towers”; How to play still only names Arrow and Lightning for flyers.
 - Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 
 ---

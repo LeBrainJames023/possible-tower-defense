@@ -158,7 +158,14 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
       chain: 0,
       color: def.color,
       targetId: target.id,
-      trail: t.kind === 'arrow' || t.kind === 'fire' || t.kind === 'ice' || t.kind === 'poison' || t.kind === 'cannon',
+      trail:
+        t.kind === 'arrow' ||
+        t.kind === 'longshot' ||
+        t.kind === 'fire' ||
+        t.kind === 'ice' ||
+        t.kind === 'poison' ||
+        t.kind === 'void' ||
+        t.kind === 'cannon',
       kind: t.kind,
       arc: feel.arc * mods.arcMul,
       homing: feel.homing,

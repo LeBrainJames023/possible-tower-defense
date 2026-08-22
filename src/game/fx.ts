@@ -146,6 +146,11 @@ export class FxWorld {
       this.flash(x, y, '#fff8d0', 28, 0.12);
       this.burst(x, y, '#fff6c2', 14, 'spark', -10);
       this.ring(x, y, color, 26, 2.2, 0.18);
+    } else if (kind === 'void') {
+      this.flash(x, y, '#c8b0ff', splash * 0.5, 0.16);
+      this.burst(x, y, color, 12, 'spark', 20);
+      this.burst(x, y, '#1a1028', 8, 'smoke', -30);
+      this.ring(x, y, color, splash, 2.8, 0.36);
     } else {
       this.burst(x, y, color, 10, 'spark', 40);
       this.burst(x, y, '#d8e8f8', 4, 'spark', 20);

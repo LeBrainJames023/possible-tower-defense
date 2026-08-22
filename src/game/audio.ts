@@ -106,6 +106,11 @@ export class AudioBus {
         this.tone(72, 0.1, 'sine', 0.055, 0, 0.4);
         this.tone(38, 0.08, 'triangle', 0.03, 0.02);
         break;
+      case 'longshot':
+        this.noise(0.06, 0.05, 1400, 'highpass');
+        this.tone(620, 0.06, 'triangle', 0.05, 0, 0.28);
+        this.tone(160, 0.08, 'sine', 0.03, 0.02);
+        break;
       case 'ice':
         this.noise(0.05, 0.028, 4200, 'highpass');
         this.tone(1680, 0.07, 'sine', 0.04, 0, 1.6);
@@ -126,6 +131,11 @@ export class AudioBus {
         this.tone(180, 0.09, 'sine', 0.04, 0, 0.28);
         this.tone(90, 0.07, 'sine', 0.02, 0.03, 0.5);
         break;
+      case 'void':
+        this.noise(0.06, 0.045, 180, 'lowpass');
+        this.tone(110, 0.1, 'sine', 0.045, 0, 0.35);
+        this.tone(220, 0.06, 'triangle', 0.02, 0.02, 0.6);
+        break;
     }
     this.duck();
   }
@@ -141,6 +151,11 @@ export class AudioBus {
         this.tone(46, 0.28, 'sine', 0.09);
         this.tone(88, 0.14, 'triangle', 0.032, 0.05);
         this.noise(0.14, 0.045, 200, 'lowpass', 0.05);
+        break;
+      case 'longshot':
+        this.noise(0.05, 0.05, 900);
+        this.tone(140, 0.07, 'triangle', 0.04, 0, 0.4);
+        this.tone(90, 0.05, 'sine', 0.022, 0.02);
         break;
       case 'ice':
         this.noise(0.07, 0.05, 4800, 'highpass');
@@ -162,6 +177,11 @@ export class AudioBus {
         this.noise(0.09, 0.055, 200, 'lowpass');
         this.tone(130, 0.11, 'sine', 0.045, 0, 0.25);
         this.tone(70, 0.08, 'sine', 0.025, 0.04, 0.4);
+        break;
+      case 'void':
+        this.noise(0.08, 0.06, 140, 'lowpass');
+        this.tone(70, 0.12, 'sine', 0.05);
+        this.tone(160, 0.07, 'triangle', 0.022, 0.03, 0.45);
         break;
     }
     this.duck();

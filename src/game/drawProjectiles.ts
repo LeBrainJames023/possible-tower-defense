@@ -6,10 +6,12 @@ import { TEX, texReady } from './assets';
 const SHOT_SIZE: Record<Projectile['kind'], number> = {
   arrow: 22,
   cannon: 48,
+  longshot: 36,
   ice: 38,
   lightning: 40,
   fire: 42,
   poison: 40,
+  void: 34,
 };
 
 export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): void {
@@ -40,6 +42,9 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
     case 'arrow':
       drawArrow(ctx, p.color);
       break;
+    case 'longshot':
+      drawLongBolt(ctx, p.color);
+      break;
     case 'cannon':
       drawCannonball(ctx, p.color, p.age);
       break;
@@ -52,6 +57,9 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
       break;
     case 'poison':
       drawVenom(ctx, p.color, p.age);
+      break;
+    case 'void':
+      drawVoidOrb(ctx, p.color, p.age);
       break;
     case 'lightning':
       drawSpark(ctx, p.color, p.age);
@@ -74,6 +82,12 @@ function drawStreak(ctx: CanvasRenderingContext2D, kind: Projectile['kind'], col
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.moveTo(-22, 0);
+    ctx.lineTo(-8, 0);
+    ctx.stroke();
+  } else if (kind === 'longshot') {
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.moveTo(-26, 0);
     ctx.lineTo(-8, 0);
     ctx.stroke();
   } else if (kind === 'cannon') {
@@ -107,6 +121,12 @@ function drawStreak(ctx: CanvasRenderingContext2D, kind: Projectile['kind'], col
     ctx.lineTo(-3, 0);
     ctx.stroke();
     ctx.setLineDash([]);
+  } else if (kind === 'void') {
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-16, 0);
+    ctx.lineTo(-4, 0);
+    ctx.stroke();
   }
   ctx.globalAlpha = 1;
 }
@@ -126,6 +146,44 @@ function drawSpark(ctx: CanvasRenderingContext2D, color: string, age: number): v
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(0, 0, 2.4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawLongBolt(ctx: CanvasRenderingContext2D, color: string): void {
+  ctx.strokeStyle = 'rgba(40, 28, 16, 0.6)';
+  ctx.lineWidth = 5.2;
+  ctx.beginPath();
+  ctx.moveTo(-18, 0);
+  ctx.lineTo(8, 0);
+  ctx.stroke();
+  ctx.strokeStyle = '#c4a06a';
+  ctx.lineWidth = 3.4;
+  ctx.beginPath();
+  ctx.moveTo(-17, 0);
+  ctx.lineTo(8, 0);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(-18, 0);
+  ctx.lineTo(-26, -4.2);
+  ctx.lineTo(-22, 0);
+  ctx.lineTo(-26, 4.2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#8a2018';
+  ctx.beginPath();
+  ctx.moveTo(18, 0);
+  ctx.lineTo(6, -5.2);
+  ctx.lineTo(8, 0);
+  ctx.lineTo(6, 5.2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#e8d8b0';
+  ctx.beginPath();
+  ctx.moveTo(18, 0);
+  ctx.lineTo(9, -2.6);
+  ctx.lineTo(9, 2.6);
+  ctx.closePath();
   ctx.fill();
 }
 
@@ -302,6 +360,26 @@ function drawVenom(ctx: CanvasRenderingContext2D, color: string, age: number): v
   ctx.fill();
   ctx.beginPath();
   ctx.ellipse(-8.5, 2 + Math.sin(age * 13 + 1), 1.1, 1.7, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawVoidOrb(ctx: CanvasRenderingContext2D, color: string, age: number): void {
+  const pulse = 1 + Math.sin(age * 10) * 0.08;
+  const core = ctx.createRadialGradient(-1.2, -1.4, 0.6, 0, 0, 7.5);
+  core.addColorStop(0, '#d8c8ff');
+  core.addColorStop(0.35, color);
+  core.addColorStop(1, '#12081c');
+  ctx.fillStyle = `${color}55`;
+  ctx.beginPath();
+  ctx.arc(0, 0, 8.4 * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.arc(0, 0, 6.2 * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(20, 8, 28, 0.7)';
+  ctx.beginPath();
+  ctx.arc(0.6, 0.8, 2.4, 0, Math.PI * 2);
   ctx.fill();
 }
 

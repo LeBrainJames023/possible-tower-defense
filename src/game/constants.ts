@@ -27,7 +27,7 @@ export const CHAIN_RANGE = u(108);
 
 export type CellKind = 'grass' | 'path' | 'decor';
 
-export type TowerKind = 'arrow' | 'cannon' | 'ice' | 'lightning' | 'fire' | 'poison';
+export type TowerKind = 'arrow' | 'cannon' | 'longshot' | 'ice' | 'lightning' | 'fire' | 'poison' | 'void';
 
 export interface TowerDef {
   kind: TowerKind;
@@ -200,22 +200,82 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     poisonDuration: 4.4,
     upgradeMul: 1.32,
   },
+  longshot: {
+    kind: 'longshot',
+    name: 'Longshot',
+    cost: 120,
+    description: 'Long, slow, fat single hit. Hits flyers.',
+    role: 'Snipe',
+    color: '#d4a06a',
+    colorDark: '#5a3418',
+    range: u(228),
+    damage: 42,
+    fireRate: 0.5,
+    splash: 0,
+    slow: 0,
+    slowDuration: 0,
+    pierceArmor: false,
+    chain: 0,
+    burnDps: 0,
+    burnDuration: 0,
+    poisonDps: 0,
+    poisonDuration: 0,
+    upgradeMul: 1.34,
+  },
+  void: {
+    kind: 'void',
+    name: 'Void',
+    cost: 110,
+    description: 'Small splash dark orbs. Hits flyers.',
+    role: 'Burst',
+    color: '#8a6cff',
+    colorDark: '#2a1458',
+    range: u(136),
+    damage: 16,
+    fireRate: 0.88,
+    splash: u(38),
+    slow: 0,
+    slowDuration: 0,
+    pierceArmor: false,
+    chain: 0,
+    burnDps: 0,
+    burnDuration: 0,
+    poisonDps: 0,
+    poisonDuration: 0,
+    upgradeMul: 1.32,
+  },
 };
 
 export const PROJECTILE_FEEL: Record<TowerKind, ProjectileFeel> = {
   arrow: { speed: u(560), arc: 0, homing: 1 },
   cannon: { speed: u(255), arc: u(46), homing: 0.22 },
+  longshot: { speed: u(420), arc: u(8), homing: 0.7 },
   ice: { speed: u(370), arc: u(12), homing: 0.55 },
   lightning: { speed: u(900), arc: 0, homing: 0 },
   fire: { speed: u(305), arc: u(20), homing: 0.38 },
   poison: { speed: u(290), arc: u(10), homing: 0.5 },
+  void: { speed: u(280), arc: u(14), homing: 0.42 },
 };
 
 export const TOWER_ORDER: TowerKind[] = [
   'arrow',
   'cannon',
+  'longshot',
   'ice',
   'lightning',
   'fire',
   'poison',
+  'void',
 ];
+
+export type TrayTab = 'keeps' | 'elements';
+
+/** Always 6 slots (2×3). Null stays an empty cell — do not shrink buttons to fill. */
+export const TRAY_SLOTS: Record<TrayTab, Array<TowerKind | null>> = {
+  keeps: ['arrow', 'cannon', 'longshot', null, null, null],
+  elements: ['ice', 'lightning', 'fire', 'poison', 'void', null],
+};
+
+export function slotsForTab(tab: TrayTab): Array<TowerKind | null> {
+  return TRAY_SLOTS[tab];
+}

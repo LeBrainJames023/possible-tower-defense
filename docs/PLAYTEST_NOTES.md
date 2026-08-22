@@ -1,5 +1,15 @@
 # Playtest notes
 
+## This session — tray + Longshot + Void (Aug 22)
+
+Two-tab tray landed. Opening grass starts on **Keeps**. Empty slots stay empty (Keeps has three holes; Elements has one after Void). Forest 1: grass → Keeps → Arrow → Build → wave → Raider took damage. Path click still toasts blocked. Sticky place stayed dead. Forest save not wiped (showed 9/10).
+
+Longshot placed beside the Meadow Gate path and fired; Raider 100 → 61. Void on Elements placed and fired a dark splash; Raider took damage. No vortex. No barracks.
+
+Leftover copy: title still “Six towers”; How to play still only names Arrow and Lightning for air.
+
+Check 1x next session: Forest 1 smoke, then Keeps → Longshot and Elements → Void still shoot after a page reload.
+
 ## This session — play after art (Aug 21)
 
 Vite had been running since before the art pass, so the first glance still said **click grass** on Fire/Hollow and showed leftover intro blurbs. Restarted the dev server (your Forest save was not wiped). After a refresh, HUD words are **click grass / sand / ice / ash / rune**.

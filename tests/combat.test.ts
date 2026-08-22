@@ -20,6 +20,28 @@ describe('shared combat rules', () => {
     expect(pickTarget(tower, sim.enemies)?.id).toBe(late.id);
   });
 
+  it('longshot hits flyers and pokes harder and slower than arrow', () => {
+    const longshot = new Tower('longshot', 6, 5, 100, 100);
+    const sim = new CombatSandbox();
+    const flyer = sim.spawn('swarm');
+    flyer.pos = { x: 120, y: 100 };
+    flyer.progress = 0.9;
+    expect(canTarget(longshot, flyer)).toBe(true);
+    expect(pickTarget(longshot, sim.enemies)?.id).toBe(flyer.id);
+    expect(TOWERS.longshot.range).toBeGreaterThan(TOWERS.arrow.range);
+    expect(TOWERS.longshot.damage).toBeGreaterThan(TOWERS.arrow.damage);
+    expect(TOWERS.longshot.fireRate).toBeLessThan(TOWERS.arrow.fireRate);
+    expect(TOWERS.longshot.splash).toBe(0);
+
+    const poke = new CombatSandbox();
+    poke.freezeEnemies = true;
+    poke.place('longshot', 6, 5);
+    const air = poke.spawn('swarm', 1);
+    air.pos = { x: poke.towers[0].x + 40, y: poke.towers[0].y };
+    poke.run(3);
+    expect(air.hp).toBeLessThan(air.maxHp);
+  });
+
   it('cannon cannot lock or splash flyers; arrows can', () => {
     const cannon = new Tower('cannon', 6, 5, 100, 100);
     const arrow = new Tower('arrow', 6, 5, 100, 100);
@@ -127,6 +149,27 @@ describe('tower combat sandbox', () => {
     sim.run(1.2);
     const hurt = [a, b, c].filter((e) => e.hp < e.maxHp).length;
     expect(hurt).toBeGreaterThanOrEqual(2);
+  });
+
+  it('void splash hits nearby foes including flyers, without burn or poison', () => {
+    expect(TOWERS.void.splash).toBeGreaterThan(TOWERS.poison.splash);
+    expect(TOWERS.void.splash).toBeLessThan(TOWERS.fire.splash);
+    expect(TOWERS.void.burnDps).toBe(0);
+    expect(TOWERS.void.poisonDps).toBe(0);
+
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    sim.place('void', 6, 5);
+    const flyer = sim.spawn('swarm', 1);
+    const grunt = sim.spawn('grunt', 1);
+    flyer.pos = { x: sim.towers[0].x + 24, y: sim.towers[0].y };
+    grunt.pos = { x: sim.towers[0].x + 40, y: sim.towers[0].y };
+    expect(canTarget(sim.towers[0], flyer)).toBe(true);
+    sim.run(2);
+    expect(flyer.hp).toBeLessThan(flyer.maxHp);
+    expect(grunt.hp).toBeLessThan(grunt.maxHp);
+    expect(flyer.burnTimer).toBe(0);
+    expect(grunt.poisonTimer).toBe(0);
   });
 
   it('fire applies burn and poison applies DoT', () => {
