@@ -1,6 +1,6 @@
 import type { Enemy, Tower } from './entities';
 import type { Troop } from './troops';
-import { PX, TILE, TOWER_FEET, towerPaintHeight, type TowerKind } from './constants';
+import { PX, TILE, TOWER_FEET, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
@@ -200,9 +200,9 @@ export function drawTower(
   const recoil = t.recoil * 5 * PX;
 
   if (selected) {
-    if (t.kind === 'hall' && rallyPreview) {
+    if (isTroopHall(t.kind) && rallyPreview) {
       drawRangeRing(ctx, x, y, t.range, '#f4d35e', true, [], 3 * PX, 'cc');
-    } else if (upgradePreview && t.kind !== 'hall') {
+    } else if (upgradePreview && !isTroopHall(t.kind)) {
       const fork = t.previewFork ?? t.fork;
       const lv = t.canNumberUpgrade() ? t.level + 1 : t.level;
       drawRangeRing(ctx, x, y, t.rangeAt(lv, fork), '#f4d35e', true, [], 3 * PX, 'cc');
@@ -210,7 +210,7 @@ export function drawTower(
     drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2.2 * PX, '99');
   }
 
-  if (t.kind === 'hall') {
+  if (isTroopHall(t.kind)) {
     const fx = t.rallyCol * TILE + TILE / 2;
     const fy = t.rallyRow * TILE + TILE / 2;
     ctx.strokeStyle = 'rgba(40, 24, 12, 0.85)';

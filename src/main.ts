@@ -379,7 +379,7 @@ function renderShop(): void {
     btn.dataset.kind = kind;
     btn.setAttribute('aria-label', `${def.name} ${def.cost} gold`);
     const portrait = isTroopHall(kind)
-      ? `<span class="tower-portrait hall-swatch" aria-hidden="true"></span>`
+      ? `<span class="tower-portrait ${kind}-swatch" aria-hidden="true"></span>`
       : `<img class="tower-portrait" src="/sprites/towers/${kind}.png" alt="" />`;
     btn.innerHTML = `
       ${portrait}
@@ -441,7 +441,8 @@ function arrowStat(cur: number, next: number, digits = 0): string {
 }
 
 function extraTowerLine(def: (typeof TOWERS)[TowerKind]): string | null {
-  if (def.kind === 'hall') return '3 troops stall walkers on the path';
+  if (def.kind === 'muster') return '3 warriors stall walkers on the path';
+  if (def.kind === 'chapter') return '3 knights stall walkers on the path';
   if (def.splash > 0) return `Splash ${(def.splash / TILE).toFixed(1)} tiles`;
   if (def.chain > 0) return `Chain ${def.chain}`;
   if (def.slow > 0) return `Slow ${Math.round(def.slow * 100)}%`;

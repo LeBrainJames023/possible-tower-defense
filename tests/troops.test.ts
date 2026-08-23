@@ -5,7 +5,7 @@ import { Enemy } from '../src/game/entities';
 import { LEVELS, buildGrid, canPlaceOnCell } from '../src/game/levels';
 import {
   TROOP_CAP,
-  TROOP_TRAIN_TIME,
+  TROOP_STATS,
   assignDefaultRally,
   canRallyAt,
   hallRallyPos,
@@ -52,7 +52,7 @@ describe('troop hall engine', () => {
 
   let game: Game | undefined;
 
-  it('places a hall on grass and refuses the path', () => {
+  it('places Muster on grass and refuses the path', () => {
     globalThis.requestAnimationFrame = () => 0;
     globalThis.cancelAnimationFrame = () => {};
     game = new Game(makeFakeCanvas());
@@ -67,18 +67,18 @@ describe('troop hall engine', () => {
     expect(path).not.toBeNull();
     if (!grass || !path) return;
 
-    game.selectedKind = 'hall';
+    game.selectedKind = 'muster';
     expect(game.tryPlace(path.c, path.r)).toBe(false);
     expect(game.towers).toHaveLength(0);
 
-    game.selectedKind = 'hall';
+    game.selectedKind = 'muster';
     expect(game.tryPlace(grass.c, grass.r)).toBe(true);
     expect(game.towers).toHaveLength(1);
-    expect(game.towers[0].kind).toBe('hall');
+    expect(game.towers[0].kind).toBe('muster');
     expect(game.grid[game.towers[0].rallyRow][game.towers[0].rallyCol]).toBe('path');
   });
 
-  it('Forest 1 Game loop: Arrow damages a Raider and Hall troops stall', () => {
+  it('Forest 1 Game loop: Arrow damages a Raider and Muster troops stall', () => {
     globalThis.requestAnimationFrame = () => 0;
     globalThis.cancelAnimationFrame = () => {};
     game = new Game(makeFakeCanvas());
@@ -109,9 +109,9 @@ describe('troop hall engine', () => {
 
     game.selectedKind = 'arrow';
     expect(game.tryPlace(sites[0].c, sites[0].r)).toBe(true);
-    game.selectedKind = 'hall';
+    game.selectedKind = 'muster';
     expect(game.tryPlace(sites[1].c, sites[1].r)).toBe(true);
-    const hall = game.towers.find((t) => t.kind === 'hall')!;
+    const hall = game.towers.find((t) => t.kind === 'muster')!;
     game.selectedTowerId = hall.id;
     expect(game.setRallyPoint(hall.rallyCol, hall.rallyRow)).toBe(true);
 
@@ -132,7 +132,7 @@ describe('troop hall engine', () => {
     const grass = grassBesidePath(sim.grid);
     expect(grass).not.toBeNull();
     if (!grass) return;
-    const hall = sim.place('hall', grass.c, grass.r);
+    const hall = sim.place('muster', grass.c, grass.r);
     assignDefaultRally(hall, sim.grid);
     const path = { c: hall.rallyCol, r: hall.rallyRow };
     expect(sim.grid[path.r][path.c]).toBe('path');
@@ -162,7 +162,7 @@ describe('troop hall engine', () => {
     const grass = grassBesidePath(sim.grid);
     expect(grass).not.toBeNull();
     if (!grass) return;
-    const hall = sim.place('hall', grass.c, grass.r);
+    const hall = sim.place('muster', grass.c, grass.r);
     assignDefaultRally(hall, sim.grid);
     sim.run(4);
     expect(sim.troops).toHaveLength(TROOP_CAP);
@@ -176,7 +176,7 @@ describe('troop hall engine', () => {
     const grass = grassBesidePath(sim.grid);
     expect(grass).not.toBeNull();
     if (!grass) return;
-    const hall = sim.place('hall', grass.c, grass.r);
+    const hall = sim.place('muster', grass.c, grass.r);
     assignDefaultRally(hall, sim.grid);
     sim.run(2.2);
 
@@ -203,7 +203,7 @@ describe('troop hall engine', () => {
     const grass = grassBesidePath(sim.grid);
     expect(grass).not.toBeNull();
     if (!grass) return;
-    const hall = sim.place('hall', grass.c, grass.r);
+    const hall = sim.place('muster', grass.c, grass.r);
     assignDefaultRally(hall, sim.grid);
     sim.run(2.2);
     const flyer = sim.spawn('swarm');
@@ -220,15 +220,50 @@ describe('troop hall engine', () => {
     const grass = grassBesidePath(sim.grid);
     expect(grass).not.toBeNull();
     if (!grass) return;
-    const hall = sim.place('hall', grass.c, grass.r);
+    const hall = sim.place('muster', grass.c, grass.r);
     assignDefaultRally(hall, sim.grid);
     sim.run(2.5);
     expect(sim.troops).toHaveLength(3);
     sim.troops[0].takeDamage(999);
     stepHalls(sim, 0);
     expect(sim.troops).toHaveLength(2);
-    sim.run(TROOP_TRAIN_TIME + 0.5);
+    sim.run(TROOP_STATS.warrior.trainTime + 0.5);
     expect(sim.troops).toHaveLength(3);
+  });
+
+  it('knights are slower and tankier than warriors', () => {
+    const sim = new CombatSandbox();
+    const sites: Array<{ c: number; r: number }> = [];
+    const dirs = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ];
+    for (let r = 0; r < sim.grid.length; r++) {
+      for (let c = 0; c < sim.grid[0].length; c++) {
+        if (sim.grid[r][c] !== 'path') continue;
+        for (const [dc, dr] of dirs) {
+          const cell = { c: c + dc, r: r + dr };
+          if (!canPlaceOnCell(sim.grid, cell.c, cell.r)) continue;
+          if (sites.some((s) => s.c === cell.c && s.r === cell.r)) continue;
+          sites.push(cell);
+        }
+      }
+    }
+    expect(sites.length).toBeGreaterThanOrEqual(2);
+    const muster = sim.place('muster', sites[0].c, sites[0].r);
+    const chapter = sim.place('chapter', sites[1].c, sites[1].r);
+    assignDefaultRally(muster, sim.grid);
+    assignDefaultRally(chapter, sim.grid);
+    sim.run(2.5);
+    const warriors = sim.troops.filter((tr) => tr.kind === 'warrior');
+    const knights = sim.troops.filter((tr) => tr.kind === 'knight');
+    expect(warriors.length).toBeGreaterThan(0);
+    expect(knights.length).toBeGreaterThan(0);
+    expect(warriors[0].speed).toBeGreaterThan(knights[0].speed);
+    expect(knights[0].maxHp).toBeGreaterThan(warriors[0].maxHp);
+    expect(warriors[0].radius).toBeLessThan(knights[0].radius);
   });
 
   it('finds a default rally on the nearest path tile', () => {

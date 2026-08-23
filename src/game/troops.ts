@@ -1,22 +1,51 @@
 /**
- * Barracks engine: halls spawn up to 3 troops, rally click, 1:1 melee stall.
+ * Barracks engine: Muster and Chapter spawn up to 3 troops, rally click, 1:1 melee stall.
  * Shared by Game and tests — do not copy this math into test files.
  */
-import { COLS, ROWS, TILE, isTroopHall, u, type CellKind } from './constants';
+import { COLS, ROWS, TILE, isTroopHall, u, type CellKind, type TowerKind } from './constants';
 import { ENEMIES } from './enemies';
 import { Enemy, Tower } from './entities';
 import { untargetable } from './verbs';
 import type { Vec2 } from '../shared/math';
 import { dist } from '../shared/math';
 
+export type TroopKind = 'warrior' | 'knight';
+
+export interface TroopStats {
+  hp: number;
+  damage: number;
+  speed: number;
+  radius: number;
+  trainTime: number;
+  color: string;
+}
+
+export const TROOP_STATS: Record<TroopKind, TroopStats> = {
+  warrior: {
+    hp: 28,
+    damage: 3,
+    speed: u(95),
+    radius: u(8),
+    trainTime: 6,
+    color: '#e8d5a0',
+  },
+  knight: {
+    hp: 72,
+    damage: 5,
+    speed: u(48),
+    radius: u(12),
+    trainTime: 10,
+    color: '#8a9bb0',
+  },
+};
+
+export function troopKindFor(hallKind: TowerKind): TroopKind {
+  return hallKind === 'chapter' ? 'knight' : 'warrior';
+}
+
 export const TROOP_CAP = 3;
-export const TROOP_HP = 40;
-export const TROOP_DAMAGE = 4;
 export const TROOP_MELEE_RATE = 1;
-export const TROOP_SPEED = u(70);
 export const TROOP_AGGRO = u(56);
-export const TROOP_RADIUS = u(10);
-export const TROOP_TRAIN_TIME = 8;
 export const TROOP_STAGGER = 0.4;
 export const TROOP_SLOT_SPREAD = u(18);
 const TROOP_ARRIVE = u(6);
@@ -29,10 +58,13 @@ function troopId(): number {
 
 export class Troop {
   id = troopId();
+  kind: TroopKind;
   hallId: number;
   slot: number;
-  hp = TROOP_HP;
-  maxHp = TROOP_HP;
+  hp: number;
+  maxHp: number;
+  damage: number;
+  speed: number;
   pos: Vec2;
   alive = true;
   cooldown = 0;
@@ -42,13 +74,21 @@ export class Troop {
   pileOn = false;
   hitFlash = 0;
   facing = 0;
-  radius = TROOP_RADIUS;
-  color = '#e8d5a0';
+  radius: number;
+  color: string;
 
-  constructor(hallId: number, slot: number, pos: Vec2) {
+  constructor(hallId: number, slot: number, pos: Vec2, kind: TroopKind) {
+    const stats = TROOP_STATS[kind];
+    this.kind = kind;
     this.hallId = hallId;
     this.slot = slot;
     this.pos = { ...pos };
+    this.hp = stats.hp;
+    this.maxHp = stats.hp;
+    this.damage = stats.damage;
+    this.speed = stats.speed;
+    this.radius = stats.radius;
+    this.color = stats.color;
   }
 
   takeDamage(raw: number): void {
@@ -193,7 +233,7 @@ function spawnTroop(world: TroopWorld, hall: Tower): void {
   let slot = 0;
   while (used.has(slot) && slot < TROOP_CAP) slot += 1;
   if (slot >= TROOP_CAP) return;
-  world.troops.push(new Troop(hall.id, slot, { x: hall.x, y: hall.y }));
+  world.troops.push(new Troop(hall.id, slot, { x: hall.x, y: hall.y }, troopKindFor(hall.kind)));
 }
 
 export function dropHallLocks(troops: Troop[], hallId: number): void {
@@ -219,7 +259,8 @@ export function stepHalls(world: TroopWorld, dt: number): void {
     if (hall.trainCooldown > 0) continue;
     spawnTroop(world, hall);
     const nowAlive = world.troops.filter((tr) => tr.hallId === hall.id && tr.alive).length;
-    hall.trainCooldown = nowAlive < TROOP_CAP ? TROOP_STAGGER : TROOP_TRAIN_TIME;
+    const train = TROOP_STATS[troopKindFor(hall.kind)].trainTime;
+    hall.trainCooldown = nowAlive < TROOP_CAP ? TROOP_STAGGER : train;
   }
 
   for (const tr of world.troops) {
@@ -262,11 +303,11 @@ export function stepHalls(world: TroopWorld, dt: number): void {
       const reach = tr.radius + foe.radius + u(8);
       const d = dist(tr.pos, foe.pos);
       tr.facing = Math.atan2(foe.pos.y - tr.pos.y, foe.pos.x - tr.pos.x);
-      if (d > reach) moveToward(tr.pos, foe.pos, TROOP_SPEED, dt);
+      if (d > reach) moveToward(tr.pos, foe.pos, tr.speed, dt);
     } else {
       const slot = troopSlotPos(hall, tr.slot, world.waypoints);
       tr.facing = Math.atan2(slot.y - tr.pos.y, slot.x - tr.pos.x);
-      moveToward(tr.pos, slot, TROOP_SPEED, dt);
+      moveToward(tr.pos, slot, tr.speed, dt);
     }
   }
 
@@ -279,7 +320,7 @@ export function stepHalls(world: TroopWorld, dt: number): void {
     const locker = lockerFor(foe.id, world.troops);
     if (locker?.id === tr.id) foe.meleeHold = true;
     if (tr.cooldown <= 0) {
-      foe.takeDamage(TROOP_DAMAGE, false);
+      foe.takeDamage(tr.damage, false);
       tr.cooldown = 1 / TROOP_MELEE_RATE;
     }
     if (locker?.id === tr.id && !tr.pileOn) {

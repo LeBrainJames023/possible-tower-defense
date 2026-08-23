@@ -1,38 +1,34 @@
 # Future features
 
-## Last window — troop engine (Aug 22)
+## Last window — Muster + Chapter (Aug 22)
 
-Invisible **Hall** on Keeps (one empty slot used). Rally click, cap 3, 1:1 melee stall on the path, die and respawn. Buildings still never sit on the path; troops may. `project-core.mdc` has that rule. No Muster/Chapter art. No forks. No vortex.
+Hall left the tray. Keeps = Arrow, Cannon, Longshot, **Muster**, **Chapter** + one empty. Elements unchanged (Void + one empty). Same Rally UX. Warriors are faster/thinner; knights are slower/tankier. Procedural crate + cream/steel dots until they say **paint**. How-to names Rally. No forks. No vortex. Forest save not wiped (9/10).
 
 ### Next window
-**Muster + Chapter** — same Rally UX, warrior vs knight bodies (fast thin vs slow thick). Hall leaves the tray when Muster lands. Do not start forks or Void vortex until both halls play. Full plan: `docs/TOWER_ROADMAP.md`.
+Play, then **paint** Muster + Chapter building stills + idle/walk when they ask. Do not start Faster/Heavier forks or Void vortex unless both halls play and they say continue. Full plan: `docs/TOWER_ROADMAP.md`.
 
 ### Parked
-Muster / Chapter art, forks + fork art, Void vortex, Hall leaving the tray, endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
+Muster / Chapter painted art, forks + fork art, Void vortex, endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
 
 ### Watch-outs
 - Fixed-path TD; **buildings** never on path. Troops may stand on it. BCI: large buttons, no drag, no hover-only.
 - Forest save may be 9/10 — do not wipe localStorage.
-- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → Keeps → Arrow → Build → wave → damage. Path blocked. Rally smoke on Hall.
+- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → Keeps → Arrow → Build → wave → damage. Path blocked. Rally smoke on Muster or Chapter.
 
 ### Continue prompt (paste into a new chat)
 
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-This window is MUSTER + CHAPTER. Read docs/TOWER_ROADMAP.md, docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md first. Worlds and unique bodies are done — do not regen keepers, do not start endless/music/fodder, do not bring sticky place back, do not wipe localStorage (Forest save may be 9/10). Do not commit public/preview/ unless asked.
+This window is PLAY + PAINT (gated). Read docs/TOWER_ROADMAP.md, docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md first. Worlds and unique bodies are done — do not regen keepers, do not start endless/music/fodder, do not bring sticky place back, do not wipe localStorage (Forest save may be 9/10). Do not commit public/preview/ unless asked. Leftover walk-frame PNG edits on disk are not this window.
 
-Place UX (locked): click grass beside the path → 2×3 tray with Keeps / Elements tabs → pick → Build → done. Upgrade is two-click on the same button. Arrow/Cannon already fork after Lv3; do not add forks this window. Sell at the bottom. Path tiles refuse BUILDINGS. Troops may stand on the path.
+Place UX (locked): click grass beside the path → 2×3 tray with Keeps / Elements tabs → pick → Build → done. Upgrade is two-click on the same button. Arrow/Cannon already fork after Lv3; do not add forks this window. Sell at the bottom. Path tiles refuse BUILDINGS. Troops may stand on the path and fight (Kingdom Rush stall). Enemies follow the painted road: stop, melee, then walk on.
 
-Live kit: Keeps = Arrow, Cannon, Longshot, Hall + two empty. Elements = Ice, Lightning, Fire, Poison, Void + one empty. Hall is the temporary troop engine (Rally, cap 3, melee stall). Longshot hits flyers. Void = small splash dark orb, hits flyers, no vortex. Cannon still cannot hit flyers.
+Live kit: Keeps = Arrow, Cannon, Longshot, Muster, Chapter + one empty. Elements = Ice, Lightning, Fire, Poison, Void + one empty. Hall is gone. Muster = faster thinner warriors. Chapter = slower tankier knights. Same Rally UX. Procedural crate + dots until they say paint. Longshot and Void hit flyers. Cannon cannot. Image-gen only when they ask to paint. Log docs/ASSETS.md. Raw sheets stay in public/preview/.
 
-The troop engine already works. This window paints two real halls:
-1) Muster — replace the Hall tray slot. Faster, thinner warriors. Same Rally UX. Idle/walk first.
-2) Chapter — fill one remaining Keeps empty. Slower, tankier knights. Same Rally UX.
+Do NOT start Faster/Heavier forks or Void vortex unless both halls play and they say continue.
 
-Do NOT start Faster/Heavier forks or Void vortex this window unless both halls play and they say continue.
-
-Quality gates: npm test, npm run build, Forest 1 smoke (Arrow still), plus Rally smoke on Muster or Chapter. Last related commit should be the troop engine. Branch may be ahead of origin; not pushed unless they ask.
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → Keeps → Arrow → Build → Start wave → Raider takes damage; path still blocks buildings), plus Rally smoke on Muster or Chapter. Push only if they ask.
 ```
 
 

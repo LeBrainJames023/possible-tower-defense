@@ -136,7 +136,8 @@ export class AudioBus {
         this.tone(110, 0.1, 'sine', 0.045, 0, 0.35);
         this.tone(220, 0.06, 'triangle', 0.02, 0.02, 0.6);
         break;
-      case 'hall':
+      case 'muster':
+      case 'chapter':
         break;
     }
     this.duck();
@@ -185,7 +186,8 @@ export class AudioBus {
         this.tone(70, 0.12, 'sine', 0.05);
         this.tone(160, 0.07, 'triangle', 0.022, 0.03, 0.45);
         break;
-      case 'hall':
+      case 'muster':
+      case 'chapter':
         break;
     }
     this.duck();

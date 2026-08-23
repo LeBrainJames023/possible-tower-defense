@@ -145,8 +145,11 @@ export function drawTowerBody(
     case 'longshot':
       drawLongKeep(ctx, def.color, def.colorDark, t.aim, scale, recoil);
       break;
-    case 'hall':
-      drawTestHall(ctx, def.color, def.colorDark, time, scale);
+    case 'muster':
+      drawMusterYard(ctx, def.color, def.colorDark, time, scale);
+      break;
+    case 'chapter':
+      drawChapterHouse(ctx, def.color, def.colorDark, time, scale);
       break;
     case 'ice':
       drawCrystalSpire(ctx, def.color, def.colorDark, time, scale, t.aim);
@@ -478,8 +481,35 @@ function drawVoidShrine(
   ctx.fill();
 }
 
-/** Invisible-engine hall: a wooden crate and banner until Muster art lands. */
-function drawTestHall(
+/** Lean wooden training crate until Muster art lands. */
+function drawMusterYard(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  dark: string,
+  time: number,
+  scale: number,
+): void {
+  aura(ctx, color, 16 * scale, time);
+  wood(ctx, -11 * scale, -8 * scale, 22 * scale, 20 * scale);
+  goldBand(ctx, -11 * scale, -10 * scale, 22 * scale, 2.2 * scale);
+  ctx.fillStyle = dark;
+  ctx.fillRect(-13 * scale, -12 * scale, 26 * scale, 3.4 * scale);
+  ctx.fillStyle = '#7a2018';
+  ctx.beginPath();
+  ctx.moveTo(7 * scale, -12 * scale);
+  ctx.lineTo(16 * scale, -6 * scale + Math.sin(time * 3) * scale);
+  ctx.lineTo(7 * scale, -2 * scale);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#3a2418';
+  ctx.fillRect(5.6 * scale, -12 * scale, 2 * scale, 22 * scale);
+  ctx.fillStyle = color;
+  roundRect(ctx, -6 * scale, 0, 6 * scale, 10 * scale, 1.4 * scale);
+  ctx.fill();
+}
+
+/** Heavier stone chapter house until Chapter art lands. */
+function drawChapterHouse(
   ctx: CanvasRenderingContext2D,
   color: string,
   dark: string,
@@ -487,20 +517,22 @@ function drawTestHall(
   scale: number,
 ): void {
   aura(ctx, color, 18 * scale, time);
-  wood(ctx, -14 * scale, -8 * scale, 28 * scale, 20 * scale);
-  goldBand(ctx, -14 * scale, -10 * scale, 28 * scale, 2.4 * scale);
+  steel(ctx, -15 * scale, -10 * scale, 30 * scale, 22 * scale, 2.4 * scale);
   ctx.fillStyle = dark;
-  ctx.fillRect(-16 * scale, -12 * scale, 32 * scale, 4 * scale);
-  ctx.fillStyle = '#7a2018';
+  ctx.fillRect(-17 * scale, -14 * scale, 34 * scale, 5 * scale);
+  ctx.fillStyle = '#3a4a5c';
   ctx.beginPath();
-  ctx.moveTo(8 * scale, -12 * scale);
-  ctx.lineTo(18 * scale, -6 * scale + Math.sin(time * 3) * scale);
-  ctx.lineTo(8 * scale, -2 * scale);
+  ctx.moveTo(-17 * scale, -14 * scale);
+  ctx.lineTo(0, -22 * scale);
+  ctx.lineTo(17 * scale, -14 * scale);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#3a2418';
-  ctx.fillRect(6.5 * scale, -12 * scale, 2.2 * scale, 22 * scale);
+  goldBand(ctx, -6 * scale, -13 * scale, 12 * scale, 2 * scale);
+  ctx.fillStyle = '#1a2430';
+  roundRect(ctx, -5 * scale, -2 * scale, 10 * scale, 14 * scale, 1.6 * scale);
+  ctx.fill();
   ctx.fillStyle = color;
-  roundRect(ctx, -8 * scale, 0, 7 * scale, 10 * scale, 1.5 * scale);
+  ctx.beginPath();
+  ctx.arc(0, -18 * scale, 2.2 * scale + Math.sin(time * 2) * 0.3 * scale, 0, Math.PI * 2);
   ctx.fill();
 }

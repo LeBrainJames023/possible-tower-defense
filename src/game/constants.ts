@@ -31,16 +31,17 @@ export type TowerKind =
   | 'arrow'
   | 'cannon'
   | 'longshot'
-  | 'hall'
+  | 'muster'
+  | 'chapter'
   | 'ice'
   | 'lightning'
   | 'fire'
   | 'poison'
   | 'void';
 
-/** Temporary engine vehicle. Muster/Chapter will reuse this; Hall leaves the tray then. */
+/** Muster and Chapter spawn troops. Rally, combat skip, and spawn all key off this. */
 export function isTroopHall(kind: TowerKind): boolean {
-  return kind === 'hall';
+  return kind === 'muster' || kind === 'chapter';
 }
 
 export interface TowerDef {
@@ -258,14 +259,36 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     poisonDuration: 0,
     upgradeMul: 1.32,
   },
-  hall: {
-    kind: 'hall',
-    name: 'Hall',
+  muster: {
+    kind: 'muster',
+    name: 'Muster',
     cost: 70,
-    description: 'Sends 3 troops to a rally flag. They stall walkers on the path.',
+    description: 'Sends 3 warriors to a rally flag. Faster, thinner stall.',
     role: 'Stall',
     color: '#c4a06a',
     colorDark: '#4a2810',
+    range: u(140),
+    damage: 0,
+    fireRate: 0,
+    splash: 0,
+    slow: 0,
+    slowDuration: 0,
+    pierceArmor: false,
+    chain: 0,
+    burnDps: 0,
+    burnDuration: 0,
+    poisonDps: 0,
+    poisonDuration: 0,
+    upgradeMul: 1,
+  },
+  chapter: {
+    kind: 'chapter',
+    name: 'Chapter',
+    cost: 95,
+    description: 'Sends 3 knights to a rally flag. Slower, tankier stall.',
+    role: 'Stall',
+    color: '#8a9bb0',
+    colorDark: '#2a3444',
     range: u(140),
     damage: 0,
     fireRate: 0,
@@ -286,7 +309,8 @@ export const PROJECTILE_FEEL: Record<TowerKind, ProjectileFeel> = {
   arrow: { speed: u(560), arc: 0, homing: 1 },
   cannon: { speed: u(255), arc: u(46), homing: 0.22 },
   longshot: { speed: u(420), arc: u(8), homing: 0.7 },
-  hall: { speed: 0, arc: 0, homing: 0 },
+  muster: { speed: 0, arc: 0, homing: 0 },
+  chapter: { speed: 0, arc: 0, homing: 0 },
   ice: { speed: u(370), arc: u(12), homing: 0.55 },
   lightning: { speed: u(900), arc: 0, homing: 0 },
   fire: { speed: u(305), arc: u(20), homing: 0.38 },
@@ -298,7 +322,8 @@ export const TOWER_ORDER: TowerKind[] = [
   'arrow',
   'cannon',
   'longshot',
-  'hall',
+  'muster',
+  'chapter',
   'ice',
   'lightning',
   'fire',
@@ -310,7 +335,7 @@ export type TrayTab = 'keeps' | 'elements';
 
 /** Always 6 slots (2×3). Null stays an empty cell — do not shrink buttons to fill. */
 export const TRAY_SLOTS: Record<TrayTab, Array<TowerKind | null>> = {
-  keeps: ['arrow', 'cannon', 'longshot', 'hall', null, null],
+  keeps: ['arrow', 'cannon', 'longshot', 'muster', 'chapter', null],
   elements: ['ice', 'lightning', 'fire', 'poison', 'void', null],
 };
 

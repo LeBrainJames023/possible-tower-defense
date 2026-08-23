@@ -1,4 +1,4 @@
-import { TOWER_FEET, TOWERS, towerPaintHeight, type TowerKind } from './constants';
+import { TOWER_FEET, TOWERS, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMIES, ENEMY_GAIT, facingCardinal, type Cardinal, type EnemyKind } from './enemies';
 import { forkCostFor, forkDef, forksFor, type ForkId } from './forks';
 import { sellValueFor, upgradeCostFor } from './balance';
@@ -260,7 +260,7 @@ export class Tower {
   }
 
   canNumberUpgrade(): boolean {
-    return this.level < 3 && this.kind !== 'hall';
+    return this.level < 3 && !isTroopHall(this.kind);
   }
 
   canFork(): boolean {

@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — Muster + Chapter (Aug 22)
+
+Hall left the tray. Keeps is Arrow, Cannon, Longshot, Muster, Chapter + one empty. Forest 1: grass → Keeps → Arrow → Build → wave → Raider 100 → 89. Path still toasts blocked. Muster placed mid-wave; Rally on a path tile; three cream warriors walked out (HP 28). Chapter not placed live this smoke — tests cover slower/tankier knights. Procedural crate + dots. Sticky place stayed dead. Forest save not wiped (showed 9/10).
+
+Check 1x: Forest 1 smoke again after a reload. Then Muster or Chapter → inspect → Rally → path tile → three bodies walk. Say **paint** when you want building stills + idle/walk.
+
 ## This session — troop engine (Aug 22)
 
 Invisible Hall on Keeps (Arrow, Cannon, Longshot, Hall, two empty). Place on grass only. Inspect → Rally → click a path tile in the circle. Three dots walk to the flag, grab a Raider, stall, die, respawn. Flyers walk through. Path still blocks buildings. Sticky place stayed dead. Forest save not wiped.

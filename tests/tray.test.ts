@@ -11,9 +11,9 @@ describe('build tray tabs', () => {
     }
   });
 
-  it('puts Arrow, Cannon, Longshot, and Hall on Keeps and leaves empty cells empty', () => {
-    expect(TRAY_SLOTS.keeps).toEqual(['arrow', 'cannon', 'longshot', 'hall', null, null]);
-    expect(TRAY_SLOTS.keeps.filter((slot) => slot == null)).toHaveLength(2);
+  it('puts Arrow, Cannon, Longshot, Muster, and Chapter on Keeps and leaves empty cells empty', () => {
+    expect(TRAY_SLOTS.keeps).toEqual(['arrow', 'cannon', 'longshot', 'muster', 'chapter', null]);
+    expect(TRAY_SLOTS.keeps.filter((slot) => slot == null)).toHaveLength(1);
   });
 
   it('puts Ice, Lightning, Fire, Poison, and Void on Elements with empty cells left empty', () => {

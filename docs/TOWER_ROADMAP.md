@@ -1,6 +1,6 @@
 # Tower roadmap — ten keeps
 
-Worlds, land, and unique bodies are done. This file is the live plan for the keep kit. Pickup paste lives in `docs/FUTURE_FEATURES.md`. Do not start endless or music. Do not regen world keepers. Do not wipe `localStorage` (Forest save may be 8/10).
+Worlds, land, and unique bodies are done. This file is the live plan for the keep kit. Pickup paste lives in `docs/FUTURE_FEATURES.md`. Do not start endless or music. Do not regen world keepers. Do not wipe `localStorage` (Forest save may be 9/10).
 
 ---
 
@@ -21,9 +21,9 @@ Worlds, land, and unique bodies are done. This file is the live plan for the kee
 
 Tray tabs: **Keeps / Elements**. Two pages of the same 2×3. Buttons stay large. Keeps page uses 5 slots (one empty). Elements page uses 5 slots (one empty).
 
-Buildings never sit on the path. Muster / Chapter **troops** may stand on the path and fight (Kingdom Rush stall, not maze-building). Enemies still follow the painted road: they stop, melee, then walk on. Write that into `project-core.mdc` when barracks land, not before.
+Buildings never sit on the path. Muster / Chapter **troops** may stand on the path and fight (Kingdom Rush stall, not maze-building). Enemies still follow the painted road: they stop, melee, then walk on. `project-core.mdc` already says that.
 
-Rally (later): click the built hall → inspect → large **Rally** → click a tile inside the circle (path allowed). No drag, no hover.
+Rally: click the built hall → inspect → large **Rally** → click a tile inside the circle (path allowed). No drag, no hover.
 
 Forks wait until all ten play. Then every keep splits **Faster vs Heavier** (elementals included). Fork forms get new pictures in that pass. Void’s **black-hole pile-up** is a later beat (upgrade pulse or the heavy fork), not the everyday shot.
 
@@ -59,20 +59,24 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ---
 
-## Last window — troop engine (Aug 22)
+## Last window — Muster + Chapter (Aug 22)
 
-Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `project-core.mdc` now says troops may stand on the path. No Muster/Chapter art. No forks. No vortex. Title/How-to flyer copy updated.
+Hall left the tray. Keeps = Arrow, Cannon, Longshot, Muster, Chapter + one empty. Warriors are faster/thinner (HP 28, speed 95); knights are slower/tankier (HP 72, speed 48). Same Rally UX. Procedural crate + dots until they say **paint**. No forks. No vortex.
 
-Next: Muster + Chapter (same Rally, different bodies). Hall leaves the tray when Muster lands.
+Next: play, then paint building stills + idle/walk when they ask. Forks only if they say continue.
 
 ---
 
-## Later (not the troop-engine window)
+## Last window — troop engine (Aug 22)
 
-- Muster / Chapter names stay; buildings + troop sprites (idle/walk first) after the engine.
-- Warrior vs Knight: same Rally UX, different verb (fast thin vs slow thick).
+Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `project-core.mdc` now says troops may stand on the path. Replaced by Muster + Chapter in the window above.
+
+---
+
+## Later
+
+- Muster / Chapter painted buildings + idle/walk (gated — say paint).
 - Forks for all ten, then fork looks (two pictures per keep).
-- Leftover copy from chunks 1–3: title/How-to flyer list (done with the troop engine).
 - Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 
 ---
