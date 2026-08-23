@@ -1,10 +1,20 @@
 import type { Enemy, Tower } from './entities';
 import { PX, TILE, TOWER_FEET, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
+import { drawHallBillboard } from './billboards';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
 
-const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison', 'longshot', 'void', 'muster', 'chapter'];
+const STATIC_TOWERS: TowerKind[] = [
+  'ice',
+  'lightning',
+  'fire',
+  'poison',
+  'longshot',
+  'void',
+  'muster',
+  'chapter',
+];
 
 export { drawTroop } from './drawTroops';
 
@@ -17,7 +27,7 @@ function drawFeetBillboard(
   img: HTMLImageElement,
   h: number,
   feetY: number,
-  fillTile = false,
+  fillTile = false
 ): void {
   let w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
   if (fillTile && w < TILE * 0.9) {
@@ -33,7 +43,11 @@ function drawFeetBillboard(
   ctx.drawImage(img, -w / 2, -h + feetY, w, h);
 }
 
-function drawCenteredBillboard(ctx: CanvasRenderingContext2D, img: HTMLImageElement, h: number): void {
+function drawCenteredBillboard(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  h: number
+): void {
   const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
   ctx.drawImage(img, -w / 2, -h / 2, w, h);
 }
@@ -74,6 +88,10 @@ function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: numbe
   }
 
   const body = TEX.towers[t.kind];
+  if (isTroopHall(t.kind) && texReady(body)) {
+    drawHallBillboard(ctx, body, feet);
+    return true;
+  }
   if (STATIC_TOWERS.includes(t.kind) && texReady(body)) {
     drawFeetBillboard(ctx, body, h, feet);
     return true;
@@ -90,7 +108,7 @@ export function roundRect(
   y: number,
   w: number,
   h: number,
-  r: number,
+  r: number
 ): void {
   const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
@@ -111,7 +129,7 @@ function drawRangeRing(
   fill: boolean,
   dash: number[],
   lineWidth: number,
-  strokeAlpha: string,
+  strokeAlpha: string
 ): void {
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -138,7 +156,7 @@ function drawTintedSprite(
   dw: number,
   dh: number,
   color: string,
-  alpha: number,
+  alpha: number
 ): void {
   const w = Math.max(1, Math.ceil(dw));
   const h = Math.max(1, Math.ceil(dh));
@@ -169,7 +187,14 @@ function drawTintedSprite(
   ctx.drawImage(tintScratch, dx, dy, dw, dh);
 }
 
-function drawRankStar(ctx: CanvasRenderingContext2D, x: number, y: number, outer: number, fill: string, stroke: string): void {
+function drawRankStar(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  outer: number,
+  fill: string,
+  stroke: string
+): void {
   const inner = outer * 0.42;
   ctx.beginPath();
   for (let i = 0; i < 5; i++) {
@@ -193,7 +218,7 @@ export function drawTower(
   selected: boolean,
   time: number,
   upgradePreview = false,
-  rallyPreview = false,
+  rallyPreview = false
 ): void {
   const def = t.def;
   const { x, y } = t;
@@ -273,7 +298,12 @@ export function drawTower(
     const pulse = 0.35 + Math.sin(time * 4) * 0.12;
     const g = ctx.createRadialGradient(x, y, 4, x, y, 28 * scale);
     g.addColorStop(0, `${def.color}00`);
-    g.addColorStop(0.4, `${def.color}${Math.round(pulse * 255).toString(16).padStart(2, '0')}`);
+    g.addColorStop(
+      0.4,
+      `${def.color}${Math.round(pulse * 255)
+        .toString(16)
+        .padStart(2, '0')}`
+    );
     g.addColorStop(1, `${def.color}00`);
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -332,14 +362,13 @@ export function drawTower(
     ctx.restore();
   }
 
-  const rank =
-    t.fork
-      ? { fill: '#ffe08a', stroke: '#8a6200' }
-      : t.level >= 3
-        ? { fill: '#f4d35e', stroke: '#8a6200' }
-        : t.level >= 2
-          ? { fill: '#d0d6e0', stroke: '#5a6574' }
-          : { fill: '#c47a3a', stroke: '#6a3a12' };
+  const rank = t.fork
+    ? { fill: '#ffe08a', stroke: '#8a6200' }
+    : t.level >= 3
+      ? { fill: '#f4d35e', stroke: '#8a6200' }
+      : t.level >= 2
+        ? { fill: '#d0d6e0', stroke: '#5a6574' }
+        : { fill: '#c47a3a', stroke: '#6a3a12' };
   drawRankStar(ctx, x, y + 26 * PX, 7.5 * PX, rank.fill, rank.stroke);
 }
 
@@ -365,15 +394,21 @@ function enemyBillboard(e: Enemy): { img: HTMLImageElement; flip: number; puppet
   return null;
 }
 
-export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boolean, time: number): void {
+export function drawEnemy(
+  ctx: CanvasRenderingContext2D,
+  e: Enemy,
+  selected: boolean,
+  time: number
+): void {
   const gait = ENEMY_GAIT[e.kind];
   const billboard = enemyBillboard(e);
   const puppet = billboard?.puppet ?? true;
   const bob = puppet ? Math.sin(e.bob) * gait.bobAmp : 0;
   const sway = puppet ? Math.sin(e.bob * 0.5) * gait.sway : 0;
-  const jitter = puppet && gait.jitter
-    ? Math.sin(e.bob * 3.4) * gait.jitter + Math.sin(time * 31 + e.id) * gait.jitter * 0.35
-    : 0;
+  const jitter =
+    puppet && gait.jitter
+      ? Math.sin(e.bob * 3.4) * gait.jitter + Math.sin(time * 31 + e.id) * gait.jitter * 0.35
+      : 0;
   const squash = puppet ? Math.sin(e.bob) * gait.squash : 0;
   const r = e.radius;
   const air = e.flying ? r * 1.25 : 0;
@@ -383,7 +418,15 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
 
   ctx.fillStyle = e.flying ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.32)';
   ctx.beginPath();
-  ctx.ellipse(e.pos.x, e.pos.y + r * 0.75, r * (e.flying ? 0.7 : 0.95), r * (e.flying ? 0.22 : 0.32), 0, 0, Math.PI * 2);
+  ctx.ellipse(
+    e.pos.x,
+    e.pos.y + r * 0.75,
+    r * (e.flying ? 0.7 : 0.95),
+    r * (e.flying ? 0.22 : 0.32),
+    0,
+    0,
+    Math.PI * 2
+  );
   ctx.fill();
   if (e.flying) {
     ctx.strokeStyle = `${e.color}55`;
@@ -547,7 +590,13 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, selected: boo
   icons.forEach((color, i) => {
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(e.pos.x - (icons.length - 1) * 5 + i * 10, by - 8, 3.2 + Math.sin(time * 6 + i) * 0.3, 0, Math.PI * 2);
+    ctx.arc(
+      e.pos.x - (icons.length - 1) * 5 + i * 10,
+      by - 8,
+      3.2 + Math.sin(time * 6 + i) * 0.3,
+      0,
+      Math.PI * 2
+    );
     ctx.fill();
   });
 }

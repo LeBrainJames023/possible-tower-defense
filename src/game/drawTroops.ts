@@ -1,5 +1,6 @@
 /** Painted Muster / Chapter troops. Missing PNGs fall back to cream/steel dots. */
 import { PX } from './constants';
+import { TROOP_PAINT_H } from './billboards';
 import { walkFrameIndex } from './enemies';
 import { TEX, texReady } from './assets';
 import type { Troop } from './troops';
@@ -10,7 +11,7 @@ function roundRect(
   y: number,
   w: number,
   h: number,
-  r: number,
+  r: number
 ): void {
   const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
@@ -61,8 +62,8 @@ export function drawTroop(ctx: CanvasRenderingContext2D, tr: Troop): void {
   ctx.ellipse(x, y + r * 0.55, r * 0.95, r * 0.32, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  const h = TROOP_PAINT_H[tr.kind];
   if (img) {
-    const h = r * 3.45;
     const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
     const flip = Math.cos(tr.facing) < 0 ? -1 : 1;
     ctx.save();
@@ -88,7 +89,7 @@ export function drawTroop(ctx: CanvasRenderingContext2D, tr: Troop): void {
     const bw = Math.max(22, r * 2.2);
     const bh = 5;
     const bx = x - bw / 2;
-    const by = y - (img ? r * 2.6 : r) - 12;
+    const by = y - (img ? h * 0.78 : r) - 12;
     ctx.fillStyle = 'rgba(0,0,0,0.7)';
     roundRect(ctx, bx, by, bw, bh, 2);
     ctx.fill();

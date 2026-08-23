@@ -1,5 +1,13 @@
 # Playtest notes
 
+## This session — tile-fit / play (Aug 23)
+
+Halls and troops now sit against one tile. Muster/Chapter crop the empty PNG padding so the yard/house fills the grass square (height can grow up; width stays in-tile). Troop paint is a fixed height now (warrior `u(48)`, knight `u(56)`), not combat radius — same people, easier to read on the path. HP / Rally / travel speed unchanged.
+
+Forest 1: Arrow + Muster + Chapter on grass. Path still refuses buildings. Wave 1 Raiders took damage (100 → 24 / 40 / 47) and melee-held at the flag. Warriors and knights read as people next to Raiders, not ants. Sticky place stayed dead. Forest save not wiped (9/10). Walk-v2 left as-is.
+
+Next: they check 1x after a reload (halls fill the tile; troops look like people). Forks only if they say continue. Do not retune troop HP unless a later map feels wrong.
+
 ## This session — troop walk fix (Aug 23)
 
 Wired warrior + knight walk-v2 (four stride phases). Slowed the leg cycle only (`TROOP_WALK_HZ` warrior 1.0 / knight 0.75; idle 0.55). Travel speed unchanged (warrior `u(95)`, knight `u(48)`). Gallery: http://127.0.0.1:5173/preview/troop-walk-fix.html. Forest 1: title → grass → Keeps → Arrow → Build → wave → Raider 100 → 89. Path still toasts blocked. Muster placed; Rally on a path tile; three warriors walked. Sticky place stayed dead. Forest save not wiped (9/10).

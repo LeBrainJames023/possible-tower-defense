@@ -59,11 +59,15 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ---
 
+## Last window — tile-fit / play (Aug 23)
+
+Halls content-fit one grass tile. Troop billboards use `TROOP_PAINT_H` (visual only). Forest 1 Rally stall still works. No HP/Rally retune. No forks. No vortex.
+
+Next: **forks** if they say continue (Faster vs Heavier for all ten, then fork art).
+
 ## Last window — hall + troop art pass (Aug 22)
 
-Replaced Muster/Chapter stills and warrior/knight idle+walk. Tray chips now use those stills (halls get a closer crop so they are not a flat color block). Same Rally. Halls and idle accepted. Walk-v2 (four stride phases) wired Aug 23; leg cycle slowed, travel speed unchanged. No billboard/HP retune. No forks. No vortex.
-
-Next: **tile-fit / play** if they say continue. Forks only if they say continue.
+Replaced Muster/Chapter stills and warrior/knight idle+walk. Tray chips now use those stills (halls get a closer crop so they are not a flat color block). Same Rally. Halls and idle accepted. Walk-v2 (four stride phases) wired Aug 23; leg cycle slowed, travel speed unchanged. Tile-fit landed the window after.
 
 ---
 
@@ -75,7 +79,6 @@ Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `proj
 
 ## Later
 
-- Tile-fit / play after the walk-v2 check.
 - Forks for all ten, then fork looks (two pictures per keep).
 - Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 
