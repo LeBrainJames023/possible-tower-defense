@@ -2,6 +2,7 @@
 
 import type { TowerKind } from './constants';
 import type { Cardinal, CreatureSprite } from './enemies';
+import type { TroopKind } from './troops';
 
 export function loadImage(src: string): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
@@ -61,6 +62,10 @@ function faceSheet(name: CreatureSprite): Record<Cardinal, HTMLImageElement | nu
     s: loadImage(`/sprites/enemies/face/${name}-s.png`),
     w: loadImage(`/sprites/enemies/face/${name}-w.png`),
   };
+}
+
+function troopSheet(kind: TroopKind, action: 'idle' | 'walk'): Array<HTMLImageElement | null> {
+  return [1, 2, 3, 4].map((i) => loadImage(`/sprites/troops/${kind}/${action}-${i}.png`));
 }
 
 export const TEX = {
@@ -189,8 +194,8 @@ export const TEX = {
     arrow: loadImage('/sprites/towers/arrow.png'),
     cannon: loadImage('/sprites/towers/cannon.png'),
     longshot: loadImage('/sprites/towers/longshot.png'),
-    muster: null,
-    chapter: null,
+    muster: loadImage('/sprites/towers/muster.png'),
+    chapter: loadImage('/sprites/towers/chapter.png'),
     ice: loadImage('/sprites/towers/ice.png'),
     lightning: loadImage('/sprites/towers/lightning.png'),
     fire: loadImage('/sprites/towers/fire.png'),
@@ -215,4 +220,12 @@ export const TEX = {
     poison: loadImage('/sprites/projectiles/poison.png'),
     void: loadImage('/sprites/projectiles/void.png'),
   } satisfies Record<TowerKind, HTMLImageElement | null>,
+  troopIdle: {
+    warrior: troopSheet('warrior', 'idle'),
+    knight: troopSheet('knight', 'idle'),
+  } satisfies Record<TroopKind, Array<HTMLImageElement | null>>,
+  troopWalk: {
+    warrior: troopSheet('warrior', 'walk'),
+    knight: troopSheet('knight', 'walk'),
+  } satisfies Record<TroopKind, Array<HTMLImageElement | null>>,
 };

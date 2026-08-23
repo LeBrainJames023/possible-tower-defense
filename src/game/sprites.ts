@@ -1,11 +1,12 @@
 import type { Enemy, Tower } from './entities';
-import type { Troop } from './troops';
 import { PX, TILE, TOWER_FEET, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
 
-const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison', 'longshot', 'void'];
+const STATIC_TOWERS: TowerKind[] = ['ice', 'lightning', 'fire', 'poison', 'longshot', 'void', 'muster', 'chapter'];
+
+export { drawTroop } from './drawTroops';
 
 function billboardHeight(t: Tower): number {
   return towerPaintHeight(t.level);
@@ -340,38 +341,6 @@ export function drawTower(
           ? { fill: '#d0d6e0', stroke: '#5a6574' }
           : { fill: '#c47a3a', stroke: '#6a3a12' };
   drawRankStar(ctx, x, y + 26 * PX, 7.5 * PX, rank.fill, rank.stroke);
-}
-
-export function drawTroop(ctx: CanvasRenderingContext2D, tr: Troop): void {
-  const { x, y } = tr.pos;
-  const r = tr.radius;
-  ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.beginPath();
-  ctx.ellipse(x, y + r * 0.45, r * 0.9, r * 0.35, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = tr.hitFlash > 0.3 ? '#ffffff' : tr.color;
-  ctx.beginPath();
-  ctx.arc(x, y - r * 0.15, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#4a2810';
-  ctx.lineWidth = 1.4 * PX;
-  ctx.stroke();
-  ctx.restore();
-
-  if (tr.hp < tr.maxHp - 0.2 || tr.hitFlash > 0.12) {
-    const bw = Math.max(22, r * 2.2);
-    const bh = 5;
-    const bx = x - bw / 2;
-    const by = y - r - 12;
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    roundRect(ctx, bx, by, bw, bh, 2);
-    ctx.fill();
-    const pct = Math.max(0, tr.hp / tr.maxHp);
-    ctx.fillStyle = pct > 0.45 ? '#57cc99' : pct > 0.2 ? '#f4d35e' : '#ef476f';
-    roundRect(ctx, bx, by, Math.max(2, bw * pct), bh, 2);
-    ctx.fill();
-  }
 }
 
 function enemyBillboard(e: Enemy): { img: HTMLImageElement; flip: number; puppet: boolean } | null {

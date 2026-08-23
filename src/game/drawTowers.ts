@@ -481,7 +481,7 @@ function drawVoidShrine(
   ctx.fill();
 }
 
-/** Lean wooden training crate until Muster art lands. */
+/** Lean wooden training crate if Muster PNG is missing. */
 function drawMusterYard(
   ctx: CanvasRenderingContext2D,
   color: string,
@@ -508,7 +508,7 @@ function drawMusterYard(
   ctx.fill();
 }
 
-/** Heavier stone chapter house until Chapter art lands. */
+/** Heavier stone chapter house if Chapter PNG is missing. */
 function drawChapterHouse(
   ctx: CanvasRenderingContext2D,
   color: string,

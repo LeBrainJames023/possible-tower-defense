@@ -378,9 +378,7 @@ function renderShop(): void {
     btn.className = 'tower-btn';
     btn.dataset.kind = kind;
     btn.setAttribute('aria-label', `${def.name} ${def.cost} gold`);
-    const portrait = isTroopHall(kind)
-      ? `<span class="tower-portrait ${kind}-swatch" aria-hidden="true"></span>`
-      : `<img class="tower-portrait" src="/sprites/towers/${kind}.png" alt="" />`;
+    const portrait = `<img class="tower-portrait${isTroopHall(kind) ? ' hall-portrait' : ''}" src="/sprites/towers/${kind}.png" alt="" />`;
     btn.innerHTML = `
       ${portrait}
       <span class="tower-cost">${def.cost}</span>

@@ -74,6 +74,10 @@ export class Troop {
   pileOn = false;
   hitFlash = 0;
   facing = 0;
+  /** Walk/idle cycle clock. One revolution = one sheet loop. */
+  bob = 0;
+  /** True while the body is actually sliding toward rally or a lock. */
+  moving = false;
   radius: number;
   color: string;
 
@@ -299,6 +303,7 @@ export function stepHalls(world: TroopWorld, dt: number): void {
     const hall = halls.find((t) => t.id === tr.hallId);
     if (!hall) continue;
     const foe = tr.lockId != null ? world.enemies.find((e) => e.id === tr.lockId && e.alive) : null;
+    const before = { x: tr.pos.x, y: tr.pos.y };
     if (foe) {
       const reach = tr.radius + foe.radius + u(8);
       const d = dist(tr.pos, foe.pos);
@@ -309,6 +314,8 @@ export function stepHalls(world: TroopWorld, dt: number): void {
       tr.facing = Math.atan2(slot.y - tr.pos.y, slot.x - tr.pos.x);
       moveToward(tr.pos, slot, tr.speed, dt);
     }
+    tr.moving = dist(before, tr.pos) > 0.4;
+    tr.bob += dt * (tr.moving ? 2.4 : 1.1) * Math.PI * 2;
   }
 
   for (const tr of world.troops) {

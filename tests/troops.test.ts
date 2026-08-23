@@ -171,6 +171,24 @@ describe('troop hall engine', () => {
     expect(sim.troops).toHaveLength(TROOP_CAP);
   });
 
+  it('ticks gait while walking to rally, then idles on the flag', () => {
+    const sim = new CombatSandbox();
+    const grass = grassBesidePath(sim.grid);
+    expect(grass).not.toBeNull();
+    if (!grass) return;
+    const hall = sim.place('muster', grass.c, grass.r);
+    assignDefaultRally(hall, sim.grid);
+    stepHalls(sim, 0.05);
+    const walker = sim.troops[0];
+    expect(walker).toBeTruthy();
+    const startBob = walker.bob;
+    stepHalls(sim, 0.2);
+    expect(walker.moving).toBe(true);
+    expect(walker.bob).toBeGreaterThan(startBob);
+    sim.run(4);
+    expect(sim.troops.some((tr) => !tr.moving)).toBe(true);
+  });
+
   it('locks a ground walker so progress freezes, then resumes after the locker dies', () => {
     const sim = new CombatSandbox();
     const grass = grassBesidePath(sim.grid);

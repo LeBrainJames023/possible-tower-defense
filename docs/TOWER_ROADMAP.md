@@ -59,11 +59,11 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ---
 
-## Last window — Muster + Chapter (Aug 22)
+## Last window — hall + troop art pass (Aug 22)
 
-Hall left the tray. Keeps = Arrow, Cannon, Longshot, Muster, Chapter + one empty. Warriors are faster/thinner (HP 28, speed 95); knights are slower/tankier (HP 72, speed 48). Same Rally UX. Procedural crate + dots until they say **paint**. No forks. No vortex.
+Replaced Muster/Chapter stills and warrior/knight idle+walk. Tray chips now use those stills (halls get a closer crop so they are not a flat color block). Same Rally. Halls and idle accepted. Walk is a two-pose ping-pong — redo next with four stride phases, browser gallery first. No billboard/HP retune. No forks. No vortex.
 
-Next: play, then paint building stills + idle/walk when they ask. Forks only if they say continue.
+Next: **fix troop walk**, then tile-fit / play. Forks only if they say continue.
 
 ---
 
@@ -75,7 +75,7 @@ Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `proj
 
 ## Later
 
-- Muster / Chapter painted buildings + idle/walk (gated — say paint).
+- Fix warrior/knight walk (4 stride phases), then tile-fit / play.
 - Forks for all ten, then fork looks (two pictures per keep).
 - Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 

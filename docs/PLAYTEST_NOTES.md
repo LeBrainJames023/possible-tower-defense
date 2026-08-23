@@ -1,5 +1,17 @@
 # Playtest notes
 
+## This session — hall + troop art pass (Aug 22)
+
+Replaced Muster/Chapter stills and warrior/knight idle+walk. Tray chips now show those pictures (halls use a closer crop). They liked the halls and idle. **Walk looks like one leg swinging** — missing a full left-right-left-right stride (two-pose ping-pong or too fast). Gallery: http://127.0.0.1:5173/preview/hall-troop-art-pass.html. Vite restarted. Forest 1: title → grass → Keeps → Arrow → Build → wave → Raider 100 → 43. Path still toasts blocked. Muster placed; Rally on a path tile; three painted warriors walked to the flag. Sticky place stayed dead. Forest save not wiped (showed 9/10).
+
+Next: redo warrior + knight walk (4 distinct stride frames). Show the photos in a browser first. Then tile-fit / play.
+
+## This session — paint Muster + Chapter (Aug 22)
+
+Building stills and troop idle/walk are live. Forest 1: title → grass → Keeps → Arrow → Build → wave → Raider 100 → 97 (stall hold). Path still toasts blocked. Muster placed; three painted warriors walked to the default path flag. Vite needed a restart before the new PNGs served (stale 5173 was handing back HTML). Sticky place stayed dead. Forest save not wiped (showed 9/10).
+
+Check 1x: right-click the page → Reload if a hall still looks like a crate. Then Muster or Chapter → inspect → Rally → path tile → three bodies walk. Tray swatches for the halls are still flat chips — map stills are the painted ones.
+
 ## This session — Muster + Chapter (Aug 22)
 
 Hall left the tray. Keeps is Arrow, Cannon, Longshot, Muster, Chapter + one empty. Forest 1: grass → Keeps → Arrow → Build → wave → Raider 100 → 89. Path still toasts blocked. Muster placed mid-wave; Rally on a path tile; three cream warriors walked out (HP 28). Chapter not placed live this smoke — tests cover slower/tankier knights. Procedural crate + dots. Sticky place stayed dead. Forest save not wiped (showed 9/10).
