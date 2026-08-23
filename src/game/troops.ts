@@ -48,6 +48,12 @@ export const TROOP_MELEE_RATE = 1;
 export const TROOP_AGGRO = u(56);
 export const TROOP_STAGGER = 0.4;
 export const TROOP_SLOT_SPREAD = u(18);
+/** Walk-cycle loops per second. Visual only — travel speed stays in TROOP_STATS. */
+export const TROOP_WALK_HZ: Record<TroopKind, number> = {
+  warrior: 1.0,
+  knight: 0.75,
+};
+export const TROOP_IDLE_HZ = 0.55;
 const TROOP_ARRIVE = u(6);
 const LOCK_LEASH = TROOP_AGGRO * 1.8;
 
@@ -315,7 +321,7 @@ export function stepHalls(world: TroopWorld, dt: number): void {
       moveToward(tr.pos, slot, tr.speed, dt);
     }
     tr.moving = dist(before, tr.pos) > 0.4;
-    tr.bob += dt * (tr.moving ? 2.4 : 1.1) * Math.PI * 2;
+    tr.bob += dt * (tr.moving ? TROOP_WALK_HZ[tr.kind] : TROOP_IDLE_HZ) * Math.PI * 2;
   }
 
   for (const tr of world.troops) {

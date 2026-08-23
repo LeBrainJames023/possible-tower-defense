@@ -61,9 +61,9 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ## Last window — hall + troop art pass (Aug 22)
 
-Replaced Muster/Chapter stills and warrior/knight idle+walk. Tray chips now use those stills (halls get a closer crop so they are not a flat color block). Same Rally. Halls and idle accepted. Walk is a two-pose ping-pong — redo next with four stride phases, browser gallery first. No billboard/HP retune. No forks. No vortex.
+Replaced Muster/Chapter stills and warrior/knight idle+walk. Tray chips now use those stills (halls get a closer crop so they are not a flat color block). Same Rally. Halls and idle accepted. Walk-v2 (four stride phases) wired Aug 23; leg cycle slowed, travel speed unchanged. No billboard/HP retune. No forks. No vortex.
 
-Next: **fix troop walk**, then tile-fit / play. Forks only if they say continue.
+Next: **tile-fit / play** if they say continue. Forks only if they say continue.
 
 ---
 
@@ -75,7 +75,7 @@ Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `proj
 
 ## Later
 
-- Fix warrior/knight walk (4 stride phases), then tile-fit / play.
+- Tile-fit / play after the walk-v2 check.
 - Forks for all ten, then fork looks (two pictures per keep).
 - Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 

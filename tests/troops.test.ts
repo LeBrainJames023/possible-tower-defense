@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { TILE } from '../src/game/constants';
+import { TILE, u } from '../src/game/constants';
 import { Game } from '../src/game/Game';
 import { Enemy } from '../src/game/entities';
 import { LEVELS, buildGrid, canPlaceOnCell } from '../src/game/levels';
 import {
   TROOP_CAP,
+  TROOP_IDLE_HZ,
   TROOP_STATS,
+  TROOP_WALK_HZ,
   assignDefaultRally,
   canRallyAt,
   hallRallyPos,
@@ -185,6 +187,11 @@ describe('troop hall engine', () => {
     stepHalls(sim, 0.2);
     expect(walker.moving).toBe(true);
     expect(walker.bob).toBeGreaterThan(startBob);
+    expect(TROOP_WALK_HZ.warrior).toBeLessThan(2.4);
+    expect(TROOP_WALK_HZ.knight).toBeLessThan(TROOP_WALK_HZ.warrior);
+    expect(TROOP_IDLE_HZ).toBeLessThan(TROOP_WALK_HZ.knight);
+    expect(TROOP_STATS.warrior.speed).toBe(u(95));
+    expect(TROOP_STATS.knight.speed).toBe(u(48));
     sim.run(4);
     expect(sim.troops.some((tr) => !tr.moving)).toBe(true);
   });

@@ -1,11 +1,11 @@
 # Future features
 
-## Last window — hall + troop art pass (Aug 22)
+## Last window — troop walk fix (Aug 23)
 
-Replaced Muster/Chapter stills and warrior/knight 2×2 idle+walk. Tray chips use the stills (closer crop on halls). Same Rally. Halls and idle look good. **Walk is a two-pose ping-pong** (one leg forward/back) — not a full left-right-left-right stride. They want the walk redone next, pictures shown in a **browser gallery** first. No HP/speed/billboard retune. No forks. No vortex. Forest save not wiped (9/10).
+Replaced warrior + knight walk with four stride phases (plant / pass / plant / pass). Same people as the accepted idle. Gallery: http://127.0.0.1:5173/preview/troop-walk-fix.html. Leg cycle slowed; troop travel speed unchanged. Halls/idle left alone. No forks. No vortex. Forest save not wiped (9/10).
 
 ### Next window
-**Fix warrior + knight walk sheets** (4 distinct stride phases). Open the pictures in a browser so they can see and pick. Then tile-fit / play if they say continue. Full plan: `docs/TOWER_ROADMAP.md`.
+**Tile-fit / play** if they say continue. Full plan: `docs/TOWER_ROADMAP.md`.
 
 ### Parked
 Tile-fit after walk is accepted, attack frames, 4-dir troops, forks + fork art, Void vortex, endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. Leftover enemy walk-frame PNG edits on disk are not the next window.
@@ -20,19 +20,15 @@ Tile-fit after walk is accepted, attack frames, 4-dir troops, forks + fork art, 
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-This window is TROOP WALK FIX. Read docs/TOWER_ROADMAP.md, docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md first. Worlds and unique bodies are done — do not regen keepers, do not start endless/music/fodder, do not bring sticky place back, do not wipe localStorage (Forest save may be 9/10). Do not commit public/preview/ unless asked. Leftover enemy walk-frame PNG edits on disk are not this window. Do not regen Muster/Chapter halls or idle sheets unless they ask.
+This window is TILE-FIT / PLAY. Read docs/TOWER_ROADMAP.md, docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md first. Worlds and unique bodies are done — do not regen keepers, do not start endless/music/fodder, do not bring sticky place back, do not wipe localStorage (Forest save may be 9/10). Do not commit public/preview/ unless asked. Leftover enemy walk-frame PNG edits on disk are not this window. Do not regen Muster/Chapter halls, idle, or walk sheets unless they ask.
 
 Place UX (locked): click grass beside the path → 2×3 tray with Keeps / Elements tabs → pick → Build → done. Upgrade is two-click on the same button. Arrow/Cannon already fork after Lv3; do not add forks this window. Sell at the bottom. Path tiles refuse BUILDINGS. Troops may stand on the path and fight (Kingdom Rush stall). Enemies follow the painted road: stop, melee, then walk on.
 
-Live kit: Keeps = Arrow, Cannon, Longshot, Muster, Chapter + one empty. Elements = Ice, Lightning, Fire, Poison, Void + one empty. Muster = wooden training yard + lean warriors. Chapter = stone chapter house + plated knights. Same Rally UX. Art pass stills + idle are accepted. Walk is wrong: it looks like one leg swinging, not left-right-left-right. If old PNGs look stale, right-click the page → Reload (or restart 5173).
+Live kit: Keeps = Arrow, Cannon, Longshot, Muster, Chapter + one empty. Elements = Ice, Lightning, Fire, Poison, Void + one empty. Muster = wooden training yard + lean warriors. Chapter = stone chapter house + plated knights. Same Rally UX. Art pass stills + idle + walk-v2 are in. Walk is four stride phases; leg cycle is slower than the old shuffle (TROOP_WALK_HZ warrior 1.0 / knight 0.75) but travel speed is unchanged. If PNGs look stale, right-click the page → Reload (or restart 5173). First check: Rally smoke — troops walk with a readable left-right stride.
 
-PICTURES FIRST. Image-gen is allowed. Use generate2dsprite (magenta #FF00FF). After generating, OPEN A BROWSER GALLERY with the actual photos (not chat filenames) and wait for them to pick. Do not wire a walk sheet until they say yes.
+If the walk is accepted, tile-fit / play next (halls and troop billboards vs one tile). Do not add attack frames, 4-dir, forks, or Void vortex. Do not retune troop HP or Rally math unless play says it is wrong.
 
-Replace warrior walk 2×2 and knight walk 2×2. Keep identity locked to the accepted idle (same person). Four DISTINCT stride phases: right foot planted, passing, left foot planted, passing return. Not two poses ping-ponged. Single facing, flip on heading. Wire over public/sprites/troops/{warrior,knight}/walk-1..4.png. Keep src/game/drawTroops.ts flip/idle/walk logic — do not rewrite scale this window unless the new loop needs a slower step.
-
-Do not add attack frames, 4-dir, forks, or Void vortex. Do not retune troop HP or Rally math.
-
-Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → Keeps → Arrow → Build → Start wave → Raider takes damage; path still blocks buildings), plus Rally smoke: troops walk with a readable left-right stride. Push only if they ask.
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → Keeps → Arrow → Build → Start wave → Raider takes damage; path still blocks buildings), plus Rally smoke. Push only if they ask.
 ```
 
 

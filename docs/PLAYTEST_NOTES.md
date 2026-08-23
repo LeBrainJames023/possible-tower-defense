@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — troop walk fix (Aug 23)
+
+Wired warrior + knight walk-v2 (four stride phases). Slowed the leg cycle only (`TROOP_WALK_HZ` warrior 1.0 / knight 0.75; idle 0.55). Travel speed unchanged (warrior `u(95)`, knight `u(48)`). Gallery: http://127.0.0.1:5173/preview/troop-walk-fix.html. Forest 1: title → grass → Keeps → Arrow → Build → wave → Raider 100 → 89. Path still toasts blocked. Muster placed; Rally on a path tile; three warriors walked. Sticky place stayed dead. Forest save not wiped (9/10).
+
+Next: they check 1x after a reload if the stride reads. Then tile-fit / play if they say continue.
+
 ## This session — hall + troop art pass (Aug 22)
 
 Replaced Muster/Chapter stills and warrior/knight idle+walk. Tray chips now show those pictures (halls use a closer crop). They liked the halls and idle. **Walk looks like one leg swinging** — missing a full left-right-left-right stride (two-pose ping-pong or too fast). Gallery: http://127.0.0.1:5173/preview/hall-troop-art-pass.html. Vite restarted. Forest 1: title → grass → Keeps → Arrow → Build → wave → Raider 100 → 43. Path still toasts blocked. Muster placed; Rally on a path tile; three painted warriors walked to the flag. Sticky place stayed dead. Forest save not wiped (showed 9/10).
