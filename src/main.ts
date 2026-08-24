@@ -451,6 +451,7 @@ function arrowStat(cur: number, next: number, digits = 0): string {
 function extraTowerLine(def: (typeof TOWERS)[TowerKind]): string | null {
   if (def.kind === 'muster') return '3 warriors stall walkers on the path';
   if (def.kind === 'chapter') return '3 knights stall walkers on the path';
+  if (def.kind === 'void') return 'Every 4th orb pulls foes together';
   if (def.splash > 0) return `Splash ${(def.splash / TILE).toFixed(1)} tiles`;
   if (def.chain > 0) return `Chain ${def.chain}`;
   if (def.slow > 0) return `Slow ${Math.round(def.slow * 100)}%`;
@@ -576,6 +577,9 @@ function fillInspectTower(t: Tower): void {
             ['Attack', String(curD)],
             ['Fire', `${curRate.toFixed(1)} /s`],
           ];
+  if (!hall && t.kind === 'void' && !preview && !previewingFork) {
+    rows.push(['Pull', 'Every 4th orb']);
+  }
   if (!hall) {
     if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);
     if (t.frozen) rows.push(['Status', 'Frozen — cannot fire']);

@@ -25,7 +25,7 @@ Buildings never sit on the path. Muster / Chapter **troops** may stand on the pa
 
 Rally: click the built hall → inspect → large **Rally** → click a tile inside the circle (path allowed). No drag, no hover.
 
-Every keep splits **Faster vs Heavier** (elementals included; Cannon stays Rapid-fire / Mortar). Fork forms have their own stills. Void’s **black-hole pile-up** is still a later beat, not the everyday shot or the heavy fork.
+Every keep splits **Faster vs Heavier** (elementals included; Cannon stays Rapid-fire / Mortar). Fork forms have their own stills. Void’s everyday shot and heavy fork stay orbs. Every **4th** orb opens a path-pull pile-up (not a new keep, not Wind).
 
 ---
 
@@ -33,7 +33,7 @@ Every keep splits **Faster vs Heavier** (elementals included; Cannon stays Rapid
 
 1. **Tray first** — Keeps / Elements tabs work; Forest 1 still opens Arrow on grass; path still blocked.
 2. **Longshot shoots** — slot, stats, one building still, live match. Hits flyers. Not a second Arrow (longer, slower, harder).
-3. **Void shoots** — slot, small splash orbs, hits flyers, one building still. No vortex yet.
+3. **Void shoots** — slot, small splash orbs, hits flyers, one building still. Every 4th orb pulls.
 4. **Troops engine** — rally click, cap 3, melee on the path, die and respawn. Invisible test hall OK.
 5. **Muster** — building + warrior body.
 6. **Chapter** — building + knight body.
@@ -59,11 +59,13 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ---
 
+## Last window — Void vortex (Aug 23)
+
+Everyday Void stays a small splash orb. Heavy fork stays a fatter orb. Every 4th orb impact opens a black-hole pull that slides nearby foes along the painted road (flyers included; melee-hold skipped so Rally still wins). No 11th keep. No Wind.
+
 ## Last window — forks (Aug 23)
 
 Faster vs Heavier for all ten. Arrow/Cannon names stay Faster/Heavier and Rapid-fire/Mortar. Shooters fork after Lv3 (two-click). Halls skip the fake number ladder and fork from inspect (Rally stays). Void heavy is a fatter orb, not a vortex. Base troop HP / Rally math unchanged — hall forks only multiply. Optional `{kind}-a.png` / `{kind}-b.png` stills; missing files keep the live building.
-
-Next: play the forks, then parked work (vortex, endless, music).
 
 ## Last window — 1×2 halls (Aug 23)
 
@@ -83,14 +85,14 @@ Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `proj
 
 ## Later
 
-- Play the forks. Retune numbers only if a map feels wrong.
-- Parked from before: Void vortex, endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
+- Play Forest 1 Void pull + leftover forks. Retune numbers only if a map feels wrong.
+- Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 
 ---
 
 ## Ceiling
 
 - Ten keeps is the tray’s load. An 11th needs another layout talk.
-- Do not add Wind; Void owns the “pull to a point” family later.
+- Do not add Wind; Void already owns the pull-to-a-point family.
 - Do not add a gold-farm keep. Do not put buildings on the path.
 - Image-gen only for keeps they asked to paint. Raw sheets in `public/preview/`.

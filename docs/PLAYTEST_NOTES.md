@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — Void vortex (Aug 23)
+
+Everyday Void still shoots the small splash orb. Heavy fork stays a fatter orb. Every **4th** orb impact opens a black-hole pull that slides nearby foes along the painted road (flyers included). Troops holding a walker keep that stall — the hole does not yank a melee lock.
+
+Headless Forest 1: Void on grass, path refused, 4th orb opened a pull. `npm test` 153 passed. `npm run build` clean. Cursor browser tools did not connect this window — check 1x after a reload: Forest 1 → grass → Elements → Void → Build → Start wave. Raider takes orb damage. After four hits, a dark hole should bunch walkers on the road. Path still blocks buildings. Sticky place stays dead.
+
 ## This session — 1×2 halls (Aug 23)
 
 Muster and Chapter are two tiles wide. Click one grass tile; the pair prefers the neighbor to the right. Inspect either tile. Sell frees both. Troop HP / Rally / cap-3 unchanged. Six new landscape stills (base + Faster/Heavier) replace the old circular yards.

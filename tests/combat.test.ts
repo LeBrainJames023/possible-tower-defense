@@ -4,8 +4,11 @@ import { ENEMY_GAIT } from '../src/game/enemies';
 import { Enemy, Tower } from '../src/game/entities';
 import { canPlaceOnCell, buildGrid, LEVELS, pathWaypoints } from '../src/game/levels';
 import { pickTarget, splashMultiplier, canTarget, enemyAimPoint } from '../src/game/combat';
+import { spawnVortex, stepVortices } from '../src/game/vortices';
+import { lengthAlongPath } from '../src/shared/math';
 import { BURROW_UP, CRUST_ARMOR, CRUST_MELTED, DASH_EVERY, DASH_MUL, ERUPT_FIRST, FREEZE_EVERY, PHASE_UP, PLATE_ARMOR, PLATE_MELTED, RALLY_MUL, SLIDE_EVERY, SLIDE_MUL, SMOLDER_HP, WARP_AT, WARP_SKIP, applyPackRally, stepEnemyVerb } from '../src/game/verbs';
-import { CombatSandbox, waveEnemyCount } from './helpers/combatSandbox';
+import { Game } from '../src/game/Game';
+import { CombatSandbox, makeFakeCanvas, waveEnemyCount } from './helpers/combatSandbox';
 
 describe('shared combat rules', () => {
   it('aims at the foe furthest along the path', () => {
@@ -170,6 +173,99 @@ describe('tower combat sandbox', () => {
     expect(grunt.hp).toBeLessThan(grunt.maxHp);
     expect(flyer.burnTimer).toBe(0);
     expect(grunt.poisonTimer).toBe(0);
+  });
+
+  it('opens a void vortex on the 4th orb, not the first three', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const t = sim.place('void', 6, 5);
+    const e = sim.spawn('grunt', 8);
+    e.pos = { x: t.x + 24, y: t.y };
+    sim.run(1.2);
+    expect(sim.vortices.length).toBe(0);
+    expect(e.hp).toBeLessThan(e.maxHp);
+    sim.run(3.1);
+    expect(t.voidOrbs).toBeGreaterThanOrEqual(4);
+    expect(sim.vortices.length).toBeGreaterThanOrEqual(1);
+    expect(sim.projectiles.every((p) => p.kind === 'void')).toBe(true);
+  });
+
+  it('void heavy fork still fires orbs; 4th impact still pulls', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const t = sim.place('void', 6, 5);
+    t.fork = 'b';
+    const e = sim.spawn('grunt', 8);
+    e.pos = { x: t.x + 24, y: t.y };
+    sim.run(6);
+    expect(t.voidOrbs).toBeGreaterThanOrEqual(4);
+    expect(sim.vortices.length).toBeGreaterThanOrEqual(1);
+    expect(sim.projectiles.every((p) => p.kind === 'void')).toBe(true);
+  });
+
+  it('vortex slides walkers together along the path and skips a melee hold', () => {
+    const sim = new CombatSandbox();
+    sim.freezeEnemies = true;
+    const a = sim.spawn('grunt');
+    const b = sim.spawn('grunt');
+    const held = sim.spawn('grunt');
+    a.progress = 0.32;
+    b.progress = 0.4;
+    held.progress = 0.3;
+    held.meleeHold = true;
+    a.pos = lengthAlongPath(sim.waypoints, a.progress);
+    b.pos = lengthAlongPath(sim.waypoints, b.progress);
+    held.pos = lengthAlongPath(sim.waypoints, held.progress);
+    const mid = lengthAlongPath(sim.waypoints, 0.36);
+    const vortices = [spawnVortex(mid, 80)];
+    const gap0 = Math.abs(b.progress - a.progress);
+    stepVortices(vortices, sim.enemies, sim.waypoints, 0.8);
+    expect(Math.abs(b.progress - a.progress)).toBeLessThan(gap0 - 0.01);
+    expect(held.progress).toBeCloseTo(0.3);
+  });
+
+  it('Forest 1 Void damages a Raider and opens a pull on the 4th orb', () => {
+    globalThis.requestAnimationFrame = () => 0;
+    globalThis.cancelAnimationFrame = () => {};
+    const game = new Game(makeFakeCanvas());
+    game.audio.muted = true;
+    game.startLevel(1);
+    game.stopLoop();
+    let grass: { c: number; r: number } | null = null;
+    let path: { c: number; r: number } | null = null;
+    const road = game.level.pathTiles;
+    path = road[0] ?? null;
+    const from = Math.floor(road.length * 0.38);
+    for (let i = from; i < road.length && !grass; i++) {
+      const cell = road[i];
+      for (const [dc, dr] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ] as const) {
+        const nc = cell.c + dc;
+        const nr = cell.r + dr;
+        if (game.canBuildAt(nc, nr)) {
+          grass = { c: nc, r: nr };
+          break;
+        }
+      }
+    }
+    expect(grass).not.toBeNull();
+    expect(path).not.toBeNull();
+    game.selectedKind = 'void';
+    expect(game.tryPlace(path!.c, path!.r)).toBe(false);
+    expect(game.tryPlace(grass!.c, grass!.r)).toBe(true);
+    game.startWave();
+    const tick = game as unknown as { update(dt: number): void };
+    for (let i = 0; i < 280; i++) {
+      tick.update(1 / 20);
+      if (game.towers[0].voidOrbs >= 4 && game.vortices.length > 0) break;
+    }
+    expect(game.towers[0].voidOrbs).toBeGreaterThanOrEqual(4);
+    expect(game.vortices.length).toBeGreaterThanOrEqual(1);
+    game.stopLoop();
   });
 
   it('fire applies burn and poison applies DoT', () => {

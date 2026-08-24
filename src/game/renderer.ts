@@ -9,6 +9,7 @@ import { TEX, texReady } from './assets';
 import { drawHallBillboard } from './billboards';
 import { hallCenter } from './footprint';
 import { drawLandmarks } from './drawLandmarks';
+import { drawVortices, type Vortex } from './vortices';
 import { drawWorldDecor, drawWorldGround, drawWorldPath } from './drawWorld';
 import { isWetLevel, type WorldId } from './worlds';
 import type { LevelDef } from './levels';
@@ -382,6 +383,10 @@ export class Renderer {
 
   drawProjectile(p: Projectile): void {
     drawProjectile(this.ctx, p);
+  }
+
+  drawVortices(vortices: Vortex[]): void {
+    drawVortices(this.ctx, vortices, this.time);
   }
 
   drawBeams(beams: BeamFx[]): void {

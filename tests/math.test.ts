@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dist, pathTotalLength, lengthAlongPath, lerpAngle } from '../src/shared/math';
+import { dist, pathTotalLength, lengthAlongPath, lerpAngle, progressAtPoint } from '../src/shared/math';
 
 describe('math', () => {
   it('computes distance', () => {
@@ -16,6 +16,16 @@ describe('math', () => {
     const mid = lengthAlongPath(wp, 0.5);
     expect(mid.x).toBeCloseTo(75);
     expect(mid.y).toBeCloseTo(0);
+  });
+
+  it('maps a nearby point back onto path progress', () => {
+    const wp = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 50 },
+    ];
+    expect(progressAtPoint(wp, { x: 50, y: 8 })).toBeCloseTo(50 / 150, 2);
+    expect(progressAtPoint(wp, { x: 108, y: 25 })).toBeCloseTo(125 / 150, 2);
   });
 
   it('lerps angles across the -PI wrap', () => {

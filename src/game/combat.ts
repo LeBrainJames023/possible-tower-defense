@@ -1,15 +1,18 @@
-import { CHAIN_RANGE, PROJECTILE_FEEL, isTroopHall, u } from './constants';
+import { CHAIN_RANGE, PROJECTILE_FEEL, VOID_VORTEX_EVERY, isTroopHall, u } from './constants';
 import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
 import { MUFFLE_FIRE, SANDSTORM_FIRE, isJarlFreeze, isSandstorm, isWardenSeal, muffledTowerIds, towerDamageMul, untargetable } from './verbs';
+import { spawnVortex, stepVortices, type Vortex } from './vortices';
 
 export interface CombatWorld {
   enemies: Enemy[];
   towers: Tower[];
   projectiles: Projectile[];
   beams: BeamFx[];
+  waypoints: Vec2[];
+  vortices: Vortex[];
 }
 
 export interface CombatHooks {
@@ -139,6 +142,11 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
   const mods = t.forkMods();
   const spawn = t.muzzlePoint();
   const lock = enemyAimPoint(target);
+  let opensVortex = false;
+  if (t.kind === 'void') {
+    t.voidOrbs += 1;
+    opensVortex = t.voidOrbs % VOID_VORTEX_EVERY === 0;
+  }
   world.projectiles.push(
     new Projectile({
       x: spawn.x,
@@ -169,16 +177,18 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
       kind: t.kind,
       arc: feel.arc * mods.arcMul,
       homing: feel.homing,
+      opensVortex,
     }),
   );
 }
 
-export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {}): void {
+export function applyHit(p: Projectile, world: CombatWorld, hooks: CombatHooks = {}): void {
   hooks.onImpact?.(p);
+  const enemies = world.enemies;
+  const tgt = p.targetId != null ? enemies.find((e) => e.id === p.targetId) : undefined;
+  const origin = tgt?.pos ?? { x: p.x, y: p.y };
 
   if (p.splash > 0) {
-    const tgt = p.targetId != null ? enemies.find((e) => e.id === p.targetId) : undefined;
-    const origin = tgt?.pos ?? { x: p.x, y: p.y };
     for (const e of enemies) {
       if (!e.alive) continue;
       if (untargetable(e)) continue;
@@ -187,8 +197,8 @@ export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {
       if (mul > 0) applyPayload(e, p, mul, hooks);
     }
   } else if (p.targetId != null) {
-    const tgt = enemies.find((e) => e.alive && e.id === p.targetId);
-    if (tgt && !untargetable(tgt) && !(p.kind === 'cannon' && tgt.flying)) applyPayload(tgt, p, 1, hooks);
+    const live = enemies.find((e) => e.alive && e.id === p.targetId);
+    if (live && !untargetable(live) && !(p.kind === 'cannon' && live.flying)) applyPayload(live, p, 1, hooks);
     else {
       const near = enemies.find(
         (e) =>
@@ -200,6 +210,8 @@ export function applyHit(p: Projectile, enemies: Enemy[], hooks: CombatHooks = {
       if (near) applyPayload(near, p, 1, hooks);
     }
   }
+
+  if (p.opensVortex) world.vortices.push(spawnVortex(origin, p.splash));
 
   hooks.afterHits?.();
 }
@@ -247,7 +259,7 @@ export function stepProjectiles(world: CombatWorld, dt: number, hooks: CombatHoo
         p.ty += (lock.y - p.ty) * k;
       }
     }
-    if (p.update(dt)) applyHit(p, world.enemies, hooks);
+    if (p.update(dt)) applyHit(p, world, hooks);
   }
   world.projectiles = world.projectiles.filter((p) => p.alive);
 }
@@ -255,5 +267,6 @@ export function stepProjectiles(world: CombatWorld, dt: number, hooks: CombatHoo
 export function stepCombat(world: CombatWorld, dt: number, hooks: CombatHooks = {}): void {
   stepTowers(world, dt, hooks);
   stepProjectiles(world, dt, hooks);
+  world.vortices = stepVortices(world.vortices, world.enemies, world.waypoints, dt);
   world.beams = world.beams.map((b) => ({ ...b, life: b.life - dt })).filter((b) => b.life > 0);
 }

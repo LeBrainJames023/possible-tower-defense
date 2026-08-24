@@ -191,6 +191,8 @@ export class Tower {
   rallyRow: number;
   /** Seconds until the next troop walks out the door. */
   trainCooldown = 0;
+  /** Void orbs fired this keep — every 4th opens a pull. */
+  voidOrbs = 0;
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;
@@ -374,6 +376,8 @@ export class Projectile {
   alive = true;
   trail: boolean;
   age = 0;
+  /** True on every 4th Void orb — impact opens a path pull. */
+  opensVortex = false;
 
   constructor(opts: {
     x: number;
@@ -397,6 +401,7 @@ export class Projectile {
     kind?: TowerKind;
     arc?: number;
     homing?: number;
+    opensVortex?: boolean;
   }) {
     this.x = opts.x;
     this.y = opts.y;
@@ -421,6 +426,7 @@ export class Projectile {
     this.kind = opts.kind ?? 'arrow';
     this.arc = opts.arc ?? 0;
     this.homing = opts.homing ?? 1;
+    this.opensVortex = opts.opensVortex ?? false;
   }
 
   /** 0 at spawn, 1 at impact — used for mortar hang. */

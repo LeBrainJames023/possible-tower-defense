@@ -7,6 +7,7 @@ import { buildGrid, buildWave, LEVELS, pathWaypoints } from '../../src/game/leve
 import { Enemy, Tower, Projectile, type BeamFx } from '../../src/game/entities';
 import { stepCombat, type CombatWorld } from '../../src/game/combat';
 import { stepHalls, type Troop, type TroopWorld } from '../../src/game/troops';
+import type { Vortex } from '../../src/game/vortices';
 
 export function makeFakeCanvas(): HTMLCanvasElement {
   const noop = () => {};
@@ -69,6 +70,7 @@ export class CombatSandbox implements CombatWorld, TroopWorld {
   troops: Troop[] = [];
   projectiles: Projectile[] = [];
   beams: BeamFx[] = [];
+  vortices: Vortex[] = [];
   kills = 0;
   damageDealt = 0;
   /** When true, enemies stay put (for isolated tower DPS checks). */

@@ -61,3 +61,28 @@ export function pathTotalLength(waypoints: Vec2[]): number {
   }
   return total;
 }
+
+/** 0–1 path progress of the closest point on the polyline. */
+export function progressAtPoint(waypoints: Vec2[], pos: Vec2): number {
+  const total = pathTotalLength(waypoints);
+  if (total <= 0) return 0;
+  let bestD = Infinity;
+  let bestTravel = 0;
+  let traveled = 0;
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    const a = waypoints[i];
+    const b = waypoints[i + 1];
+    const seg = dist(a, b);
+    if (seg <= 0) continue;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const t = clamp(((pos.x - a.x) * dx + (pos.y - a.y) * dy) / (seg * seg), 0, 1);
+    const d = dist(pos, { x: a.x + dx * t, y: a.y + dy * t });
+    if (d < bestD) {
+      bestD = d;
+      bestTravel = traveled + seg * t;
+    }
+    traveled += seg;
+  }
+  return bestTravel / total;
+}

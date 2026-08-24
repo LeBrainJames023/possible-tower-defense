@@ -25,6 +25,12 @@ export const LEVEL_COUNT = STAGES_PER_WORLD;
 /** Max lightning jump distance between chained foes. */
 export const CHAIN_RANGE = u(108);
 
+/** Every Nth Void orb opens a pull. Everyday shot stays an orb. */
+export const VOID_VORTEX_EVERY = 4;
+export const VOID_VORTEX_LIFE = 2.4;
+export const VOID_VORTEX_RADIUS = u(96);
+export const VOID_VORTEX_PULL = u(70);
+
 export type CellKind = 'grass' | 'path' | 'decor';
 
 export type TowerKind =
@@ -241,7 +247,7 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     kind: 'void',
     name: 'Void',
     cost: 110,
-    description: 'Small splash dark orbs. Hits flyers.',
+    description: 'Small splash dark orbs. Every 4th orb pulls foes together. Hits flyers.',
     role: 'Burst',
     color: '#8a6cff',
     colorDark: '#2a1458',

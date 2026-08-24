@@ -22,6 +22,7 @@ import {
 } from './levels';
 import { Enemy, Tower, Projectile, type BeamFx, type FloatingText } from './entities';
 import { stepCombat, type CombatHooks } from './combat';
+import type { Vortex } from './vortices';
 import {
   canUseBuildCell,
   freeFootprint,
@@ -83,6 +84,7 @@ export class Game {
   enemies: Enemy[] = [];
   projectiles: Projectile[] = [];
   beams: BeamFx[] = [];
+  vortices: Vortex[] = [];
   floats: FloatingText[] = [];
 
   hover: { c: number; r: number } | null = null;
@@ -139,6 +141,7 @@ export class Game {
     this.enemies = [];
     this.projectiles = [];
     this.beams = [];
+    this.vortices = [];
     this.floats = [];
     this.occupied.clear();
     this.spawnQueue = [];
@@ -595,6 +598,11 @@ export class Game {
       },
       onImpact: (p) => {
         this.fx.impact(p.x, p.y, p.kind, p.color, p.splash);
+        if (p.opensVortex) {
+          this.fx.ring(p.x, p.y, '#140818', Math.max(p.splash * 2.4, u(72)), 6, 0.7);
+          this.fx.flash(p.x, p.y, '#2a1048', u(40), 0.22);
+          this.fx.addShake(2.2);
+        }
         this.audio.impact(p.kind);
       },
       afterHits: () => this.collectBounties(),
@@ -690,6 +698,7 @@ export class Game {
     units.sort((a, b) => a.y - b.y || a.z - b.z);
     for (const unit of units) unit.draw();
     for (const p of this.projectiles) this.renderer.drawProjectile(p);
+    this.renderer.drawVortices(this.vortices);
     this.renderer.drawBeams(this.beams);
     this.renderer.drawParticles(this.fx);
     this.renderer.drawFloating(this.floats);
