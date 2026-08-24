@@ -1,5 +1,6 @@
 import type { Enemy, Tower } from './entities';
 import { PX, TILE, TOWER_FEET, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
+import { hallFootprint } from './footprint';
 import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
 import { drawHallBillboard } from './billboards';
 import { drawTowerBody } from './drawTowers';
@@ -56,6 +57,15 @@ function drawCenteredBillboard(
 function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: number): boolean {
   const h = billboardHeight(t);
   const feet = TOWER_FEET;
+  const forkId = t.previewFork ?? t.fork;
+  if (forkId) {
+    const forkImg = TEX.towerForks[t.kind][forkId];
+    if (texReady(forkImg)) {
+      if (isTroopHall(t.kind)) drawHallBillboard(ctx, forkImg, feet);
+      else drawFeetBillboard(ctx, forkImg, h, feet);
+      return true;
+    }
+  }
   const { arrowBase, arrowTurret, cannonGun, cannonBase } = TEX.towerParts;
 
   if (t.kind === 'arrow' && texReady(arrowBase) && texReady(arrowTurret)) {
@@ -237,6 +247,17 @@ export function drawTower(
   }
 
   if (isTroopHall(t.kind)) {
+    for (const cell of hallFootprint(t.col, t.row)) {
+      const bx = cell.c * TILE;
+      const by = cell.r * TILE;
+      ctx.fillStyle = selected ? 'rgba(244, 211, 94, 0.16)' : 'rgba(20, 12, 8, 0.12)';
+      ctx.fillRect(bx + 3, by + 3, TILE - 6, TILE - 6);
+      if (selected) {
+        ctx.strokeStyle = 'rgba(244, 211, 94, 0.85)';
+        ctx.lineWidth = 2.4 * PX;
+        ctx.strokeRect(bx + 2, by + 2, TILE - 4, TILE - 4);
+      }
+    }
     const fx = t.rallyCol * TILE + TILE / 2;
     const fy = t.rallyRow * TILE + TILE / 2;
     ctx.strokeStyle = 'rgba(40, 24, 12, 0.85)';

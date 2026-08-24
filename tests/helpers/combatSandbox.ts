@@ -1,7 +1,8 @@
 /**
  * Headless combat helpers — same hit rules as the live game, no canvas/audio.
  */
-import { MAP_H, MAP_W, TILE, type TowerKind } from '../../src/game/constants';
+import { isTroopHall, MAP_H, MAP_W, TILE, type TowerKind } from '../../src/game/constants';
+import { canUseBuildCell, hallCenter, hallPairFromClick } from '../../src/game/footprint';
 import { buildGrid, buildWave, LEVELS, pathWaypoints } from '../../src/game/levels';
 import { Enemy, Tower, Projectile, type BeamFx } from '../../src/game/entities';
 import { stepCombat, type CombatWorld } from '../../src/game/combat';
@@ -80,7 +81,21 @@ export class CombatSandbox implements CombatWorld, TroopWorld {
   }
 
   place(kind: TowerKind, c: number, r: number): Tower {
-    const t = new Tower(kind, c, r, c * TILE + TILE / 2, r * TILE + TILE / 2);
+    let col = c;
+    let row = r;
+    let x = c * TILE + TILE / 2;
+    let y = r * TILE + TILE / 2;
+    if (isTroopHall(kind)) {
+      const pair = hallPairFromClick((cc, rr) => canUseBuildCell(this.grid, new Set(), cc, rr), c, r);
+      if (pair) {
+        col = pair.left;
+        row = pair.row;
+        const mid = hallCenter(col, row);
+        x = mid.x;
+        y = mid.y;
+      }
+    }
+    const t = new Tower(kind, col, row, x, y);
     this.towers.push(t);
     return t;
   }

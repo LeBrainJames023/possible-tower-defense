@@ -1,4 +1,4 @@
-import { COLS, ROWS, TILE, PX, type CellKind, type TowerKind, TOWERS } from './constants';
+import { COLS, ROWS, TILE, PX, TOWER_FEET, isTroopHall, type CellKind, type TowerKind, TOWERS } from './constants';
 import type { Enemy, FloatingText, BeamFx, Projectile, Tower } from './entities';
 import type { Vec2 } from '../shared/math';
 import { drawBeams, drawEnemy, drawProjectile, drawTower, drawTroop } from './sprites';
@@ -6,6 +6,8 @@ import type { Troop } from './troops';
 import { drawFx, type FxWorld } from './fx';
 import { themeFor, type MapTheme } from './themes';
 import { TEX, texReady } from './assets';
+import { drawHallBillboard } from './billboards';
+import { hallCenter } from './footprint';
 import { drawLandmarks } from './drawLandmarks';
 import { drawWorldDecor, drawWorldGround, drawWorldPath } from './drawWorld';
 import { isWetLevel, type WorldId } from './worlds';
@@ -50,10 +52,11 @@ export class Renderer {
 
   drawGrid(
     grid: CellKind[][],
-    hover: { c: number; r: number } | null,
+    hoverCells: Array<{ c: number; r: number }>,
     canPlace: boolean,
     selectedKind: TowerKind | null,
     showBuildHints: boolean,
+    rangeAt: { x: number; y: number } | null = null,
   ): void {
     const { ctx } = this;
     for (let r = 0; r < ROWS; r++) {
@@ -86,24 +89,43 @@ export class Renderer {
       }
     }
 
-    if (hover) {
-      const x = hover.c * TILE;
-      const y = hover.r * TILE;
-      if (selectedKind) {
-        ctx.fillStyle = canPlace ? 'rgba(87, 204, 153, 0.28)' : 'rgba(239, 71, 111, 0.3)';
-        ctx.fillRect(x, y, TILE, TILE);
-        if (canPlace) {
-          const def = TOWERS[selectedKind];
-          ctx.beginPath();
-          ctx.arc(x + TILE / 2, y + TILE / 2, def.range, 0, Math.PI * 2);
-          ctx.strokeStyle = `${def.color}66`;
-          ctx.lineWidth = 2 * PX;
-          ctx.stroke();
+    if (hoverCells.length) {
+      for (const hover of hoverCells) {
+        const x = hover.c * TILE;
+        const y = hover.r * TILE;
+        if (selectedKind) {
+          ctx.fillStyle = canPlace ? 'rgba(87, 204, 153, 0.28)' : 'rgba(239, 71, 111, 0.3)';
+          ctx.fillRect(x, y, TILE, TILE);
+        }
+        ctx.strokeStyle = selectedKind ? (canPlace ? '#57cc99' : '#ef476f') : 'rgba(244, 211, 94, 0.85)';
+        ctx.lineWidth = 2.5 * PX;
+        ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE - 2);
+      }
+      if (selectedKind && isTroopHall(selectedKind) && hoverCells.length >= 2) {
+        const left = Math.min(...hoverCells.map((cell) => cell.c));
+        const row = hoverCells[0].r;
+        const mid = hallCenter(left, row);
+        const img = TEX.towers[selectedKind];
+        if (texReady(img)) {
+          ctx.save();
+          ctx.globalAlpha = canPlace ? 0.78 : 0.4;
+          ctx.translate(mid.x, mid.y);
+          drawHallBillboard(ctx, img, TOWER_FEET);
+          ctx.restore();
         }
       }
-      ctx.strokeStyle = selectedKind ? (canPlace ? '#57cc99' : '#ef476f') : 'rgba(244, 211, 94, 0.85)';
-      ctx.lineWidth = 2.5 * PX;
-      ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE - 2);
+      if (selectedKind && canPlace) {
+        const def = TOWERS[selectedKind];
+        const origin = rangeAt ?? {
+          x: hoverCells[0].c * TILE + TILE / 2,
+          y: hoverCells[0].r * TILE + TILE / 2,
+        };
+        ctx.beginPath();
+        ctx.arc(origin.x, origin.y, def.range, 0, Math.PI * 2);
+        ctx.strokeStyle = `${def.color}66`;
+        ctx.lineWidth = 2 * PX;
+        ctx.stroke();
+      }
     }
   }
 

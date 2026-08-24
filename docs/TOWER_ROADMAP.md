@@ -25,7 +25,7 @@ Buildings never sit on the path. Muster / Chapter **troops** may stand on the pa
 
 Rally: click the built hall → inspect → large **Rally** → click a tile inside the circle (path allowed). No drag, no hover.
 
-Forks wait until all ten play. Then every keep splits **Faster vs Heavier** (elementals included). Fork forms get new pictures in that pass. Void’s **black-hole pile-up** is a later beat (upgrade pulse or the heavy fork), not the everyday shot.
+Every keep splits **Faster vs Heavier** (elementals included; Cannon stays Rapid-fire / Mortar). Fork forms have their own stills. Void’s **black-hole pile-up** is still a later beat, not the everyday shot or the heavy fork.
 
 ---
 
@@ -59,11 +59,15 @@ Quality gates after each chunk: `npm test`, `npm run build`, Forest 1 smoke. Sti
 
 ---
 
-## Last window — tile-fit / play (Aug 23)
+## Last window — forks (Aug 23)
 
-Halls content-fit one grass tile. Troop billboards use `TROOP_PAINT_H` (visual only). Forest 1 Rally stall still works. No HP/Rally retune. No forks. No vortex.
+Faster vs Heavier for all ten. Arrow/Cannon names stay Faster/Heavier and Rapid-fire/Mortar. Shooters fork after Lv3 (two-click). Halls skip the fake number ladder and fork from inspect (Rally stays). Void heavy is a fatter orb, not a vortex. Base troop HP / Rally math unchanged — hall forks only multiply. Optional `{kind}-a.png` / `{kind}-b.png` stills; missing files keep the live building.
 
-Next: **forks** if they say continue (Faster vs Heavier for all ten, then fork art).
+Next: play the forks, then parked work (vortex, endless, music).
+
+## Last window — 1×2 halls (Aug 23)
+
+Muster and Chapter sit on two grass tiles in one row (click one, pair prefers right). Arrow / Cannon / Elements stay one tile. Rally, troop HP, and cap-3 unchanged. Six wide stills replaced the old one-tile yards (base + Faster/Heavier). Isolated grass beside the path still refuses a hall.
 
 ## Last window — hall + troop art pass (Aug 22)
 
@@ -79,8 +83,8 @@ Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `proj
 
 ## Later
 
-- Forks for all ten, then fork looks (two pictures per keep).
-- Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
+- Play the forks. Retune numbers only if a map feels wrong.
+- Parked from before: Void vortex, endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
 
 ---
 

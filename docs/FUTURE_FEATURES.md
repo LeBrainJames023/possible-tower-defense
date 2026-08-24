@@ -1,5 +1,36 @@
 # Future features
 
+## Last window — forks (Aug 23)
+
+Faster vs Heavier for all ten. Arrow/Cannon keep their old names. Shooters fork after Lv3 (two-click). Halls fork from inspect — no fake Lv2/Lv3, Rally stays, base troop HP unchanged. Void heavy is a fatter orb, not a vortex. Twenty fork stills wired as `{kind}-a.png` / `{kind}-b.png`; missing files fall back to the live building. Headless Forest 1: Arrow damages, path blocked, Muster stalls, heavier fork restats warriors. Browser tab tools did not connect this window — check 1x after a reload.
+
+### Next window
+Play the forks (Ice/Fire/Void + one hall). Then parked work. Do not start endless, music, fodder, or Void vortex. Do not regen halls unless they ask.
+
+### Parked
+Attack frames, 4-dir troops, Void vortex, endless, splash retune, 14-arrow Forest 10 start gold, music, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. Leftover enemy walk-frame PNG edits on disk are not the next window.
+
+### Watch-outs
+- Fixed-path TD; **buildings** never on path. Troops may stand on it. BCI: large buttons, no drag, no hover-only.
+- Forest save may be 9/10 — do not wipe localStorage.
+- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → Keeps → Arrow → Build → wave → damage. Path blocked. Rally smoke on Muster or Chapter. Fork: click a Lv3 shooter or a hall → Faster / Heavier → click again to pay.
+
+### Continue prompt (paste into a new chat)
+
+```
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+
+This window is PLAY THE FORKS unless they pick something else. Read docs/TOWER_ROADMAP.md, docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md first. Worlds and unique bodies are done — do not regen keepers, do not start endless/music/fodder, do not bring sticky place back, do not wipe localStorage (Forest save may be 9/10). Do not commit public/preview/ unless asked. Leftover enemy walk-frame PNG edits on disk are not this window. Do not regen Muster/Chapter halls, idle, or walk sheets unless they ask.
+
+Place UX (locked): click grass beside the path → 2×3 tray with Keeps / Elements tabs → pick → Build → done. Upgrade is two-click on the same button. After Lv3, shooters pick Faster vs Heavier (Cannon is Rapid-fire vs Mortar). Halls fork from inspect (Rally stays). Sell at the bottom. Path tiles refuse BUILDINGS. Troops may stand on the path and fight (Kingdom Rush stall). Enemies follow the painted road: stop, melee, then walk on.
+
+Live kit: Keeps = Arrow, Cannon, Longshot, Muster, Chapter + one empty. Elements = Ice, Lightning, Fire, Poison, Void + one empty. Fork stills are `{kind}-a.png` / `{kind}-b.png`. Void heavy is a fatter orb — no vortex. Halls sit on two grass tiles (1×2). Troop paint is warrior u(48) / knight u(56) — visual only. If PNGs look stale, right-click the page → Reload (or restart 5173).
+
+Do not add attack frames, 4-dir, or Void vortex. Do not retune troop HP or Rally math unless play says it is wrong.
+
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → Keeps → Arrow → Build → Start wave → Raider takes damage; path still blocks buildings), plus Rally smoke, plus one fork (Ice to Lv3 or Muster Faster/Heavier). Push only if they ask.
+```
+
 ## Last window — tile-fit / play (Aug 23)
 
 Halls fill one grass tile (crop the empty PNG padding, do not regen). Troops use a paint height so they read as people on the path (warrior `u(48)`, knight `u(56)`). Combat radius, HP, and Rally math unchanged. Forest 1: Arrow + Muster + Chapter; path blocked; Raiders damaged and stalled. Walk-v2 left as-is. Forest save not wiped (9/10).

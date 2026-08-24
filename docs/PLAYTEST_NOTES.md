@@ -1,5 +1,23 @@
 # Playtest notes
 
+## This session — 1×2 halls (Aug 23)
+
+Muster and Chapter are two tiles wide. Click one grass tile; the pair prefers the neighbor to the right. Inspect either tile. Sell frees both. Troop HP / Rally / cap-3 unchanged. Six new landscape stills (base + Faster/Heavier) replace the old circular yards.
+
+`npm test` 146 passed. Isolated one-tile grass refuses a hall. Forest 1 still has a 1×2 seat beside the road.
+
+Check 1x after a reload: grass → Keeps → Muster. The clicked tile plus its neighbor should light at once (ghost yard on both). Build. Inspect outlines both tiles. Path still blocks buildings. Rally still works. Sell the old one-tile Muster if it is still sitting from before the reload.
+
+## This session — forks (Aug 23)
+
+All ten keeps now split Faster vs Heavier (Cannon stays Rapid-fire / Mortar). Shooters still climb Lv1–3, then two big path buttons, two-click to pay. Halls skip the empty number ladder and show Faster / Heavier on inspect next to Rally. Base warrior/knight HP and Rally math are unchanged — a hall fork only multiplies train time / troop HP. Void heavy is a fatter dark splash, not a black hole.
+
+Twenty fork stills are live (`public/sprites/towers/{kind}-a.png` and `-b.png`). Unforked buildings keep their old pictures (Arrow/Cannon still rotate). After a path is paid, the keep swaps to the fork still.
+
+Headless Forest 1: Arrow damages Raiders, path still blocks buildings, Muster troops stall, heavier fork restats living warriors. `npm test` 143 passed. `npm run build` clean. Cursor browser tools did not connect this window — check 1x after a reload (right-click the page → Reload). Forest save not wiped (may still be 9/10). Sticky place stayed dead.
+
+Check 1x: Forest 1 smoke, then Muster → Faster/Heavier preview → pay if you want. Or Ice to Lv3 → two path buttons. Say if a fork picture looks like a cousin.
+
 ## This session — tile-fit / play (Aug 23)
 
 Halls and troops now sit against one tile. Muster/Chapter crop the empty PNG padding so the yard/house fills the grass square (height can grow up; width stays in-tile). Troop paint is a fixed height now (warrior `u(48)`, knight `u(56)`), not combat radius — same people, easier to read on the path. HP / Rally / travel speed unchanged.

@@ -89,16 +89,12 @@ describe('level-3 forks', () => {
     expect(t.sellValue()).toBeGreaterThan(sellValueFor(TOWERS.arrow.cost, 3, false));
   });
 
-  it('gives Cannon rapid-fire vs mortar and leaves Ice as a number-up', () => {
+  it('gives Cannon rapid-fire vs mortar after Lv3', () => {
     const cannon = new Tower('cannon', 2, 2, 100, 100);
     cannon.level = 3;
     expect(cannon.splashAt('a')).toBeLessThan(cannon.splashAt(null));
     expect(cannon.splashAt('b')).toBeGreaterThan(cannon.splashAt(null));
     expect(cannon.fireRateAt(3, 'a')).toBeGreaterThan(cannon.fireRateAt(3, 'b'));
-    const ice = new Tower('ice', 2, 2, 100, 100);
-    ice.level = 3;
-    expect(ice.canFork()).toBe(false);
-    expect(ice.isMaxed()).toBe(true);
   });
 });
 

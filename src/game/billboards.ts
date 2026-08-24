@@ -1,12 +1,13 @@
 /**
  * Visual size only. Combat radius, HP, and Rally stay in troops.ts / constants.ts.
- * Halls crop sprite-forge padding so the yard/house fills one tile.
+ * Halls crop sprite-forge padding so the yard/house fills a two-tile pad.
  */
 import { TILE, u } from './constants';
+import { HALL_SPAN } from './footprint';
 import type { TroopKind } from './troops';
 
-/** Visible hall footprint — one grass tile. Height may grow up. */
-export const HALL_TILE_FILL = 0.92;
+/** Visible hall footprint — two grass tiles wide. Height may grow up. */
+export const HALL_TILE_FILL = 0.94;
 
 /** Canvas height for painted troops. Idle/walk share this so the cycle does not pop. */
 export const TROOP_PAINT_H: Record<TroopKind, number> = {
@@ -19,7 +20,7 @@ type ContentBox = { sx: number; sy: number; sw: number; sh: number };
 const contentCache = new WeakMap<HTMLImageElement, ContentBox>();
 
 export function hallBillboardSize(contentW: number, contentH: number): { w: number; h: number } {
-  const w = TILE * HALL_TILE_FILL;
+  const w = TILE * HALL_SPAN * HALL_TILE_FILL;
   const h = w * (contentH / Math.max(1, contentW));
   return { w, h };
 }

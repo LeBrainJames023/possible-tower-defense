@@ -1,5 +1,5 @@
 import type { Tower } from './entities';
-import { PX } from './constants';
+import { PX, TILE } from './constants';
 
 function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -490,10 +490,11 @@ function drawMusterYard(
   scale: number,
 ): void {
   aura(ctx, color, 16 * scale, time);
-  wood(ctx, -11 * scale, -8 * scale, 22 * scale, 20 * scale);
-  goldBand(ctx, -11 * scale, -10 * scale, 22 * scale, 2.2 * scale);
+  const half = TILE * 0.88;
+  wood(ctx, -half, -8 * scale, half * 2, 20 * scale);
+  goldBand(ctx, -half, -10 * scale, half * 2, 2.2 * scale);
   ctx.fillStyle = dark;
-  ctx.fillRect(-13 * scale, -12 * scale, 26 * scale, 3.4 * scale);
+  ctx.fillRect(-half - 2 * scale, -12 * scale, half * 2 + 4 * scale, 3.4 * scale);
   ctx.fillStyle = '#7a2018';
   ctx.beginPath();
   ctx.moveTo(7 * scale, -12 * scale);
@@ -517,14 +518,15 @@ function drawChapterHouse(
   scale: number,
 ): void {
   aura(ctx, color, 18 * scale, time);
-  steel(ctx, -15 * scale, -10 * scale, 30 * scale, 22 * scale, 2.4 * scale);
+  const half = TILE * 0.88;
+  steel(ctx, -half, -10 * scale, half * 2, 22 * scale, 2.4 * scale);
   ctx.fillStyle = dark;
-  ctx.fillRect(-17 * scale, -14 * scale, 34 * scale, 5 * scale);
+  ctx.fillRect(-half - 2 * scale, -14 * scale, half * 2 + 4 * scale, 5 * scale);
   ctx.fillStyle = '#3a4a5c';
   ctx.beginPath();
-  ctx.moveTo(-17 * scale, -14 * scale);
+  ctx.moveTo(-half - 2 * scale, -14 * scale);
   ctx.lineTo(0, -22 * scale);
-  ctx.lineTo(17 * scale, -14 * scale);
+  ctx.lineTo(half + 2 * scale, -14 * scale);
   ctx.closePath();
   ctx.fill();
   goldBand(ctx, -6 * scale, -13 * scale, 12 * scale, 2 * scale);

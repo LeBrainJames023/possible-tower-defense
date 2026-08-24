@@ -14,7 +14,6 @@ import { applyPackRally, stepEnemyVerb } from './verbs';
 import {
   buildGrid,
   buildWave,
-  canPlaceOnCell,
   LEVELS,
   pathWaypoints,
   waveRoster,
@@ -23,7 +22,16 @@ import {
 } from './levels';
 import { Enemy, Tower, Projectile, type BeamFx, type FloatingText } from './entities';
 import { stepCombat, type CombatHooks } from './combat';
-import { assignDefaultRally, dropHallLocks, setRallyPoint as applyRallyPoint, stepHalls, type Troop } from './troops';
+import {
+  canUseBuildCell,
+  freeFootprint,
+  hallCenter,
+  hallPairFromClick,
+  hallPreviewFromClick,
+  occupyFootprint,
+  towerOnCell,
+} from './footprint';
+import { applyHallForkToTroops, assignDefaultRally, dropHallLocks, setRallyPoint as applyRallyPoint, stepHalls, type Troop } from './troops';
 import { Renderer } from './renderer';
 import { FxWorld } from './fx';
 import { AudioBus } from './audio';
@@ -235,47 +243,64 @@ export class Game {
   }
 
   canBuildAt(c: number, r: number): boolean {
-    return canPlaceOnCell(this.grid, c, r) && !this.occupied.has(`${c},${r}`);
+    if (!this.selectedKind) return canUseBuildCell(this.grid, this.occupied, c, r);
+    if (isTroopHall(this.selectedKind)) {
+      return hallPairFromClick((cc, rr) => canUseBuildCell(this.grid, this.occupied, cc, rr), c, r) != null;
+    }
+    return canUseBuildCell(this.grid, this.occupied, c, r);
+  }
+
+  /** Hall pick always lights two tiles — the click plus its side neighbor. */
+  hallPreviewAt(
+    focus: { c: number; r: number } | null,
+    kind: TowerKind | null,
+  ): { left: number; row: number; cells: Array<{ c: number; r: number }>; ok: boolean } | null {
+    if (!focus || !kind || !isTroopHall(kind)) return null;
+    return hallPreviewFromClick((cc, rr) => canUseBuildCell(this.grid, this.occupied, cc, rr), focus.c, focus.r);
   }
 
   tryPlace(c: number, r: number): boolean {
     if (this.phase !== 'prepare' && this.phase !== 'wave') return false;
     if (!this.selectedKind) return false;
-    const x = c * TILE + TILE / 2;
-    const y = r * TILE + TILE / 2;
-    if (!canPlaceOnCell(this.grid, c, r)) {
-      this.floats.push({ x, y, text: 'Blocked', color: '#ef476f', life: 0.7 });
-      this.onToast?.('Buildings cannot be placed on the path or trees.');
-      return false;
-    }
-    const key = `${c},${r}`;
-    if (this.occupied.has(key)) {
-      this.floats.push({ x, y, text: 'Taken', color: '#ef476f', life: 0.7 });
+    const hall = isTroopHall(this.selectedKind);
+    const pair = hall
+      ? hallPairFromClick((cc, rr) => canUseBuildCell(this.grid, this.occupied, cc, rr), c, r)
+      : null;
+    const col = hall ? pair?.left ?? c : c;
+    const row = hall ? pair?.row ?? r : r;
+    const pos = hall ? hallCenter(col, row) : { x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 };
+    if (hall ? !pair : !canUseBuildCell(this.grid, this.occupied, c, r)) {
+      this.floats.push({ x: pos.x, y: pos.y, text: 'Blocked', color: '#ef476f', life: 0.7 });
+      this.onToast?.(
+        hall
+          ? 'Halls need two grass tiles side by side. Path and trees are blocked.'
+          : 'Buildings cannot be placed on the path or trees.',
+      );
       return false;
     }
     const def = TOWERS[this.selectedKind];
     if (this.gold < def.cost) {
-      this.floats.push({ x, y, text: 'Need gold', color: '#f4d35e', life: 0.7 });
+      this.floats.push({ x: pos.x, y: pos.y, text: 'Need gold', color: '#f4d35e', life: 0.7 });
       this.onToast?.(`Need ${def.cost}g for ${def.name}.`);
       return false;
     }
 
     this.gold -= def.cost;
-    const tower = new Tower(this.selectedKind, c, r, x, y);
+    const tower = new Tower(this.selectedKind, col, row, pos.x, pos.y);
     if (isTroopHall(tower.kind)) assignDefaultRally(tower, this.grid);
     this.towers.push(tower);
-    this.occupied.add(key);
+    occupyFootprint(this.occupied, tower.kind, col, row);
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
-    this.fx.burst(x, y, def.color, 10, 'spark');
+    this.fx.burst(pos.x, pos.y, def.color, 10, 'spark');
     this.audio.place();
-    this.floats.push({ x, y: y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
+    this.floats.push({ x: pos.x, y: pos.y - 20, text: `-${def.cost}g`, color: '#f4d35e', life: 0.8 });
     this.onHud?.();
     return true;
   }
 
   selectTowerAt(c: number, r: number): boolean {
-    const t = this.towers.find((x) => x.col === c && x.row === r);
+    const t = this.towers.find((x) => towerOnCell(x, c, r));
     if (!t) return false;
     this.selectedTowerId = t.id;
     this.selectedEnemyId = null;
@@ -348,6 +373,7 @@ export class Game {
     t.fork = id;
     t.previewFork = null;
     this.upgradePreview = false;
+    if (isTroopHall(t.kind)) applyHallForkToTroops(t, this.troops);
     this.fx.burst(t.x, t.y, t.def.color, 18, 'spark');
     this.fx.ring(t.x, t.y, '#f4d35e', 34, 2);
     const name = forkDef(t.kind, id)?.name ?? 'Path';
@@ -366,7 +392,7 @@ export class Game {
     const t = this.getSelectedTower();
     if (!t) return false;
     this.gold += t.sellValue();
-    this.occupied.delete(`${t.col},${t.row}`);
+    freeFootprint(this.occupied, t);
     this.towers = this.towers.filter((x) => x.id !== t.id);
     this.troops = this.troops.filter((tr) => tr.hallId !== t.id);
     this.selectedTowerId = null;
@@ -621,20 +647,17 @@ export class Game {
     this.renderer.clear();
     this.renderer.drawPathGlow(this.waypoints);
     const focus = this.buildCell ?? this.hover;
-    const hoverBuildable =
-      !!focus &&
-      canPlaceOnCell(this.grid, focus.c, focus.r) &&
-      !this.occupied.has(`${focus.c},${focus.r}`);
     const brush = this.selectedKind;
-    const canPlace = hoverBuildable && !!brush && this.gold >= TOWERS[brush].cost;
+    const preview = this.hallPreviewAt(focus, brush);
+    const hoverCells = preview?.cells ?? (focus ? [focus] : []);
+    const canPlace = brush
+      ? isTroopHall(brush)
+        ? !!preview?.ok && this.gold >= TOWERS[brush].cost
+        : !!focus && canUseBuildCell(this.grid, this.occupied, focus.c, focus.r) && this.gold >= TOWERS[brush].cost
+      : false;
+    const rangeAt = preview ? hallCenter(preview.left, preview.row) : null;
 
-    this.renderer.drawGrid(
-      this.grid,
-      focus,
-      canPlace,
-      brush,
-      !!this.buildCell,
-    );
+    this.renderer.drawGrid(this.grid, hoverCells, canPlace, brush, !!this.buildCell, rangeAt);
     this.renderer.drawSpawnExit(this.waypoints);
     const units: Array<{ y: number; z: number; draw: () => void }> = [];
     for (const t of this.towers) {

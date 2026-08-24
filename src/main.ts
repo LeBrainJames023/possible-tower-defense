@@ -34,10 +34,10 @@ import { forkDef, forksFor, type ForkId } from './game/forks';
 import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
 import { WORLDS, buildSurfaceWord, worldById, worldByIndex } from './game/worlds';
-import { canRallyAt } from './game/troops';
+import { canRallyAt, troopStatsAt, troopStatsFor } from './game/troops';
 import { dist } from './shared/math';
 import { fitCanvasToHost } from './shared/pointer';
-import { expandRect, pinRectBeside, tileBoxInHost } from './shared/pinPanel';
+import { expandRect, panelLimitsForHost, pinRectBeside, tileBoxInHost } from './shared/pinPanel';
 
 const screens = {
   title: document.getElementById('screen-title')!,
@@ -89,6 +89,7 @@ const btnMute = document.getElementById('btn-mute') as HTMLButtonElement;
 const mapOverlay = document.getElementById('map-overlay')!;
 const buildPanel = document.getElementById('build-panel')!;
 const buildDetail = document.getElementById('build-detail')!;
+const buildPortrait = document.getElementById('build-portrait') as HTMLImageElement;
 const buildBlurb = document.getElementById('build-blurb')!;
 const buildStats = document.getElementById('build-stats')!;
 const inspectPanel = document.getElementById('inspect-panel')!;
@@ -104,6 +105,7 @@ const gameBody = canvas.parentElement!;
 function layoutPlayfield(): void {
   if (!screens.game.classList.contains('active')) return;
   game.mapView = fitCanvasToHost(canvas, gameBody, MAP_W, MAP_H);
+  syncOverlay();
 }
 
 new ResizeObserver(() => layoutPlayfield()).observe(gameBody);
@@ -292,6 +294,7 @@ function syncOverlay(): void {
   mapOverlay.classList.toggle('hidden', !building && !inspect);
   buildPanel.classList.toggle('hidden', !building);
   inspectPanel.classList.toggle('hidden', !inspect);
+  towerShop.classList.toggle('hidden', confirming);
   buildDetail.classList.toggle('hidden', !confirming);
   if (confirming && game.selectedKind) {
     buildTitle.textContent = TOWERS[game.selectedKind].name;
@@ -332,6 +335,8 @@ function openBuildMenu(c: number, r: number): void {
 
 function fillBuildDetail(kind: TowerKind): void {
   const def = TOWERS[kind];
+  buildPortrait.src = `/sprites/towers/${kind}.png${isTroopHall(kind) ? '?v=wide2' : ''}`;
+  buildPortrait.classList.toggle('hall-look', isTroopHall(kind));
   buildBlurb.textContent = def.description;
   const extra = extraTowerLine(def);
   const rows: Array<[string, string]> = isTroopHall(kind)
@@ -378,13 +383,15 @@ function renderShop(): void {
     btn.className = 'tower-btn';
     btn.dataset.kind = kind;
     btn.setAttribute('aria-label', `${def.name} ${def.cost} gold`);
-    const portrait = `<img class="tower-portrait${isTroopHall(kind) ? ' hall-portrait' : ''}" src="/sprites/towers/${kind}.png" alt="" />`;
+    const portrait = `<img class="tower-portrait${isTroopHall(kind) ? ' hall-portrait' : ''}" src="/sprites/towers/${kind}.png${isTroopHall(kind) ? '?v=wide2' : ''}" alt="" />`;
     btn.innerHTML = `
       ${portrait}
       <span class="tower-cost">${def.cost}</span>
     `;
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       game.selectedKind = kind;
+      if (game.buildCell) game.hover = { ...game.buildCell };
       syncShopSelection();
       fillBuildDetail(kind);
       syncOverlay();
@@ -398,6 +405,9 @@ function renderShop(): void {
 function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
   const canvasRect = canvas.getBoundingClientRect();
   const hostRect = playfield.getBoundingClientRect();
+  const limits = panelLimitsForHost(hostRect);
+  panel.style.maxWidth = `${limits.maxWidth}px`;
+  panel.style.maxHeight = `${limits.maxHeight}px`;
   const tile = tileBoxInHost(c, r, COLS, ROWS, canvasRect, hostRect);
   const avoid = (game.level?.pathTiles ?? []).map((p) =>
     tileBoxInHost(p.c, p.r, COLS, ROWS, canvasRect, hostRect),
@@ -491,33 +501,61 @@ function updatePauseUi(): void {
   if (!paused) restartStrip.classList.add('hidden');
 }
 
+function forkExtraRows(t: Tower, previewFork: ForkId): Array<[string, string]> {
+  const extra: Array<[string, string]> = [];
+  if (t.def.splash > 0 || t.splashAt(previewFork) > 0) {
+    extra.push(['Splash', arrowStat(t.splash / TILE, t.splashAt(previewFork) / TILE, 1) + ' tiles']);
+  }
+  if (t.def.chain > 0) {
+    extra.push(['Chain', arrowStat(t.chainAt(null), t.chainAt(previewFork))]);
+  }
+  if (t.def.slow > 0) {
+    extra.push(['Slow', arrowStat(t.slowAt(null) * 100, t.slowAt(previewFork) * 100) + '%']);
+  }
+  if (t.def.burnDps > 0) {
+    extra.push(['Burn', arrowStat(t.burnDpsAt(null), t.burnDpsAt(previewFork)) + '/s']);
+  }
+  if (t.def.poisonDps > 0) {
+    extra.push(['Poison', arrowStat(t.poisonDpsAt(null), t.poisonDpsAt(previewFork)) + '/s']);
+  }
+  return extra;
+}
+
 function fillInspectTower(t: Tower): void {
   const hall = isTroopHall(t.kind);
   const curD = Math.round(game.shotDamage(t));
   const curR = t.range / TILE;
   const curRate = t.fireRate;
   const forkName = t.fork ? forkDef(t.kind, t.fork)?.name : null;
-  selectionTitle.textContent = hall
-    ? t.def.name
-    : forkName
-      ? `${t.def.name} ${forkName}`
+  selectionTitle.textContent = forkName
+    ? `${t.def.name} ${forkName}`
+    : hall
+      ? t.def.name
       : `${t.def.name} Lv ${t.level}`;
   const previewingFork = inspectStep === 'forkA' || inspectStep === 'forkB';
   const previewFork = inspectStep === 'forkA' ? 'a' : inspectStep === 'forkB' ? 'b' : null;
-  selectionBlurb.textContent = hall
-    ? inspectStep === 'rally'
+  selectionBlurb.textContent =
+    inspectStep === 'rally'
       ? 'Click a tile in the circle. The path is allowed.'
-      : t.def.description
-    : previewFork && forksFor(t.kind)
-      ? forksFor(t.kind)![previewFork].blurb
-      : t.def.description;
+      : previewFork && forksFor(t.kind)
+        ? forksFor(t.kind)![previewFork].blurb
+        : t.def.description;
   const preview = inspectStep === 'preview' && t.canNumberUpgrade();
   const living = game.troops.filter((tr) => tr.hallId === t.id).length;
+  const hallNow = troopStatsFor(t);
   const rows: Array<[string, string]> = hall
-    ? [
-        ['Troops', `${living} / 3`],
-        ['Rally', `${curR.toFixed(1)} tiles`],
-      ]
+    ? previewingFork && previewFork
+      ? [
+          ['Troops', '3'],
+          ['HP', arrowStat(hallNow.hp, troopStatsAt(t.kind, previewFork).hp)],
+          ['Train', arrowStat(hallNow.trainTime, troopStatsAt(t.kind, previewFork).trainTime, 1) + 's'],
+          ['Cost', `${t.upgradeCost()}g`],
+        ]
+      : [
+          ['Troops', `${living} / 3`],
+          ['Rally', `${curR.toFixed(1)} tiles`],
+          ['HP', String(hallNow.hp)],
+        ]
     : preview
       ? [
           ['Range', arrowStat(curR, t.rangeAt(t.level + 1) / TILE, 1) + ' tiles'],
@@ -530,11 +568,7 @@ function fillInspectTower(t: Tower): void {
             ['Range', arrowStat(curR, t.rangeAt(3, previewFork) / TILE, 1) + ' tiles'],
             ['Attack', arrowStat(curD, Math.round(t.damageAt(3, previewFork) * game.mods.damage))],
             ['Fire', arrowStat(curRate, t.fireRateAt(3, previewFork), 1) + ' /s'],
-            ...(t.def.splash > 0 || t.splashAt(previewFork) > 0
-              ? ([['Splash', arrowStat(t.splash / TILE, t.splashAt(previewFork) / TILE, 1) + ' tiles']] as Array<
-                  [string, string]
-                >)
-              : []),
+            ...forkExtraRows(t, previewFork),
             ['Cost', `${t.upgradeCost()}g`],
           ]
         : [
@@ -897,13 +931,19 @@ document.getElementById('btn-inspect-close')!.addEventListener('click', () => {
   updateHud();
 });
 document.getElementById('btn-build-close')!.addEventListener('click', () => closeBuildMenu());
+buildPanel.addEventListener('pointerdown', (e) => e.stopPropagation());
+inspectPanel.addEventListener('pointerdown', (e) => e.stopPropagation());
 tabKeeps.addEventListener('click', () => {
+  game.selectedKind = null;
   setBuildTab('keeps');
+  syncShopSelection();
   syncOverlay();
   game.audio.ui();
 });
 tabElements.addEventListener('click', () => {
+  game.selectedKind = null;
   setBuildTab('elements');
+  syncShopSelection();
   syncOverlay();
   game.audio.ui();
 });
@@ -984,6 +1024,15 @@ canvas.addEventListener('pointerdown', (e) => {
     return;
   }
   if (!cell) return;
+  if (game.buildCell && e.button === 0) {
+    if (cell.c === game.buildCell.c && cell.r === game.buildCell.r) return;
+    if (game.grid[cell.r]?.[cell.c] === 'grass') {
+      game.buildCell = { c: cell.c, r: cell.r };
+      game.hover = { c: cell.c, r: cell.r };
+      syncOverlay();
+      return;
+    }
+  }
   if (e.button === 0 && game.selectTowerAt(cell.c, cell.r)) {
     game.buildCell = null;
     game.selectedKind = null;

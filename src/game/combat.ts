@@ -90,7 +90,6 @@ export function shotDamage(t: Tower, damageMul = 1): number {
 export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: CombatHooks = {}): void {
   const def = t.def;
   const damageMul = hooks.damageMul ?? 1;
-  const status = t.statusScale();
   const muzzle = t.muzzlePoint();
   const aim = enemyAimPoint(target);
   t.aim = Math.atan2(aim.y - muzzle.y, aim.x - muzzle.x);
@@ -98,13 +97,14 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
   t.muzzle = 1;
   hooks.onMuzzle?.(t);
 
-  if (def.chain > 0) {
+  if (t.chainAt() > 0) {
     const hit = new Set<number>();
     let current: Enemy | null = target;
     let fromX = muzzle.x;
     let fromY = muzzle.y;
     let dmg = shotDamage(t, damageMul);
-    for (let i = 0; i < def.chain && current; i++) {
+    const hops = t.chainAt();
+    for (let i = 0; i < hops && current; i++) {
       hit.add(current.id);
       const hop = enemyAimPoint(current);
       world.beams.push({
@@ -118,11 +118,11 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
         width: 3.2 - i * 0.4,
         points: jaggedBolt(fromX, fromY, hop.x, hop.y),
       });
-      hurt(current, dmg, def.pierceArmor, hooks);
+      hurt(current, dmg, t.pierceArmor, hooks);
       hooks.onChainHop?.(current, i, def.color);
-      if (def.slow > 0) current.applySlow(def.slow, def.slowDuration);
-      if (def.burnDps > 0) current.applyBurn(def.burnDps * status * damageMul, def.burnDuration);
-      if (def.poisonDps > 0) current.applyPoison(def.poisonDps * status * damageMul, def.poisonDuration);
+      if (t.slowAt() > 0) current.applySlow(t.slowAt(), t.slowDurationAt());
+      if (t.burnDpsAt() > 0) current.applyBurn(t.burnDpsAt() * damageMul, t.burnDurationAt());
+      if (t.poisonDpsAt() > 0) current.applyPoison(t.poisonDpsAt() * damageMul, t.poisonDurationAt());
       fromX = hop.x;
       fromY = hop.y;
       dmg *= 0.72;
@@ -149,12 +149,12 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
       damage: shotDamage(t, damageMul),
       splash: t.splash,
       pierceArmor: t.pierceArmor,
-      slow: def.slow,
-      slowDuration: def.slowDuration,
-      burnDps: def.burnDps * status * damageMul,
-      burnDuration: def.burnDuration,
-      poisonDps: def.poisonDps * status * damageMul,
-      poisonDuration: def.poisonDuration,
+      slow: t.slowAt(),
+      slowDuration: t.slowDurationAt(),
+      burnDps: t.burnDpsAt() * damageMul,
+      burnDuration: t.burnDurationAt(),
+      poisonDps: t.poisonDpsAt() * damageMul,
+      poisonDuration: t.poisonDurationAt(),
       chain: 0,
       color: def.color,
       targetId: target.id,

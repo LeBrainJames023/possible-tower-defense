@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pinRectBeside, rectsOverlapArea, tileBoxInHost } from '../src/shared/pinPanel';
+import { panelLimitsForHost, pinRectBeside, rectsOverlapArea, tileBoxInHost } from '../src/shared/pinPanel';
 
 describe('tileBoxInHost', () => {
   it('maps a cell into host space from the canvas box', () => {
@@ -15,6 +15,18 @@ describe('tileBoxInHost', () => {
     expect(box.top).toBe(10 + 32);
     expect(box.width).toBe(32);
     expect(box.height).toBe(32);
+  });
+});
+
+describe('panelLimitsForHost', () => {
+  it('fits the tray to the playfield instead of a fixed pixel box', () => {
+    const wide = panelLimitsForHost({ width: 800, height: 500 });
+    expect(wide.maxWidth).toBe(784);
+    expect(wide.maxHeight).toBe(484);
+    const tight = panelLimitsForHost({ width: 200, height: 180 });
+    expect(tight.maxWidth).toBe(184);
+    expect(tight.maxHeight).toBe(164);
+    expect(tight.maxWidth).toBeLessThan(196);
   });
 });
 

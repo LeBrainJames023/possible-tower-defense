@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { TILE, u } from '../src/game/constants';
+import { canUseBuildCell, firstHallClick, hallPairFromClick } from '../src/game/footprint';
 import { Game } from '../src/game/Game';
 import { Enemy } from '../src/game/entities';
-import { LEVELS, buildGrid, canPlaceOnCell } from '../src/game/levels';
+import { LEVELS, buildGrid } from '../src/game/levels';
 import {
   TROOP_CAP,
   TROOP_IDLE_HZ,
@@ -19,23 +20,7 @@ import { dist } from '../src/shared/math';
 import { CombatSandbox, makeFakeCanvas } from './helpers/combatSandbox';
 
 function grassBesidePath(grid: ReturnType<typeof buildGrid>): { c: number; r: number } | null {
-  const dirs = [
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-  ];
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[0].length; c++) {
-      if (grid[r][c] !== 'path') continue;
-      for (const [dc, dr] of dirs) {
-        const nc = c + dc;
-        const nr = r + dr;
-        if (canPlaceOnCell(grid, nc, nr)) return { c: nc, r: nr };
-      }
-    }
-  }
-  return null;
+  return firstHallClick(grid, new Set(), true, LEVELS[0].pathTiles);
 }
 
 function firstPath(grid: ReturnType<typeof buildGrid>): { c: number; r: number } | null {
@@ -89,30 +74,25 @@ describe('troop hall engine', () => {
     game.startLevel(1);
     game.stopLoop();
 
-    const sites: Array<{ c: number; r: number }> = [];
-    const dirs = [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ];
-    for (let r = 0; r < game.grid.length; r++) {
+    const hallClick = firstHallClick(game.grid, game.occupied, true, game.level.pathTiles);
+    expect(hallClick).not.toBeNull();
+    let arrow: { c: number; r: number } | null = null;
+    for (let r = 0; r < game.grid.length && !arrow; r++) {
       for (let c = 0; c < game.grid[0].length; c++) {
-        if (game.grid[r][c] !== 'path') continue;
-        for (const [dc, dr] of dirs) {
-          const cell = { c: c + dc, r: r + dr };
-          if (!game.canBuildAt(cell.c, cell.r)) continue;
-          if (sites.some((s) => s.c === cell.c && s.r === cell.r)) continue;
-          sites.push(cell);
-        }
+        if (!game.canBuildAt(c, r)) continue;
+        if (c === hallClick!.c && r === hallClick!.r) continue;
+        if (c === hallClick!.c + 1 && r === hallClick!.r) continue;
+        if (c === hallClick!.c - 1 && r === hallClick!.r) continue;
+        arrow = { c, r };
+        break;
       }
     }
-    expect(sites.length).toBeGreaterThanOrEqual(2);
+    expect(arrow).not.toBeNull();
 
     game.selectedKind = 'arrow';
-    expect(game.tryPlace(sites[0].c, sites[0].r)).toBe(true);
+    expect(game.tryPlace(arrow!.c, arrow!.r)).toBe(true);
     game.selectedKind = 'muster';
-    expect(game.tryPlace(sites[1].c, sites[1].r)).toBe(true);
+    expect(game.tryPlace(hallClick!.c, hallClick!.r)).toBe(true);
     const hall = game.towers.find((t) => t.kind === 'muster')!;
     game.selectedTowerId = hall.id;
     expect(game.setRallyPoint(hall.rallyCol, hall.rallyRow)).toBe(true);
@@ -258,27 +238,17 @@ describe('troop hall engine', () => {
 
   it('knights are slower and tankier than warriors', () => {
     const sim = new CombatSandbox();
-    const sites: Array<{ c: number; r: number }> = [];
-    const dirs = [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ];
-    for (let r = 0; r < sim.grid.length; r++) {
-      for (let c = 0; c < sim.grid[0].length; c++) {
-        if (sim.grid[r][c] !== 'path') continue;
-        for (const [dc, dr] of dirs) {
-          const cell = { c: c + dc, r: r + dr };
-          if (!canPlaceOnCell(sim.grid, cell.c, cell.r)) continue;
-          if (sites.some((s) => s.c === cell.c && s.r === cell.r)) continue;
-          sites.push(cell);
-        }
-      }
-    }
-    expect(sites.length).toBeGreaterThanOrEqual(2);
-    const muster = sim.place('muster', sites[0].c, sites[0].r);
-    const chapter = sim.place('chapter', sites[1].c, sites[1].r);
+    const occupied = new Set<string>();
+    const a = firstHallClick(sim.grid, occupied, true, LEVELS[0].pathTiles);
+    expect(a).not.toBeNull();
+    const pairA = hallPairFromClick((cc, rr) => canUseBuildCell(sim.grid, occupied, cc, rr), a!.c, a!.r);
+    expect(pairA).not.toBeNull();
+    occupied.add(`${pairA!.left},${pairA!.row}`);
+    occupied.add(`${pairA!.left + 1},${pairA!.row}`);
+    const b = firstHallClick(sim.grid, occupied, true, LEVELS[0].pathTiles);
+    expect(b).not.toBeNull();
+    const muster = sim.place('muster', a!.c, a!.r);
+    const chapter = sim.place('chapter', b!.c, b!.r);
     assignDefaultRally(muster, sim.grid);
     assignDefaultRally(chapter, sim.grid);
     sim.run(2.5);

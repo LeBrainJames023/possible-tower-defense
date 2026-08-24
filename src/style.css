@@ -753,9 +753,12 @@ h3 {
 .map-panel {
   pointer-events: auto;
   position: absolute;
-  width: 196px;
-  max-height: none;
-  overflow: visible;
+  box-sizing: border-box;
+  width: min(220px, 100%);
+  max-width: calc(100% - 16px);
+  max-height: calc(100% - 16px);
+  overflow-x: hidden;
+  overflow-y: auto;
   background: radial-gradient(
     ellipse 62% 58% at 50% 48%,
     rgba(16, 20, 26, 0.55) 0%,
@@ -855,6 +858,20 @@ h3 {
   border-radius: 10px;
   border: 1px solid rgba(224, 112, 64, 0.45);
   background: rgba(18, 12, 10, 0.55);
+}
+
+.build-look {
+  width: 100%;
+  height: 88px;
+  object-fit: contain;
+  display: block;
+  border-radius: 8px;
+  background: #0c1014;
+}
+
+.build-look.hall-look {
+  object-fit: contain;
+  object-position: 50% 80%;
 }
 
 .dock-actions {
@@ -994,9 +1011,9 @@ h3 {
 }
 
 .tower-portrait.hall-portrait {
-  object-fit: cover;
-  object-position: 50% 40%;
-  transform: scale(1.35);
+  object-fit: contain;
+  object-position: 50% 80%;
+  transform: none;
 }
 
 .tower-cost {

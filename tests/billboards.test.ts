@@ -3,12 +3,11 @@ import { TILE } from '../src/game/constants';
 import { HALL_TILE_FILL, hallBillboardSize, TROOP_PAINT_H } from '../src/game/billboards';
 
 describe('tile-fit billboards', () => {
-  it('fits hall content to one tile wide and lets height grow up', () => {
-    // Live Muster/Chapter stills: ~169×230 opaque box inside a 256 square.
-    const hall = hallBillboardSize(169, 230);
-    expect(hall.w).toBeCloseTo(TILE * HALL_TILE_FILL);
-    expect(hall.w).toBeLessThanOrEqual(TILE);
-    expect(hall.h).toBeGreaterThan(TILE);
+  it('fits hall content to two tiles wide and lets height grow up', () => {
+    const hall = hallBillboardSize(320, 160);
+    expect(hall.w).toBeCloseTo(TILE * 2 * HALL_TILE_FILL);
+    expect(hall.w).toBeGreaterThan(TILE);
+    expect(hall.w).toBeLessThanOrEqual(TILE * 2);
     expect(hall.h).toBeLessThan(TILE * 1.6);
   });
 

@@ -27,6 +27,17 @@ export function tileBoxInHost(
   };
 }
 
+/** Tray may fill the playfield minus pad — never a hardcoded pixel seat. */
+export function panelLimitsForHost(
+  host: { width: number; height: number },
+  pad = 8,
+): { maxWidth: number; maxHeight: number } {
+  return {
+    maxWidth: Math.max(148, host.width - pad * 2),
+    maxHeight: Math.max(160, host.height - pad * 2),
+  };
+}
+
 export function expandRect(r: Rect, pad: number): Rect {
   return {
     left: r.left - pad,

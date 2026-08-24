@@ -228,6 +228,17 @@ export class Tower {
       speedMul: f?.speedMul ?? 1,
       arcMul: f?.arcMul ?? 1,
       pierceArmor: f?.pierceArmor ?? this.def.pierceArmor,
+      slowMul: f?.slowMul ?? 1,
+      slowDurationMul: f?.slowDurationMul ?? 1,
+      burnDpsMul: f?.burnDpsMul ?? 1,
+      burnDurationMul: f?.burnDurationMul ?? 1,
+      poisonDpsMul: f?.poisonDpsMul ?? 1,
+      poisonDurationMul: f?.poisonDurationMul ?? 1,
+      chainMul: f?.chainMul ?? 1,
+      troopHpMul: f?.troopHpMul ?? 1,
+      troopDamageMul: f?.troopDamageMul ?? 1,
+      troopSpeedMul: f?.troopSpeedMul ?? 1,
+      trainTimeMul: f?.trainTimeMul ?? 1,
     };
   }
 
@@ -247,6 +258,34 @@ export class Tower {
     return this.def.splash * this.forkMods(fork).splashMul;
   }
 
+  chainAt(fork: ForkId | null = this.fork): number {
+    return Math.max(0, Math.round(this.def.chain * this.forkMods(fork).chainMul));
+  }
+
+  slowAt(fork: ForkId | null = this.fork): number {
+    return this.def.slow * this.forkMods(fork).slowMul;
+  }
+
+  slowDurationAt(fork: ForkId | null = this.fork): number {
+    return this.def.slowDuration * this.forkMods(fork).slowDurationMul;
+  }
+
+  burnDpsAt(fork: ForkId | null = this.fork): number {
+    return this.def.burnDps * this.statusScale() * this.forkMods(fork).burnDpsMul;
+  }
+
+  burnDurationAt(fork: ForkId | null = this.fork): number {
+    return this.def.burnDuration * this.forkMods(fork).burnDurationMul;
+  }
+
+  poisonDpsAt(fork: ForkId | null = this.fork): number {
+    return this.def.poisonDps * this.statusScale() * this.forkMods(fork).poisonDpsMul;
+  }
+
+  poisonDurationAt(fork: ForkId | null = this.fork): number {
+    return this.def.poisonDuration * this.forkMods(fork).poisonDurationMul;
+  }
+
   get splash(): number {
     return this.splashAt();
   }
@@ -264,16 +303,19 @@ export class Tower {
   }
 
   canFork(): boolean {
-    return this.level >= 3 && !this.fork && !!forksFor(this.kind);
+    if (this.fork || !forksFor(this.kind)) return false;
+    if (isTroopHall(this.kind)) return true;
+    return this.level >= 3;
   }
 
   isMaxed(): boolean {
+    if (isTroopHall(this.kind)) return this.fork != null;
     return this.level >= 3 && (!forksFor(this.kind) || this.fork != null);
   }
 
   upgradeCost(): number {
-    if (this.level < 3) return upgradeCostFor(this.def.cost, this.level);
     if (this.canFork()) return forkCostFor(this.def.cost);
+    if (this.level < 3) return upgradeCostFor(this.def.cost, this.level);
     return 0;
   }
 

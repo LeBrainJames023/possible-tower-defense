@@ -1,7 +1,8 @@
 /** Optional baked images. Missing files just mean we keep procedural art. */
 
-import type { TowerKind } from './constants';
+import { TOWER_ORDER, isTroopHall, type TowerKind } from './constants';
 import type { Cardinal, CreatureSprite } from './enemies';
+import type { ForkId } from './forks';
 import type { TroopKind } from './troops';
 
 export function loadImage(src: string): HTMLImageElement | null {
@@ -66,6 +67,18 @@ function faceSheet(name: CreatureSprite): Record<Cardinal, HTMLImageElement | nu
 
 function troopSheet(kind: TroopKind, action: 'idle' | 'walk'): Array<HTMLImageElement | null> {
   return [1, 2, 3, 4].map((i) => loadImage(`/sprites/troops/${kind}/${action}-${i}.png`));
+}
+
+function towerArt(kind: TowerKind, suffix = ''): string {
+  const bust = isTroopHall(kind) ? '?v=wide2' : '';
+  return `/sprites/towers/${kind}${suffix}.png${bust}`;
+}
+
+function towerForkSheet(kind: TowerKind): Record<ForkId, HTMLImageElement | null> {
+  return {
+    a: loadImage(towerArt(kind, '-a')),
+    b: loadImage(towerArt(kind, '-b')),
+  };
 }
 
 export const TEX = {
@@ -194,14 +207,18 @@ export const TEX = {
     arrow: loadImage('/sprites/towers/arrow.png'),
     cannon: loadImage('/sprites/towers/cannon.png'),
     longshot: loadImage('/sprites/towers/longshot.png'),
-    muster: loadImage('/sprites/towers/muster.png'),
-    chapter: loadImage('/sprites/towers/chapter.png'),
+    muster: loadImage(towerArt('muster')),
+    chapter: loadImage(towerArt('chapter')),
     ice: loadImage('/sprites/towers/ice.png'),
     lightning: loadImage('/sprites/towers/lightning.png'),
     fire: loadImage('/sprites/towers/fire.png'),
     poison: loadImage('/sprites/towers/poison.png'),
     void: loadImage('/sprites/towers/void.png'),
   } satisfies Record<TowerKind, HTMLImageElement | null>,
+  towerForks: Object.fromEntries(TOWER_ORDER.map((kind) => [kind, towerForkSheet(kind)])) as Record<
+    TowerKind,
+    Record<ForkId, HTMLImageElement | null>
+  >,
   towerParts: {
     arrowBase: loadImage('/sprites/towers/arrow-base.png'),
     arrowTurret: loadImage('/sprites/towers/arrow-turret.png'),

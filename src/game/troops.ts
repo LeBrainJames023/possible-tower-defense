@@ -5,6 +5,7 @@
 import { COLS, ROWS, TILE, isTroopHall, u, type CellKind, type TowerKind } from './constants';
 import { ENEMIES } from './enemies';
 import { Enemy, Tower } from './entities';
+import { forkDef, type ForkId } from './forks';
 import { untargetable } from './verbs';
 import type { Vec2 } from '../shared/math';
 import { dist } from '../shared/math';
@@ -41,6 +42,36 @@ export const TROOP_STATS: Record<TroopKind, TroopStats> = {
 
 export function troopKindFor(hallKind: TowerKind): TroopKind {
   return hallKind === 'chapter' ? 'knight' : 'warrior';
+}
+
+/** Base troop numbers stay in TROOP_STATS. Forks only multiply. */
+export function troopStatsAt(hallKind: TowerKind, fork: ForkId | null): TroopStats {
+  const base = TROOP_STATS[troopKindFor(hallKind)];
+  const f = fork ? forkDef(hallKind, fork) : null;
+  return {
+    hp: Math.max(1, Math.round(base.hp * (f?.troopHpMul ?? 1))),
+    damage: Math.max(1, Math.round(base.damage * (f?.troopDamageMul ?? 1))),
+    speed: base.speed * (f?.troopSpeedMul ?? 1),
+    radius: base.radius,
+    trainTime: base.trainTime * (f?.trainTimeMul ?? 1),
+    color: base.color,
+  };
+}
+
+export function troopStatsFor(hall: Tower): TroopStats {
+  return troopStatsAt(hall.kind, hall.fork);
+}
+
+export function applyHallForkToTroops(hall: Tower, troops: Troop[]): void {
+  const stats = troopStatsFor(hall);
+  for (const tr of troops) {
+    if (tr.hallId !== hall.id || !tr.alive) continue;
+    const ratio = tr.maxHp > 0 ? tr.hp / tr.maxHp : 1;
+    tr.maxHp = stats.hp;
+    tr.hp = Math.max(1, Math.round(stats.hp * ratio));
+    tr.damage = stats.damage;
+    tr.speed = stats.speed;
+  }
 }
 
 export const TROOP_CAP = 3;
@@ -87,8 +118,7 @@ export class Troop {
   radius: number;
   color: string;
 
-  constructor(hallId: number, slot: number, pos: Vec2, kind: TroopKind) {
-    const stats = TROOP_STATS[kind];
+  constructor(hallId: number, slot: number, pos: Vec2, kind: TroopKind, stats: TroopStats = TROOP_STATS[kind]) {
     this.kind = kind;
     this.hallId = hallId;
     this.slot = slot;
@@ -136,13 +166,11 @@ export function canRallyAt(t: Tower, grid: CellKind[][], c: number, r: number): 
   return dist({ x: t.x, y: t.y }, { x, y }) <= t.range + 1;
 }
 
-export function nearestPathCell(
+export function nearestPathFrom(
   grid: CellKind[][],
-  fromC: number,
-  fromR: number,
+  from: Vec2,
   range: number,
 ): { c: number; r: number } | null {
-  const from = { x: fromC * TILE + TILE / 2, y: fromR * TILE + TILE / 2 };
   let best: { c: number; r: number; d: number } | null = null;
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
@@ -157,8 +185,17 @@ export function nearestPathCell(
   return best ? { c: best.c, r: best.r } : null;
 }
 
+export function nearestPathCell(
+  grid: CellKind[][],
+  fromC: number,
+  fromR: number,
+  range: number,
+): { c: number; r: number } | null {
+  return nearestPathFrom(grid, { x: fromC * TILE + TILE / 2, y: fromR * TILE + TILE / 2 }, range);
+}
+
 export function assignDefaultRally(t: Tower, grid: CellKind[][]): void {
-  const near = nearestPathCell(grid, t.col, t.row, t.range);
+  const near = nearestPathFrom(grid, { x: t.x, y: t.y }, t.range);
   if (near) {
     t.rallyCol = near.c;
     t.rallyRow = near.r;
@@ -243,7 +280,7 @@ function spawnTroop(world: TroopWorld, hall: Tower): void {
   let slot = 0;
   while (used.has(slot) && slot < TROOP_CAP) slot += 1;
   if (slot >= TROOP_CAP) return;
-  world.troops.push(new Troop(hall.id, slot, { x: hall.x, y: hall.y }, troopKindFor(hall.kind)));
+  world.troops.push(new Troop(hall.id, slot, { x: hall.x, y: hall.y }, troopKindFor(hall.kind), troopStatsFor(hall)));
 }
 
 export function dropHallLocks(troops: Troop[], hallId: number): void {
@@ -269,7 +306,7 @@ export function stepHalls(world: TroopWorld, dt: number): void {
     if (hall.trainCooldown > 0) continue;
     spawnTroop(world, hall);
     const nowAlive = world.troops.filter((tr) => tr.hallId === hall.id && tr.alive).length;
-    const train = TROOP_STATS[troopKindFor(hall.kind)].trainTime;
+    const train = troopStatsFor(hall).trainTime;
     hall.trainCooldown = nowAlive < TROOP_CAP ? TROOP_STAGGER : train;
   }
 
