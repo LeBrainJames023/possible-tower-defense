@@ -47,12 +47,12 @@ const CREATURES: CreatureSprite[] = [
 ];
 
 function walkSheet(name: CreatureSprite): Array<HTMLImageElement | null> {
-  return [1, 2, 3, 4].map((i) => loadImage(`/sprites/enemies/walk/${name}-${i}.png`));
+  return [1, 2, 3, 4].map((i) => loadImage(`/sprites/enemies/walk/${name}-${i}.png?v=stride`));
 }
 
 function dirWalkSheet(name: CreatureSprite): Record<Cardinal, Array<HTMLImageElement | null>> {
   const frames = (dir: Cardinal) =>
-    [1, 2, 3, 4].map((i) => loadImage(`/sprites/enemies/walk/${name}-${dir}-${i}.png`));
+    [1, 2, 3, 4].map((i) => loadImage(`/sprites/enemies/walk/${name}-${dir}-${i}.png?v=stride`));
   return { n: frames('n'), e: frames('e'), s: frames('s'), w: frames('w') };
 }
 

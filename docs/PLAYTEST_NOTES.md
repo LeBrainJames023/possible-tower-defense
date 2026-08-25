@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — real walk and flap (Aug 24)
+
+Every unique body got a 2×2 sheet: walkers plant / pass / plant / pass, flyers wing up / mid / down / mid. Stamped onto live `{n,e,s,w}` files so the old frozen 4-dir poses do not win. East is a flip so right-bound Raiders still face right. Combat numbers unchanged. Unique back/front faces parked.
+
+Check 1x after a reload: Forest 1 wave 1 Raiders should stride, not bounce in place. Wave 4 Imps should flap. Path still blocks buildings.
+
 ## This session — daily 624 hotfixes (Aug 24)
 
 Forest 10 notes from `docs/DAILY_FEEDBACK_624.md`. **Fixed:** clicking a keep (hall footprint or painted art) inspects instead of opening Build; Forest-cleared card is **Desert** / **Main menu**. **Parked:** named fork titles + new jobs (item 2). Forest save not wiped. Sticky place stayed dead.

@@ -2,15 +2,15 @@
 
 ## Last window — post-kit roadmap (Aug 24)
 
-Worlds and ten keeps are laid out. Formal plan: `docs/GAME_ROADMAP.md`. Forest 10 notes in `docs/DAILY_FEEDBACK_624.md`: keep-click vs Build tray and world-clear buttons are fixed. Named fork titles still parked. They play Forest → next world first. Next **build** era (in order): sound, then sharper/slightly bigger read (existing stills, grow up + dark rim, no regen-all). Named forks + new upgrade art + walk/attack sheets are one later era. Endless is a post–stage-10 congrats card (Main menu / Keep playing) even later.
+Worlds and ten keeps are laid out. Formal plan: `docs/GAME_ROADMAP.md`. Forest 10 notes in `docs/DAILY_FEEDBACK_624.md`: keep-click vs Build tray and world-clear buttons are fixed. Named fork titles still parked. Walk/flap regen landed Aug 24 (2×2 plant-pass or wing flap on every unique body). They play Forest → next world first. Next **build** era (in order): sound, then sharper/slightly bigger read (existing stills, grow up + dark rim, no regen-all). Named forks + new upgrade art are one later era. Endless is a post–stage-10 congrats card (Main menu / Keep playing) even later.
 
 ### Next window
-Ask what Forest / Desert felt like unless they already said. If they say **start building**: **sound first**, then sharper/bigger read per `docs/GAME_ROADMAP.md`. Do not start named forks, new keep/hall art, walk regen, endless, or an 11th keep. Do not wipe localStorage.
+Ask what Forest / Desert felt like unless they already said. If they say **start building**: **sound first**, then sharper/bigger read per `docs/GAME_ROADMAP.md`. Do not start named forks, new keep/hall art, endless, or an 11th keep. Do not wipe localStorage.
 
 ### Parked
 **Void growth (locked idea, not built):** number upgrades make the hole stronger (pull / life / radius). Faster stays every 4th until the named-fork era. Heavier stays slower + more damage/splash, and will open the hole every 3rd in that era. Everyday shot stays an orb. Rally melee-hold still wins.
 
-Named fork titles (624 item 2), new fork stills, attack frames, 4-dir troops, walk-sheet regen, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. Leftover enemy walk-frame PNG edits on disk wait for the art era.
+Named fork titles (624 item 2), new fork stills, attack frames, 4-dir troops, unique north/south walk faces, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
 
 **Layout curve (later):** worlds 2–5 already have unique tracks in `worldPaths.ts`. A later pass can reshape them so early maps have fewer loops (harder) and later maps snake for stacking. Not Forest color-flips. Do not regen all 40 until they peel that pass off.
 
@@ -24,13 +24,13 @@ Named fork titles (624 item 2), new fork stills, attack frames, 4-dir troops, wa
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-Read docs/GAME_ROADMAP.md first (formal post-kit plan), then docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome/system browser unless they explicitly ask. Do not wait to be asked for the in-editor preview. Worlds and the ten-keep tray are done. Forest 10 keep-click vs Build tray and the world-clear buttons (Desert / Main menu) are fixed. Named fork titles still parked. They were playing — finish Forest / start the next world — so ask what they felt before building. Do not wipe localStorage. Do not commit public/preview/ unless asked. Do not bring sticky place back. Do not add an 11th keep, Wind, or a gold farm.
+Read docs/GAME_ROADMAP.md first (formal post-kit plan), then docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome/system browser unless they explicitly ask. Do not wait to be asked for the in-editor preview. Worlds and the ten-keep tray are done. Forest 10 keep-click vs Build tray and the world-clear buttons (Desert / Main menu) are fixed. Real 4-phase walk/flap sheets are live. Named fork titles still parked. They were playing — finish Forest / start the next world — so ask what they felt before building. Do not wipe localStorage. Do not commit public/preview/ unless asked. Do not bring sticky place back. Do not add an 11th keep, Wind, or a gold farm.
 
-If they say start building, do the next-build era IN ORDER from GAME_ROADMAP: (1) sound — fix/fill the existing audio bus and a battle/prepare bed, not a full licensed score unless they ask; (2) sharper/slightly bigger read — grow up, dark rim, sharper draw of EXISTING stills for keeps, troops, enemies, and map. Combat numbers stay. Do NOT regen all towers, halls, or walk sheets in this era (that waits for named forks so we do not paint twice).
+If they say start building, do the next-build era IN ORDER from GAME_ROADMAP: (1) sound — fix/fill the existing audio bus and a battle/prepare bed, not a full licensed score unless they ask; (2) sharper/slightly bigger read — grow up, dark rim, sharper draw of EXISTING stills for keeps, troops, enemies, and map. Combat numbers stay. Do NOT regen all towers or halls in this era. Walk/flap already shipped.
 
 Place UX (locked): click grass beside the path → 2×3 tray with Keeps / Elements tabs → pick → Build. Upgrade is two-click. After Lv3, shooters still show Faster vs Heavier (Cannon Rapid-fire / Mortar) until the named-fork era. Halls are 1×2; Rally stays. Path tiles refuse BUILDINGS. Troops may stand on the path (Kingdom Rush stall). Void everyday orb; every 4th orb pulls.
 
-Do not start named fork titles, new upgrade art, walk/fly regen, attack frames, 4-dir troops, or endless unless they peel one off on purpose. Endless lock (later): after a world stage-10 boss, large card — Congratulations you won — Main menu / Keep playing.
+Do not start named fork titles, new upgrade art, attack frames, 4-dir troops, unique north/south faces, or endless unless they peel one off on purpose. Endless lock (later): after a world stage-10 boss, large card — Congratulations you won — Main menu / Keep playing.
 
 Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks buildings). Push only if they ask.
 ```

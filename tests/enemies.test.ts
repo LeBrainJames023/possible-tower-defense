@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { ENEMIES, leakLives, facingCardinal, spriteFlip, walkFrameIndex, type CreatureSprite } from '../src/game/enemies';
 import { championAt, rosterFor, specialAt } from '../src/game/worldRoster';
 import { LEVELS, pathWaypoints } from '../src/game/levels';
@@ -158,6 +158,20 @@ describe('walk frames', () => {
       for (const dir of ['n', 'e', 's', 'w'] as const) {
         for (const frame of [1, 2, 3, 4]) {
           expect(existsSync(`public/sprites/enemies/walk/${name}-${dir}-${frame}.png`)).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('keeps walk and flap frames from freezing into copies of the same pose', () => {
+    const samples: CreatureSprite[] = ['goblin', 'raider', 'imp', 'warg', 'frostwisp', 'shade'];
+    for (const name of samples) {
+      const files = [1, 2, 3, 4].map((frame) =>
+        readFileSync(`public/sprites/enemies/walk/${name}-w-${frame}.png`),
+      );
+      for (let i = 0; i < files.length; i++) {
+        for (let j = i + 1; j < files.length; j++) {
+          expect(Buffer.compare(files[i], files[j]), `${name} frame ${i + 1} vs ${j + 1}`).not.toBe(0);
         }
       }
     }

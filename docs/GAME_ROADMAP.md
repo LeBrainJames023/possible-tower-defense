@@ -16,7 +16,7 @@ They are **playing** first (finish Forest, start the next world). Do not wipe `l
 - Everyday Void is a small splash orb. Every **4th** orb opens a path-pull. Heavy fork stays a fatter orb (cadence change waits for the fork era).
 - Place UX: grass → 2×3 Keeps / Elements tray → pick → Build.
 - Halls are 1×2. Rally stays. Base troop HP / Rally math stay until play says otherwise.
-- Do not regen world keepers, halls, or walk sheets unless they ask. Do not commit `public/preview/` unless asked.
+- Do not regen world keepers or halls unless they ask. Walk/flap sheets shipped Aug 24. Do not commit `public/preview/` unless asked.
 
 ---
 
@@ -25,6 +25,8 @@ They are **playing** first (finish Forest, start the next world). Do not wipe `l
 Finish Forest. Start Desert (or whichever world opens). Write notes only if something feels wrong (gold, splash, quiet maps, tiny keeps, skate-walks). Retune numbers only from those notes — not in the dark.
 
 **Play note in (Aug 24):** Desert range rings needed a dark rim to read on sand. Ice gets the same ink (snow is light too). Combat range numbers did not change.
+
+**Walk/flap (Aug 24):** they asked for real plant/pass and wing flaps. Every unique body now has a 2×2 cycle stamped onto the live 4-dir files. Unique north/south faces stay parked.
 
 ---
 
@@ -44,7 +46,7 @@ Make **keeps, troops, enemies, and the map** read clearer on the same 1280×768 
 - Dark rim / sticker edge so painted bodies pop off grass.
 - Sharper draw of the files we already have (less mush). Do **not** chase 720p source files as the first lever — a huge PNG on a 64px tile does not look like HD.
 - Combat radius, range, HP, and gold stay put unless play says a size change broke feel.
-- Do **not** regen all towers, troops, or walk sheets in this era. Regen waits for the fork/art era so we do not paint twice.
+- Do **not** regen all towers or halls in this era. Walk/flap already shipped; troop/keep regen still waits for the fork/art era so we do not paint twice.
 
 ### 3. Play notes
 
