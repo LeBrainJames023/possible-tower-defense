@@ -329,6 +329,13 @@ describe('tower niches', () => {
 });
 
 describe('enemy gait', () => {
+  it('keeps Forest fodder stride clocks readable', () => {
+    expect(ENEMY_GAIT.grunt.stepHz).toBeLessThanOrEqual(1.15);
+    expect(ENEMY_GAIT.swarm.stepHz).toBeLessThanOrEqual(2.2);
+    expect(ENEMY_GAIT.scout.stepHz).toBeGreaterThan(ENEMY_GAIT.grunt.stepHz);
+    expect(ENEMY_GAIT.scout.stepHz).toBeLessThan(ENEMY_GAIT.duneRunner.stepHz);
+  });
+
   it('makes scouts bob faster than brutes without changing speed stats', () => {
     expect(ENEMY_GAIT.scout.stepHz).toBeGreaterThan(ENEMY_GAIT.brute.stepHz);
     expect(ENEMY_GAIT.swarm.jitter).toBeGreaterThan(0);

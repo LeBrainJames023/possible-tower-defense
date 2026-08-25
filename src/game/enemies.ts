@@ -128,18 +128,19 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   magician: E('magician', 'The Magician', 'Warps once down the path. Cover the landing, not just the gate.', 'boss', 'magician', 1550, u(22), 188, 0.34, u(30), '#d4a0ff', '#2a0848'),
 };
 
+/** Visual loop rate only — travel speed stays on each enemy def. */
 const GAIT: Record<EnemyRole, EnemyGait> = {
-  fodder: { stepHz: 1.7, bobAmp: 2.1, sway: 0.8, squash: 0.06, jitter: 0, dust: true },
+  fodder: { stepHz: 1.05, bobAmp: 2.1, sway: 0.8, squash: 0.06, jitter: 0, dust: true },
   special: { stepHz: 2.2, bobAmp: 2.4, sway: 1.2, squash: 0.05, jitter: 0.4, dust: true },
   champion: { stepHz: 0.9, bobAmp: 1.4, sway: 0.35, squash: 0.12, jitter: 0, dust: true },
   boss: { stepHz: 0.7, bobAmp: 1.1, sway: 0.2, squash: 0.1, jitter: 0, dust: true },
 };
 
 export const ENEMY_GAIT: Record<EnemyKind, EnemyGait> = {
-  scout: { stepHz: 3.6, bobAmp: 3.4, sway: 2.4, squash: 0.04, jitter: 0, dust: false },
+  scout: { stepHz: 1.5, bobAmp: 2.4, sway: 1.2, squash: 0.04, jitter: 0, dust: false },
   grunt: GAIT.fodder,
   brute: { stepHz: 0.85, bobAmp: 1.5, sway: 0.4, squash: 0.14, jitter: 0, dust: true },
-  swarm: { stepHz: 4.4, bobAmp: 2.6, sway: 1.2, squash: 0.03, jitter: 2.8, dust: false },
+  swarm: { stepHz: 2.0, bobAmp: 2.6, sway: 1.2, squash: 0.03, jitter: 1.1, dust: false },
   boss: GAIT.boss,
   warg: { stepHz: 3.2, bobAmp: 2.8, sway: 1.8, squash: 0.05, jitter: 0, dust: true },
   boar: { stepHz: 1.4, bobAmp: 2.0, sway: 0.6, squash: 0.1, jitter: 0, dust: true },
