@@ -220,6 +220,72 @@ describe('troop hall engine', () => {
     expect(sim.troops.every((tr) => tr.lockId !== flyer.id)).toBe(true);
   });
 
+  it('three troops each stall one walker; the rest of the pack keeps going', () => {
+    const sim = new CombatSandbox();
+    const grass = grassBesidePath(sim.grid);
+    expect(grass).not.toBeNull();
+    if (!grass) return;
+    const hall = sim.place('muster', grass.c, grass.r);
+    assignDefaultRally(hall, sim.grid);
+    sim.run(2.2);
+    expect(sim.troops).toHaveLength(TROOP_CAP);
+
+    const rally = hallRallyPos(hall);
+    const pack: Enemy[] = [];
+    for (let i = 0; i < 10; i++) {
+      const grunt = sim.spawn('grunt');
+      snapEnemyTo(grunt, sim.waypoints, rally);
+      grunt.progress = Math.max(0, grunt.progress - 0.003 * i);
+      grunt.meleeHold = false;
+      grunt.update(0, sim.waypoints);
+      pack.push(grunt);
+    }
+    const startProgress = new Map(pack.map((e) => [e.id, e.progress]));
+    sim.run(0.45);
+
+    const held = pack.filter((e) => e.alive && e.meleeHold);
+    expect(held).toHaveLength(3);
+    const locks = sim.troops.filter((tr) => tr.alive && tr.lockId != null && !tr.pileOn).map((tr) => tr.lockId);
+    expect(new Set(locks).size).toBe(3);
+    const free = pack.filter((e) => e.alive && !e.meleeHold);
+    expect(free.length).toBe(7);
+    expect(free.some((e) => e.progress > (startProgress.get(e.id) ?? 0) + 1e-6)).toBe(true);
+  });
+
+  it('an idle troop grabs the next walker that passes the flag', () => {
+    const sim = new CombatSandbox();
+    const grass = grassBesidePath(sim.grid);
+    expect(grass).not.toBeNull();
+    if (!grass) return;
+    const hall = sim.place('muster', grass.c, grass.r);
+    assignDefaultRally(hall, sim.grid);
+    sim.run(2.2);
+    const rally = hallRallyPos(hall);
+    const first = sim.spawn('grunt');
+    snapEnemyTo(first, sim.waypoints, rally);
+    sim.run(0.25);
+    expect(first.meleeHold).toBe(true);
+
+    const passer = sim.spawn('grunt');
+    snapEnemyTo(passer, sim.waypoints, rally);
+    passer.progress = Math.max(0, passer.progress - 0.02);
+    passer.meleeHold = false;
+    passer.update(0, sim.waypoints);
+    let grabbed = false;
+    for (let i = 0; i < 90; i++) {
+      sim.step(1 / 30);
+      if (passer.meleeHold) {
+        grabbed = true;
+        break;
+      }
+    }
+    expect(grabbed).toBe(true);
+    expect(first.meleeHold).toBe(true);
+    const lockIds = sim.troops.filter((tr) => tr.alive && !tr.pileOn).map((tr) => tr.lockId);
+    expect(lockIds).toContain(first.id);
+    expect(lockIds).toContain(passer.id);
+  });
+
   it('respawns a dead troop from the hall after training time', () => {
     const sim = new CombatSandbox();
     const grass = grassBesidePath(sim.grid);

@@ -1,19 +1,28 @@
 /**
  * Visual size only. Combat radius, HP, and Rally stay in troops.ts / constants.ts.
  * Halls crop sprite-forge padding so the yard/house fills a two-tile pad.
+ * Turn (1×2) keeps this same paint size — shrinking to one-tile width made
+ * the yard look tiny. Landscape art stays upright; it may spill a little
+ * past the thin side of a stacked pad.
  */
 import { TILE, u } from './constants';
+import { drawSticker } from './drawSprite';
 import { HALL_SPAN } from './footprint';
 import type { TroopKind } from './troops';
 
 /** Visible hall footprint — two grass tiles wide. Height may grow up. */
 export const HALL_TILE_FILL = 0.94;
+/** Extra hall height after the two-tile width is locked. */
+export const HALL_HEIGHT_MUL = 1.12;
 
 /** Canvas height for painted troops. Idle/walk share this so the cycle does not pop. */
 export const TROOP_PAINT_H: Record<TroopKind, number> = {
-  warrior: u(48),
-  knight: u(56),
+  warrior: u(54),
+  knight: u(64),
 };
+
+/** Billboard height vs combat radius. Visual only — hit radius stays on the enemy def. */
+export const ENEMY_PAINT_MUL = 3.75;
 
 type ContentBox = { sx: number; sy: number; sw: number; sh: number };
 
@@ -22,22 +31,10 @@ const contentCache = new WeakMap<HTMLImageElement, ContentBox>();
 export function hallBillboardSize(
   contentW: number,
   contentH: number,
-  axis: 'h' | 'v' = 'h',
+  _axis: 'h' | 'v' = 'h',
 ): { w: number; h: number } {
-  if (axis === 'v') {
-    const maxW = TILE * HALL_TILE_FILL;
-    const maxH = TILE * HALL_SPAN * HALL_TILE_FILL;
-    const aspect = contentW / Math.max(1, contentH);
-    let w = maxW;
-    let h = w / aspect;
-    if (h > maxH) {
-      h = maxH;
-      w = h * aspect;
-    }
-    return { w, h };
-  }
   const w = TILE * HALL_SPAN * HALL_TILE_FILL;
-  const h = w * (contentH / Math.max(1, contentW));
+  const h = w * (contentH / Math.max(1, contentW)) * HALL_HEIGHT_MUL;
   return { w, h };
 }
 
@@ -100,9 +97,9 @@ export function drawHallBillboard(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   feetY: number,
-  axis: 'h' | 'v' = 'h',
+  _axis: 'h' | 'v' = 'h',
 ): void {
   const box = spriteContentBox(img);
-  const { w, h } = hallBillboardSize(box.sw, box.sh, axis);
-  ctx.drawImage(img, box.sx, box.sy, box.sw, box.sh, -w / 2, -h + feetY, w, h);
+  const { w, h } = hallBillboardSize(box.sw, box.sh);
+  drawSticker(ctx, img, -w / 2, -h + feetY, w, h, box);
 }

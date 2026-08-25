@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { TILE } from '../src/game/constants';
-import { HALL_TILE_FILL, hallBillboardSize, TROOP_PAINT_H } from '../src/game/billboards';
+import { TILE, TOWER_BILLBOARD, u } from '../src/game/constants';
+import {
+  ENEMY_PAINT_MUL,
+  HALL_HEIGHT_MUL,
+  HALL_TILE_FILL,
+  hallBillboardSize,
+  TROOP_PAINT_H,
+} from '../src/game/billboards';
+import { SPRITE_RIM } from '../src/game/drawSprite';
 
 describe('tile-fit billboards', () => {
   it('fits hall content to two tiles wide and lets height grow up', () => {
@@ -9,24 +16,28 @@ describe('tile-fit billboards', () => {
     expect(hall.w).toBeGreaterThan(TILE);
     expect(hall.w).toBeLessThanOrEqual(TILE * 2);
     expect(hall.h).toBeLessThan(TILE * 1.6);
+    expect(HALL_HEIGHT_MUL).toBeGreaterThan(1);
   });
 
-  it('fits a stacked hall inside one tile of width', () => {
-    const hall = hallBillboardSize(320, 160, 'v');
-    expect(hall.w).toBeLessThanOrEqual(TILE);
-    expect(hall.h).toBeLessThanOrEqual(TILE * 2);
+  it('keeps the same paint size when the hall stands up', () => {
+    const flat = hallBillboardSize(320, 160, 'h');
+    const tall = hallBillboardSize(320, 160, 'v');
+    expect(tall.w).toBeCloseTo(flat.w);
+    expect(tall.h).toBeCloseTo(flat.h);
   });
 
   it('keeps troop paint on one path tile without using combat radius', () => {
-    // Sprite-forge cells are square; the body is ~64% of that canvas.
-    const warriorBody = TROOP_PAINT_H.warrior * 0.66;
-    const knightBody = TROOP_PAINT_H.knight * 0.64;
-    // Old draw used combat radius * 3.45 (~37 warrior / ~55 knight). Paint is now taller.
-    expect(TROOP_PAINT_H.warrior).toBeGreaterThan(50);
+    expect(TROOP_PAINT_H.warrior).toBeGreaterThan(u(48));
     expect(TROOP_PAINT_H.knight).toBeGreaterThan(TROOP_PAINT_H.warrior);
-    expect(warriorBody).toBeLessThanOrEqual(TILE);
-    expect(knightBody).toBeLessThanOrEqual(TILE);
-    expect(warriorBody).toBeGreaterThan(TILE * 0.35);
-    expect(knightBody).toBeGreaterThan(warriorBody);
+    expect(TROOP_PAINT_H.warrior).toBeLessThanOrEqual(TILE * 1.25);
+    expect(TROOP_PAINT_H.knight).toBeLessThanOrEqual(TILE * 1.4);
+  });
+
+  it('grows keep and enemy paint without changing combat numbers', () => {
+    expect(TOWER_BILLBOARD).toBeGreaterThanOrEqual(108);
+    expect(TOWER_BILLBOARD).toBeLessThanOrEqual(120);
+    expect(ENEMY_PAINT_MUL).toBeGreaterThan(3.35);
+    expect(ENEMY_PAINT_MUL).toBeLessThan(4.2);
+    expect(SPRITE_RIM).toBeGreaterThan(1);
   });
 });

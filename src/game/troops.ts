@@ -76,7 +76,8 @@ export function applyHallForkToTroops(hall: Tower, troops: Troop[]): void {
 
 export const TROOP_CAP = 3;
 export const TROOP_MELEE_RATE = 1;
-export const TROOP_AGGRO = u(56);
+/** Catch a walker on the path tile plus a little spill — about 1.5 tiles. */
+export const TROOP_AGGRO = u(72);
 export const TROOP_STAGGER = 0.4;
 export const TROOP_SLOT_SPREAD = u(18);
 /** Walk-cycle loops per second. Visual only — travel speed stays in TROOP_STATS. */
@@ -275,6 +276,16 @@ function lockerFor(enemyId: number, troops: Troop[]): Troop | undefined {
   return troops.find((tr) => tr.alive && tr.lockId === enemyId && !tr.pileOn);
 }
 
+function walkersInAggro(tr: Troop, enemies: Enemy[]): Enemy[] {
+  return enemies
+    .filter((e) => canLockEnemy(e) && dist(tr.pos, e.pos) <= TROOP_AGGRO)
+    .sort((a, b) => dist(tr.pos, a.pos) - dist(tr.pos, b.pos));
+}
+
+function freshWalker(tr: Troop, troops: Troop[], enemies: Enemy[]): Enemy | undefined {
+  return walkersInAggro(tr, enemies).find((e) => !lockerFor(e.id, troops));
+}
+
 function spawnTroop(world: TroopWorld, hall: Tower): void {
   const used = new Set(world.troops.filter((tr) => tr.alive && tr.hallId === hall.id).map((tr) => tr.slot));
   let slot = 0;
@@ -322,21 +333,27 @@ export function stepHalls(world: TroopWorld, dt: number): void {
       if (!foe || !canLockEnemy(foe) || dist(tr.pos, foe.pos) > LOCK_LEASH) {
         tr.lockId = null;
         tr.pileOn = false;
+      } else if (tr.pileOn) {
+        const peel = freshWalker(tr, world.troops, world.enemies);
+        if (peel) {
+          tr.lockId = peel.id;
+          tr.pileOn = false;
+        }
       }
     }
 
     if (tr.lockId == null) {
-      const nearby = world.enemies
-        .filter((e) => canLockEnemy(e) && dist(tr.pos, e.pos) <= TROOP_AGGRO)
-        .sort((a, b) => dist(tr.pos, a.pos) - dist(tr.pos, b.pos));
+      const nearby = walkersInAggro(tr, world.enemies);
       const fresh = nearby.find((e) => !lockerFor(e.id, world.troops));
-      const join = nearby.find((e) => lockerFor(e.id, world.troops));
       if (fresh) {
         tr.lockId = fresh.id;
         tr.pileOn = false;
-      } else if (join) {
-        tr.lockId = join.id;
-        tr.pileOn = true;
+      } else {
+        const join = nearby.find((e) => lockerFor(e.id, world.troops));
+        if (join) {
+          tr.lockId = join.id;
+          tr.pileOn = true;
+        }
       }
     }
   }
@@ -365,10 +382,10 @@ export function stepHalls(world: TroopWorld, dt: number): void {
     if (!tr.alive || tr.lockId == null) continue;
     const foe = world.enemies.find((e) => e.id === tr.lockId && e.alive);
     if (!foe) continue;
-    const reach = tr.radius + foe.radius + u(8);
-    if (dist(tr.pos, foe.pos) > reach + 1) continue;
     const locker = lockerFor(foe.id, world.troops);
     if (locker?.id === tr.id) foe.meleeHold = true;
+    const reach = tr.radius + foe.radius + u(8);
+    if (dist(tr.pos, foe.pos) > reach + 1) continue;
     if (tr.cooldown <= 0) {
       foe.takeDamage(tr.damage, false);
       tr.cooldown = 1 / TROOP_MELEE_RATE;

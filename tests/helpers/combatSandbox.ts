@@ -106,11 +106,11 @@ export class CombatSandbox implements CombatWorld, TroopWorld {
   }
 
   step(dt: number): void {
+    stepHalls(this, dt);
     if (!this.freezeEnemies) {
       for (const e of this.enemies) e.update(dt, this.waypoints);
     }
 
-    stepHalls(this, dt);
     stepCombat(this, dt, {
       onDamage: (_e, amount) => {
         this.damageDealt += amount;

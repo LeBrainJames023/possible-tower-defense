@@ -120,7 +120,7 @@ export class Game {
     if (!ctx) throw new Error('Canvas 2D unavailable');
     this.ctx = ctx;
     this.ctx.imageSmoothingEnabled = true;
-    this.ctx.imageSmoothingQuality = 'high';
+    this.ctx.imageSmoothingQuality = 'medium';
     this.renderer = new Renderer(ctx);
   }
 
@@ -537,6 +537,8 @@ export class Game {
       }
     }
 
+    stepHalls(this, dt);
+
     for (const e of this.enemies) {
       e.update(dt, this.waypoints);
       for (const ev of stepEnemyVerb(e, dt)) {
@@ -610,7 +612,6 @@ export class Game {
     }
     applyPackRally(this.enemies);
     this.collectBounties();
-    stepHalls(this, dt);
     stepCombat(this, dt, this.combatHooks());
 
     this.floats = this.floats
@@ -718,6 +719,7 @@ export class Game {
     this.renderer.time = this.clock;
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'medium';
     this.ctx.fillStyle = '#071018';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.setTransform(this.canvas.width / MAP_W, 0, 0, this.canvas.height / MAP_H, 0, 0);
