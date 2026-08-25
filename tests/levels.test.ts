@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS, waveRoster } from '../src/game/levels';
 import { COLS, ROWS, STAGES_PER_WORLD, WAVES_PER_LEVEL, WORLD_COUNT } from '../src/game/constants';
 import { PATH_OVERRIDES } from '../src/game/worldPaths';
-import { WORLDS, buildSurfaceWord } from '../src/game/worlds';
+import { WORLDS, buildSurfaceWord, themeFor } from '../src/game/worlds';
 
 describe('expandPath', () => {
   it('fills orthogonal steps between corners', () => {
@@ -103,6 +103,23 @@ describe('campaign maps', () => {
     expect(buildSurfaceWord('ice')).toBe('ice');
     expect(buildSurfaceWord('fire')).toBe('ash');
     expect(buildSurfaceWord('hollow')).toBe('rune');
+  });
+
+  it('gives light ground a darker range ink than the sand or snow', () => {
+    const lum = (hex: string): number => {
+      const n = hex.replace('#', '');
+      const r = parseInt(n.slice(0, 2), 16);
+      const g = parseInt(n.slice(2, 4), 16);
+      const b = parseInt(n.slice(4, 6), 16);
+      return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+    for (const world of ['desert', 'ice'] as const) {
+      const theme = themeFor(world);
+      expect(lum(theme.rangeInk)).toBeLessThan(lum(theme.grassA) * 0.55);
+    }
+    for (const world of WORLDS) {
+      expect(world.theme.rangeInk).toMatch(/^#[0-9a-fA-F]{6}$/);
+    }
   });
 });
 

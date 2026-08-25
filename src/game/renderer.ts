@@ -103,15 +103,16 @@ export class Renderer {
         ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE - 2);
       }
       if (selectedKind && isTroopHall(selectedKind) && hoverCells.length >= 2) {
-        const left = Math.min(...hoverCells.map((cell) => cell.c));
-        const row = hoverCells[0].r;
-        const mid = hallCenter(left, row);
+        const col = Math.min(...hoverCells.map((cell) => cell.c));
+        const row = Math.min(...hoverCells.map((cell) => cell.r));
+        const axis = hoverCells[0].r === hoverCells[1].r ? 'h' : 'v';
+        const mid = hallCenter(col, row, axis);
         const img = TEX.towers[selectedKind];
         if (texReady(img)) {
           ctx.save();
           ctx.globalAlpha = canPlace ? 0.78 : 0.4;
           ctx.translate(mid.x, mid.y);
-          drawHallBillboard(ctx, img, TOWER_FEET);
+          drawHallBillboard(ctx, img, TOWER_FEET, axis);
           ctx.restore();
         }
       }
@@ -370,7 +371,7 @@ export class Renderer {
   }
 
   drawTower(t: Tower, selected: boolean, upgradePreview = false, rallyPreview = false): void {
-    drawTower(this.ctx, t, selected, this.time, upgradePreview, rallyPreview);
+    drawTower(this.ctx, t, selected, this.time, upgradePreview, rallyPreview, this.theme);
   }
 
   drawTroop(tr: Troop): void {

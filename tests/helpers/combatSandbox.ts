@@ -87,17 +87,20 @@ export class CombatSandbox implements CombatWorld, TroopWorld {
     let row = r;
     let x = c * TILE + TILE / 2;
     let y = r * TILE + TILE / 2;
+    let axis: 'h' | 'v' = 'h';
     if (isTroopHall(kind)) {
       const pair = hallPairFromClick((cc, rr) => canUseBuildCell(this.grid, new Set(), cc, rr), c, r);
       if (pair) {
         col = pair.left;
         row = pair.row;
-        const mid = hallCenter(col, row);
+        axis = pair.axis;
+        const mid = hallCenter(col, row, axis);
         x = mid.x;
         y = mid.y;
       }
     }
     const t = new Tower(kind, col, row, x, y);
+    if (isTroopHall(kind)) t.hallAxis = axis;
     this.towers.push(t);
     return t;
   }

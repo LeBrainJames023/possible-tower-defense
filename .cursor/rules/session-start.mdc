@@ -1,0 +1,13 @@
+---
+description: On a new agent session, open the in-editor game preview (not Chrome)
+alwaysApply: true
+---
+
+# Session start — in-editor preview
+
+As soon as a new agent opens this repo, before asking them to play or wait:
+
+1. If nothing is serving `http://127.0.0.1:5173/`, start `npm run dev -- --host 127.0.0.1 --port 5173`.
+2. Open Cursor’s **in-editor Browser** on that URL, docked beside the chat (`cursor-ide-browser` with `position: "side"`). This is the preview panel next to the terminal — not a separate Chrome window.
+3. Do **not** run `open http://...` or otherwise launch system Chrome unless they explicitly ask for a separate browser. Localhost links in the terminal should open Cursor’s in-editor Browser (`workbench.browser.openLocalhostLinks` is on).
+4. Do not wipe `localStorage`. Do not commit `public/preview/` unless asked.

@@ -879,6 +879,20 @@ h3 {
   gap: 6px;
 }
 
+.hall-fit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hall-fit.hidden {
+  display: none;
+}
+
+.hall-fit .btn-tray {
+  flex: 1;
+}
+
 .tower-actions {
   display: flex;
   flex-direction: column;

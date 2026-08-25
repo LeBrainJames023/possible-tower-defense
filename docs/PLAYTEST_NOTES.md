@@ -1,10 +1,34 @@
 # Playtest notes
 
+## This session — daily 624 hotfixes (Aug 24)
+
+Forest 10 notes from `docs/DAILY_FEEDBACK_624.md`. **Fixed:** clicking a keep (hall footprint or painted art) inspects instead of opening Build; Forest-cleared card is **Desert** / **Main menu**. **Parked:** named fork titles + new jobs (item 2). Forest save not wiped. Sticky place stayed dead.
+
+Desert play: range rings get a dark ink rim so they read on sand (Ice too). Unique world tracks already live in `src/game/worldPaths.ts` — layout-curve regen (fewer loops = harder) is penciled for later, not this window. Keep clicks follow the highlighted **tile** — empty grass above a keep opens Build, not inspect.
+
+Muster / Chapter: after you pick one, the ghost still lights two tiles. **Left / Right / Turn left / Turn right** on the Build card slide or stand the hall (vertical 1×2). Buttons hide when that seat is blocked. One-tile keeps unchanged.
+
+New agents start Vite and open Cursor’s in-editor Browser beside the chat (not Chrome) without being asked.
+
+## This session — they go play (Aug 24)
+
+Live play notes (log only): `docs/DAILY_FEEDBACK_624.md`. Formal post-kit plan: `docs/GAME_ROADMAP.md`. They finish Forest and start the next world. Next **build** (when they say start): sound, then sharper/slightly bigger read. Named forks + new upgrade art + walk regen wait. Endless = later congrats card after a stage-10 boss.
+
+## This session — Forest walk clocks (Aug 24)
+
+Raider / Imp / Goblin 4-dir sheets are almost the same pose four times (pixel-diff is tiny). This window did **not** regen. Slowed the visual clock only: Raider `1.05`, Goblin `1.5`, Imp flap `2.0`. Painted bodies get a light step/hover bob again so they do not sit frozen. Travel speed, HP, and range unchanged.
+
+Check 1x after a reload: Forest 1 wave 1 Raiders should bounce with a slower cycle (still not a real left-right stride). Wave 4 Imps should flap slower, less jitter. Path still blocks buildings. Next art beat if they want it: paint real plant/pass/plant/pass + wing up/down for those cards.
+
 ## This session — Void vortex (Aug 23)
 
 Everyday Void still shoots the small splash orb. Heavy fork stays a fatter orb. Every **4th** orb impact opens a black-hole pull that slides nearby foes along the painted road (flyers included). Troops holding a walker keep that stall — the hole does not yank a melee lock.
 
-Headless Forest 1: Void on grass, path refused, 4th orb opened a pull. `npm test` 153 passed. `npm run build` clean. Cursor browser tools did not connect this window — check 1x after a reload: Forest 1 → grass → Elements → Void → Build → Start wave. Raider takes orb damage. After four hits, a dark hole should bunch walkers on the road. Path still blocks buildings. Sticky place stays dead.
+**Play (Aug 24):** they called it awesome. Every 4th hit slows a bit and sucks them in — keep that feel. Everyday orb stays. Live check after Vite restart.
+
+Parked Void growth (not built): pull gets more aggressive on number upgrades. Faster keeps every 4th. Heavier stays slower / fatter / harder, and opens the hole every **3rd** orb. Still a pull-on-the-road, not a new keep.
+
+## This session — 1×2 halls (Aug 23)
 
 ## This session — 1×2 halls (Aug 23)
 

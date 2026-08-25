@@ -11,6 +11,12 @@ describe('tile-fit billboards', () => {
     expect(hall.h).toBeLessThan(TILE * 1.6);
   });
 
+  it('fits a stacked hall inside one tile of width', () => {
+    const hall = hallBillboardSize(320, 160, 'v');
+    expect(hall.w).toBeLessThanOrEqual(TILE);
+    expect(hall.h).toBeLessThanOrEqual(TILE * 2);
+  });
+
   it('keeps troop paint on one path tile without using combat radius', () => {
     // Sprite-forge cells are square; the body is ~64% of that canvas.
     const warriorBody = TROOP_PAINT_H.warrior * 0.66;

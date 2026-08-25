@@ -16,6 +16,8 @@ export interface MapTheme {
   canopyDark: string;
   glow: string;
   ui: string;
+  /** Dark rim under the range ring so it reads on sand, snow, ash, or grass. */
+  rangeInk: string;
 }
 
 export interface WorldDef {
@@ -52,6 +54,7 @@ export const WORLDS: WorldDef[] = [
       canopyDark: '#1a4a28',
       glow: 'rgba(244, 196, 100, 0.2)',
       ui: '#3d8f4a',
+      rangeInk: '#0c1812',
     },
   },
   {
@@ -76,6 +79,7 @@ export const WORLDS: WorldDef[] = [
       canopyDark: '#6a4810',
       glow: 'rgba(232, 180, 60, 0.22)',
       ui: '#e0b050',
+      rangeInk: '#1a1008',
     },
   },
   {
@@ -100,6 +104,7 @@ export const WORLDS: WorldDef[] = [
       canopyDark: '#4a6a78',
       glow: 'rgba(180, 230, 255, 0.24)',
       ui: '#9ae4f7',
+      rangeInk: '#071018',
     },
   },
   {
@@ -124,6 +129,7 @@ export const WORLDS: WorldDef[] = [
       canopyDark: '#6a1808',
       glow: 'rgba(255, 100, 40, 0.26)',
       ui: '#ff6b4a',
+      rangeInk: '#140804',
     },
   },
   {
@@ -148,6 +154,7 @@ export const WORLDS: WorldDef[] = [
       canopyDark: '#301050',
       glow: 'rgba(200, 100, 255, 0.26)',
       ui: '#c77dff',
+      rangeInk: '#08040e',
     },
   },
 ];

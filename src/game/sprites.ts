@@ -5,6 +5,7 @@ import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
 import { drawHallBillboard } from './billboards';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
+import type { MapTheme } from './worlds';
 
 const STATIC_TOWERS: TowerKind[] = [
   'ice',
@@ -61,7 +62,7 @@ function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: numbe
   if (forkId) {
     const forkImg = TEX.towerForks[t.kind][forkId];
     if (texReady(forkImg)) {
-      if (isTroopHall(t.kind)) drawHallBillboard(ctx, forkImg, feet);
+      if (isTroopHall(t.kind)) drawHallBillboard(ctx, forkImg, feet, t.hallAxis);
       else drawFeetBillboard(ctx, forkImg, h, feet);
       return true;
     }
@@ -99,7 +100,7 @@ function drawPaintedTower(ctx: CanvasRenderingContext2D, t: Tower, recoil: numbe
 
   const body = TEX.towers[t.kind];
   if (isTroopHall(t.kind) && texReady(body)) {
-    drawHallBillboard(ctx, body, feet);
+    drawHallBillboard(ctx, body, feet, t.hallAxis);
     return true;
   }
   if (STATIC_TOWERS.includes(t.kind) && texReady(body)) {
@@ -139,17 +140,23 @@ function drawRangeRing(
   fill: boolean,
   dash: number[],
   lineWidth: number,
-  strokeAlpha: string
+  strokeAlpha: string,
+  ink: string
 ): void {
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.setLineDash(dash);
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = lineWidth + 2.8 * PX;
+  ctx.stroke();
   ctx.strokeStyle = `${color}${strokeAlpha}`;
   ctx.lineWidth = lineWidth;
-  ctx.setLineDash(dash);
   ctx.stroke();
   ctx.setLineDash([]);
   if (fill) {
-    ctx.fillStyle = `${color}10`;
+    ctx.fillStyle = `${ink}24`;
+    ctx.fill();
+    ctx.fillStyle = `${color}14`;
     ctx.fill();
   }
 }
@@ -228,32 +235,37 @@ export function drawTower(
   selected: boolean,
   time: number,
   upgradePreview = false,
-  rallyPreview = false
+  rallyPreview = false,
+  theme?: MapTheme
 ): void {
   const def = t.def;
   const { x, y } = t;
   const scale = PX * 1.32 * (1 + (t.level - 1) * 0.08);
   const recoil = t.recoil * 5 * PX;
+  const ink = theme?.rangeInk ?? '#140c08';
 
   if (selected) {
     if (isTroopHall(t.kind) && rallyPreview) {
-      drawRangeRing(ctx, x, y, t.range, '#f4d35e', true, [], 3 * PX, 'cc');
+      drawRangeRing(ctx, x, y, t.range, '#f4d35e', true, [], 3 * PX, 'ee', ink);
     } else if (upgradePreview && !isTroopHall(t.kind)) {
       const fork = t.previewFork ?? t.fork;
       const lv = t.canNumberUpgrade() ? t.level + 1 : t.level;
-      drawRangeRing(ctx, x, y, t.rangeAt(lv, fork), '#f4d35e', true, [], 3 * PX, 'cc');
+      drawRangeRing(ctx, x, y, t.rangeAt(lv, fork), '#f4d35e', true, [], 3 * PX, 'ee', ink);
     }
-    drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2.2 * PX, '99');
+    drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2.6 * PX, 'ee', ink);
   }
 
   if (isTroopHall(t.kind)) {
-    for (const cell of hallFootprint(t.col, t.row)) {
+    for (const cell of hallFootprint(t.col, t.row, t.hallAxis)) {
       const bx = cell.c * TILE;
       const by = cell.r * TILE;
       ctx.fillStyle = selected ? 'rgba(244, 211, 94, 0.16)' : 'rgba(20, 12, 8, 0.12)';
       ctx.fillRect(bx + 3, by + 3, TILE - 6, TILE - 6);
       if (selected) {
-        ctx.strokeStyle = 'rgba(244, 211, 94, 0.85)';
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = 3.6 * PX;
+        ctx.strokeRect(bx + 2, by + 2, TILE - 4, TILE - 4);
+        ctx.strokeStyle = 'rgba(244, 211, 94, 0.95)';
         ctx.lineWidth = 2.4 * PX;
         ctx.strokeRect(bx + 2, by + 2, TILE - 4, TILE - 4);
       }
@@ -424,7 +436,12 @@ export function drawEnemy(
   const gait = ENEMY_GAIT[e.kind];
   const billboard = enemyBillboard(e);
   const puppet = billboard?.puppet ?? true;
-  const bob = puppet ? Math.sin(e.bob) * gait.bobAmp : 0;
+  const painted = !!billboard && !puppet;
+  const bob = puppet
+    ? Math.sin(e.bob) * gait.bobAmp
+    : painted
+      ? Math.sin(e.bob) * gait.bobAmp * (e.flying ? 0.55 : 0.35)
+      : 0;
   const sway = puppet ? Math.sin(e.bob * 0.5) * gait.sway : 0;
   const jitter =
     puppet && gait.jitter

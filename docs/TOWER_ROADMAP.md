@@ -1,6 +1,6 @@
 # Tower roadmap — ten keeps
 
-Worlds, land, and unique bodies are done. This file is the live plan for the keep kit. Pickup paste lives in `docs/FUTURE_FEATURES.md`. Do not start endless or music. Do not regen world keepers. Do not wipe `localStorage` (Forest save may be 9/10).
+Worlds, land, and unique bodies are done. This file is the **keep-kit history**. Live plan after the kit: `docs/GAME_ROADMAP.md`. Pickup paste lives in `docs/FUTURE_FEATURES.md`. Do not wipe `localStorage`.
 
 ---
 
@@ -85,8 +85,8 @@ Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `proj
 
 ## Later
 
-- Play Forest 1 Void pull + leftover forks. Retune numbers only if a map feels wrong.
-- Parked from before: endless, music, splash/economy retune, Forest 10 14-arrow gold, world-themed fodder, Forest Boar still using the troll sprite.
+- Live plan moved to `docs/GAME_ROADMAP.md` (sound → sharper/bigger read → play notes; then named forks + new looks; then endless after stage 10).
+- Void pull accepted (Aug 24). Cadence / named paths wait for the fork era.
 
 ---
 

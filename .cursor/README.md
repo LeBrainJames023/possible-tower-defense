@@ -15,7 +15,10 @@
 | Core game behavior | `project-core.mdc` |
 | Done checklist | `quality-gates.mdc` |
 | Assets log | `docs/ASSETS.md` |
-| Future ideas | `docs/FUTURE_FEATURES.md` |
+| Future ideas / continue prompt | `docs/FUTURE_FEATURES.md` |
+| Daily play log (Aug 24) | `docs/DAILY_FEEDBACK_624.md` |
+| Session start (open game in browser) | `session-start.mdc` |
+| Post-kit plan (sound, sharpness, forks, endless) | `docs/GAME_ROADMAP.md` |
 | Ten-keep / tray plan | `docs/TOWER_ROADMAP.md` |
 | Ice / Fire / Hollow world passes | `docs/WORLD_ROADMAP.md` (worlds done) |
 | Campaign / worlds | `docs/CAMPAIGN.md`, `src/game/worlds.ts` |

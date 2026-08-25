@@ -55,6 +55,7 @@ const introBody = document.getElementById('intro-body')!;
 const resultTitle = document.getElementById('result-title')!;
 const resultBody = document.getElementById('result-body')!;
 const btnResultPrimary = document.getElementById('btn-result-primary') as HTMLButtonElement;
+const btnResultSecondary = document.getElementById('btn-result-secondary') as HTMLButtonElement;
 
 const hudLevel = document.getElementById('hud-level')!;
 const hudWave = document.getElementById('hud-wave')!;
@@ -96,6 +97,11 @@ const inspectPanel = document.getElementById('inspect-panel')!;
 const selectionBlurb = document.getElementById('selection-blurb')!;
 const buildTitle = document.getElementById('build-title')!;
 const btnBuild = document.getElementById('btn-build') as HTMLButtonElement;
+const hallFit = document.getElementById('hall-fit')!;
+const btnHallLeft = document.getElementById('btn-hall-left') as HTMLButtonElement;
+const btnHallRight = document.getElementById('btn-hall-right') as HTMLButtonElement;
+const btnHallTurnLeft = document.getElementById('btn-hall-turn-left') as HTMLButtonElement;
+const btnHallTurnRight = document.getElementById('btn-hall-turn-right') as HTMLButtonElement;
 const playfield = document.getElementById('playfield')!;
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -144,6 +150,7 @@ let lastLives = -1;
 let introQueue: EnemyKind[] = [];
 type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB' | 'sell' | 'rally';
 let inspectStep: InspectStep = 'idle';
+let resultSecondary: 'title' | 'worlds' = 'worlds';
 let buildTab: TrayTab = 'keeps';
 
 const tabKeeps = document.getElementById('tab-keeps') as HTMLButtonElement;
@@ -301,6 +308,7 @@ function syncOverlay(): void {
   } else {
     buildTitle.textContent = 'Build';
   }
+  syncHallFit();
   requestAnimationFrame(() => {
     if (game.buildCell && !buildPanel.classList.contains('hidden')) {
       pinPanelToCell(buildPanel, game.buildCell.c, game.buildCell.r);
@@ -318,6 +326,7 @@ function syncOverlay(): void {
 function closeBuildMenu(): void {
   game.buildCell = null;
   game.selectedKind = null;
+  game.hallDir = null;
   syncOverlay();
 }
 
@@ -328,6 +337,7 @@ function openBuildMenu(c: number, r: number): void {
   inspectStep = 'idle';
   game.buildCell = { c, r };
   game.selectedKind = null;
+  game.hallDir = null;
   setBuildTab('keeps');
   syncShopSelection();
   syncOverlay();
@@ -353,6 +363,18 @@ function fillBuildDetail(kind: TowerKind): void {
   buildStats.innerHTML = statGridHtml(rows);
   btnBuild.disabled = !!(game.level && game.gold < def.cost);
   btnBuild.textContent = game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build ${def.cost}g`;
+  syncHallFit();
+}
+
+function syncHallFit(): void {
+  const hall = !!game.selectedKind && isTroopHall(game.selectedKind);
+  const opts = game.hallFitOptions();
+  const any = opts.left || opts.right || opts.turnLeft || opts.turnRight;
+  hallFit.classList.toggle('hidden', !hall || !any);
+  btnHallLeft.classList.toggle('hidden', !opts.left);
+  btnHallRight.classList.toggle('hidden', !opts.right);
+  btnHallTurnLeft.classList.toggle('hidden', !opts.turnLeft);
+  btnHallTurnRight.classList.toggle('hidden', !opts.turnRight);
 }
 
 function setBuildTab(tab: TrayTab): void {
@@ -391,6 +413,8 @@ function renderShop(): void {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       game.selectedKind = kind;
+      game.hallDir = null;
+      if (isTroopHall(kind)) game.ensureHallDir();
       if (game.buildCell) game.hover = { ...game.buildCell };
       syncShopSelection();
       fillBuildDetail(kind);
@@ -731,6 +755,8 @@ game.onToast = showToast;
 game.onResult = (won) => {
   resultWon = won;
   overlayResult.classList.remove('hidden');
+  resultSecondary = 'worlds';
+  btnResultSecondary.textContent = 'Worlds';
   if (won) {
     const level = game.level;
     const next = afterWin(level);
@@ -738,15 +764,21 @@ game.onResult = (won) => {
       resultTitle.textContent = 'Look finished';
       resultBody.textContent = 'Nice hold. This land unlocks when you beat the previous world.';
       btnResultPrimary.textContent = 'Back to worlds';
+      resultSecondary = 'title';
+      btnResultSecondary.textContent = 'Main menu';
     } else if (isCampaignClear(next)) {
       resultTitle.textContent = 'Campaign clear!';
       resultBody.textContent = 'You held The Hollow. The magician-s door is shut.';
       btnResultPrimary.textContent = 'Back to worlds';
+      resultSecondary = 'title';
+      btnResultSecondary.textContent = 'Main menu';
     } else if (next.world > level.worldIndex) {
       const opened = worldByIndex(next.world);
       resultTitle.textContent = `${worldById(level.world).name} cleared`;
       resultBody.textContent = `${opened.name} is open.`;
-      btnResultPrimary.textContent = 'Worlds';
+      btnResultPrimary.textContent = opened.name;
+      resultSecondary = 'title';
+      btnResultSecondary.textContent = 'Main menu';
     } else {
       resultTitle.textContent = 'Level cleared';
       resultBody.textContent = `${level.name} survived. Next map unlocked.`;
@@ -785,6 +817,20 @@ document.querySelectorAll('[data-diff]').forEach((el) => {
 function goWorlds(): void {
   renderWorlds();
   showScreen('worlds');
+  game.stopLoop();
+}
+
+function goTitle(): void {
+  overlayResult.classList.add('hidden');
+  showScreen('title');
+  game.stopLoop();
+}
+
+function openWorldLevels(worldIndex: number): void {
+  overlayResult.classList.add('hidden');
+  activeWorldIndex = worldIndex;
+  renderLevels();
+  showScreen('levels');
   game.stopLoop();
 }
 
@@ -939,6 +985,7 @@ buildPanel.addEventListener('pointerdown', (e) => e.stopPropagation());
 inspectPanel.addEventListener('pointerdown', (e) => e.stopPropagation());
 tabKeeps.addEventListener('click', () => {
   game.selectedKind = null;
+  game.hallDir = null;
   setBuildTab('keeps');
   syncShopSelection();
   syncOverlay();
@@ -946,6 +993,7 @@ tabKeeps.addEventListener('click', () => {
 });
 tabElements.addEventListener('click', () => {
   game.selectedKind = null;
+  game.hallDir = null;
   setBuildTab('elements');
   syncShopSelection();
   syncOverlay();
@@ -953,8 +1001,33 @@ tabElements.addEventListener('click', () => {
 });
 document.getElementById('btn-build-back')!.addEventListener('click', () => {
   game.selectedKind = null;
+  game.hallDir = null;
   syncShopSelection();
   syncOverlay();
+});
+btnHallLeft.addEventListener('click', () => {
+  if (game.nudgeHall('w')) {
+    game.audio.ui();
+    syncOverlay();
+  }
+});
+btnHallRight.addEventListener('click', () => {
+  if (game.nudgeHall('e')) {
+    game.audio.ui();
+    syncOverlay();
+  }
+});
+btnHallTurnLeft.addEventListener('click', () => {
+  if (game.rotateHall(-1)) {
+    game.audio.ui();
+    syncOverlay();
+  }
+});
+btnHallTurnRight.addEventListener('click', () => {
+  if (game.rotateHall(1)) {
+    game.audio.ui();
+    syncOverlay();
+  }
 });
 btnBuild.addEventListener('click', () => {
   const cell = game.buildCell;
@@ -971,16 +1044,22 @@ btnResultPrimary.addEventListener('click', () => {
   overlayResult.classList.add('hidden');
   if (resultWon) {
     const next = afterWin(game.level);
-    if (lookMode || isCampaignClear(next) || next.world > game.level.worldIndex) {
-      renderWorlds();
-      showScreen('worlds');
-      game.stopLoop();
+    if (lookMode || isCampaignClear(next)) {
+      goWorlds();
+    } else if (next.world > game.level.worldIndex) {
+      openWorldLevels(next.world);
     } else {
       startLevel(game.level.id + 1);
     }
   } else {
     startLevel(activeLevelId);
   }
+});
+
+btnResultSecondary.addEventListener('click', () => {
+  overlayResult.classList.add('hidden');
+  if (resultSecondary === 'title') goTitle();
+  else goWorlds();
 });
 
 canvas.addEventListener('pointermove', (e) => {
@@ -1028,21 +1107,27 @@ canvas.addEventListener('pointerdown', (e) => {
     return;
   }
   if (!cell) return;
-  if (game.buildCell && e.button === 0) {
-    if (cell.c === game.buildCell.c && cell.r === game.buildCell.r) return;
-    if (game.grid[cell.r]?.[cell.c] === 'grass') {
-      game.buildCell = { c: cell.c, r: cell.r };
-      game.hover = { c: cell.c, r: cell.r };
-      syncOverlay();
+  if (e.button === 0) {
+    const keep = game.hitTowerAt(cell.c, cell.r);
+    if (keep) {
+      game.buildCell = null;
+      game.selectedKind = null;
+      inspectStep = 'idle';
+      game.selectTower(keep);
+      updateHud();
       return;
     }
   }
-  if (e.button === 0 && game.selectTowerAt(cell.c, cell.r)) {
-    game.buildCell = null;
-    game.selectedKind = null;
-    inspectStep = 'idle';
-    updateHud();
-    return;
+  if (game.buildCell && e.button === 0) {
+    if (cell.c === game.buildCell.c && cell.r === game.buildCell.r) return;
+    if (game.canBuildAt(cell.c, cell.r)) {
+      game.buildCell = { c: cell.c, r: cell.r };
+      game.hover = { c: cell.c, r: cell.r };
+      game.hallDir = null;
+      if (game.selectedKind && isTroopHall(game.selectedKind)) game.ensureHallDir();
+      syncOverlay();
+      return;
+    }
   }
   if (game.canBuildAt(cell.c, cell.r)) {
     openBuildMenu(cell.c, cell.r);

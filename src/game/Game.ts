@@ -25,13 +25,17 @@ import { stepCombat, type CombatHooks } from './combat';
 import type { Vortex } from './vortices';
 import {
   canUseBuildCell,
+  firstHallDir,
   freeFootprint,
   hallCenter,
-  hallPairFromClick,
+  hallDirLegal,
+  hallOriginFrom,
   hallPreviewFromClick,
   occupyFootprint,
-  towerOnCell,
+  rotateHallDir,
+  type HallDir,
 } from './footprint';
+import { towerAtCell } from './hitTowers';
 import { applyHallForkToTroops, assignDefaultRally, dropHallLocks, setRallyPoint as applyRallyPoint, stepHalls, type Troop } from './troops';
 import { Renderer } from './renderer';
 import { FxWorld } from './fx';
@@ -74,6 +78,8 @@ export class Game {
   selectedEnemyId: number | null = null;
   /** Grass cell waiting for the on-map Build menu. */
   buildCell: { c: number; r: number } | null = null;
+  /** Extra hall tile from the clicked grass: right, left, down, or up. */
+  hallDir: HallDir | null = null;
   /** After clicking Upgrade — show the wider gold range ring. */
   upgradePreview = false;
   /** After clicking Rally — show the pick circle; path tiles are legal. */
@@ -245,38 +251,101 @@ export class Game {
     this.onHud?.();
   }
 
+  private hallCanUse = (cc: number, rr: number): boolean => canUseBuildCell(this.grid, this.occupied, cc, rr);
+
+  ensureHallDir(): HallDir | null {
+    const cell = this.buildCell;
+    if (!cell || !this.selectedKind || !isTroopHall(this.selectedKind)) {
+      this.hallDir = null;
+      return null;
+    }
+    if (this.hallDir && hallDirLegal(this.hallCanUse, cell.c, cell.r, this.hallDir)) return this.hallDir;
+    this.hallDir = firstHallDir(this.hallCanUse, cell.c, cell.r);
+    return this.hallDir;
+  }
+
+  nudgeHall(dir: 'e' | 'w'): boolean {
+    const cell = this.buildCell;
+    if (!cell || !this.selectedKind || !isTroopHall(this.selectedKind)) return false;
+    if (!hallDirLegal(this.hallCanUse, cell.c, cell.r, dir)) {
+      this.onToast?.(dir === 'e' ? 'No room to the right.' : 'No room to the left.');
+      return false;
+    }
+    this.hallDir = dir;
+    this.onHud?.();
+    return true;
+  }
+
+  rotateHall(step: 1 | -1): boolean {
+    const cell = this.buildCell;
+    if (!cell || !this.selectedKind || !isTroopHall(this.selectedKind)) return false;
+    const from = this.ensureHallDir() ?? 'e';
+    const next = rotateHallDir(from, step, this.hallCanUse, cell.c, cell.r);
+    if (!next) {
+      this.onToast?.('No room to turn.');
+      return false;
+    }
+    this.hallDir = next;
+    this.onHud?.();
+    return true;
+  }
+
+  hallFitOptions(): { left: boolean; right: boolean; turnLeft: boolean; turnRight: boolean } {
+    const none = { left: false, right: false, turnLeft: false, turnRight: false };
+    const cell = this.buildCell;
+    if (!cell || !this.selectedKind || !isTroopHall(this.selectedKind)) return none;
+    const from = this.ensureHallDir();
+    if (!from) return none;
+    const turnLeft = rotateHallDir(from, -1, this.hallCanUse, cell.c, cell.r);
+    const turnRight = rotateHallDir(from, 1, this.hallCanUse, cell.c, cell.r);
+    return {
+      left: from !== 'w' && hallDirLegal(this.hallCanUse, cell.c, cell.r, 'w'),
+      right: from !== 'e' && hallDirLegal(this.hallCanUse, cell.c, cell.r, 'e'),
+      turnLeft: !!turnLeft,
+      turnRight: !!turnRight,
+    };
+  }
+
   canBuildAt(c: number, r: number): boolean {
     if (!this.selectedKind) return canUseBuildCell(this.grid, this.occupied, c, r);
     if (isTroopHall(this.selectedKind)) {
-      return hallPairFromClick((cc, rr) => canUseBuildCell(this.grid, this.occupied, cc, rr), c, r) != null;
+      return firstHallDir(this.hallCanUse, c, r) != null;
     }
     return canUseBuildCell(this.grid, this.occupied, c, r);
   }
 
-  /** Hall pick always lights two tiles — the click plus its side neighbor. */
+  /** Hall pick lights both tiles of the current facing. */
   hallPreviewAt(
     focus: { c: number; r: number } | null,
     kind: TowerKind | null,
-  ): { left: number; row: number; cells: Array<{ c: number; r: number }>; ok: boolean } | null {
+  ): ReturnType<typeof hallPreviewFromClick> | null {
     if (!focus || !kind || !isTroopHall(kind)) return null;
-    return hallPreviewFromClick((cc, rr) => canUseBuildCell(this.grid, this.occupied, cc, rr), focus.c, focus.r);
+    const dir =
+      this.buildCell && this.buildCell.c === focus.c && this.buildCell.r === focus.r
+        ? this.ensureHallDir()
+        : firstHallDir(this.hallCanUse, focus.c, focus.r);
+    return hallPreviewFromClick(this.hallCanUse, focus.c, focus.r, dir);
   }
 
   tryPlace(c: number, r: number): boolean {
     if (this.phase !== 'prepare' && this.phase !== 'wave') return false;
     if (!this.selectedKind) return false;
     const hall = isTroopHall(this.selectedKind);
-    const pair = hall
-      ? hallPairFromClick((cc, rr) => canUseBuildCell(this.grid, this.occupied, cc, rr), c, r)
-      : null;
-    const col = hall ? pair?.left ?? c : c;
-    const row = hall ? pair?.row ?? r : r;
-    const pos = hall ? hallCenter(col, row) : { x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 };
-    if (hall ? !pair : !canUseBuildCell(this.grid, this.occupied, c, r)) {
+    let dir: HallDir | null = null;
+    if (hall) {
+      if (this.buildCell && this.buildCell.c === c && this.buildCell.r === r) dir = this.ensureHallDir();
+      if (!dir) dir = firstHallDir(this.hallCanUse, c, r);
+    }
+    const origin = hall && dir ? hallOriginFrom(c, r, dir) : null;
+    const col = origin?.col ?? c;
+    const row = origin?.row ?? r;
+    const axis = origin?.axis ?? 'h';
+    const pos = hall ? hallCenter(col, row, axis) : { x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 };
+    if (hall ? !dir : !canUseBuildCell(this.grid, this.occupied, c, r)) {
       this.floats.push({ x: pos.x, y: pos.y, text: 'Blocked', color: '#ef476f', life: 0.7 });
       this.onToast?.(
         hall
-          ? 'Halls need two grass tiles side by side. Path and trees are blocked.'
+          ? 'Halls need two grass tiles next to each other. Path and trees are blocked.'
           : 'Buildings cannot be placed on the path or trees.',
       );
       return false;
@@ -290,9 +359,10 @@ export class Game {
 
     this.gold -= def.cost;
     const tower = new Tower(this.selectedKind, col, row, pos.x, pos.y);
+    if (hall) tower.hallAxis = axis;
     if (isTroopHall(tower.kind)) assignDefaultRally(tower, this.grid);
     this.towers.push(tower);
-    occupyFootprint(this.occupied, tower.kind, col, row);
+    occupyFootprint(this.occupied, tower.kind, col, row, axis);
     this.selectedTowerId = null;
     this.selectedEnemyId = null;
     this.fx.burst(pos.x, pos.y, def.color, 10, 'spark');
@@ -302,15 +372,23 @@ export class Game {
     return true;
   }
 
-  selectTowerAt(c: number, r: number): boolean {
-    const t = this.towers.find((x) => towerOnCell(x, c, r));
-    if (!t) return false;
+  hitTowerAt(c: number, r: number): Tower | null {
+    return towerAtCell(this.towers, { c, r });
+  }
+
+  selectTower(t: Tower): void {
     this.selectedTowerId = t.id;
     this.selectedEnemyId = null;
     this.upgradePreview = false;
     this.rallyPreview = false;
     for (const x of this.towers) x.previewFork = null;
     this.onHud?.();
+  }
+
+  selectTowerAt(c: number, r: number): boolean {
+    const t = this.hitTowerAt(c, r);
+    if (!t) return false;
+    this.selectTower(t);
     return true;
   }
 
@@ -663,7 +741,7 @@ export class Game {
         ? !!preview?.ok && this.gold >= TOWERS[brush].cost
         : !!focus && canUseBuildCell(this.grid, this.occupied, focus.c, focus.r) && this.gold >= TOWERS[brush].cost
       : false;
-    const rangeAt = preview ? hallCenter(preview.left, preview.row) : null;
+    const rangeAt = preview ? hallCenter(preview.left, preview.row, preview.axis) : null;
 
     this.renderer.drawGrid(this.grid, hoverCells, canPlace, brush, !!this.buildCell, rangeAt);
     this.renderer.drawSpawnExit(this.waypoints);

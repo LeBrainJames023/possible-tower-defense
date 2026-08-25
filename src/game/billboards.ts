@@ -19,7 +19,23 @@ type ContentBox = { sx: number; sy: number; sw: number; sh: number };
 
 const contentCache = new WeakMap<HTMLImageElement, ContentBox>();
 
-export function hallBillboardSize(contentW: number, contentH: number): { w: number; h: number } {
+export function hallBillboardSize(
+  contentW: number,
+  contentH: number,
+  axis: 'h' | 'v' = 'h',
+): { w: number; h: number } {
+  if (axis === 'v') {
+    const maxW = TILE * HALL_TILE_FILL;
+    const maxH = TILE * HALL_SPAN * HALL_TILE_FILL;
+    const aspect = contentW / Math.max(1, contentH);
+    let w = maxW;
+    let h = w / aspect;
+    if (h > maxH) {
+      h = maxH;
+      w = h * aspect;
+    }
+    return { w, h };
+  }
   const w = TILE * HALL_SPAN * HALL_TILE_FILL;
   const h = w * (contentH / Math.max(1, contentW));
   return { w, h };
@@ -83,9 +99,10 @@ export function spriteContentBox(img: HTMLImageElement): ContentBox {
 export function drawHallBillboard(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
-  feetY: number
+  feetY: number,
+  axis: 'h' | 'v' = 'h',
 ): void {
   const box = spriteContentBox(img);
-  const { w, h } = hallBillboardSize(box.sw, box.sh);
+  const { w, h } = hallBillboardSize(box.sw, box.sh, axis);
   ctx.drawImage(img, box.sx, box.sy, box.sw, box.sh, -w / 2, -h + feetY, w, h);
 }

@@ -193,6 +193,8 @@ export class Tower {
   trainCooldown = 0;
   /** Void orbs fired this keep — every 4th opens a pull. */
   voidOrbs = 0;
+  /** Two-tile halls: side-by-side or stacked. One-tile keeps ignore this. */
+  hallAxis: 'h' | 'v' = 'h';
 
   constructor(kind: TowerKind, col: number, row: number, x: number, y: number) {
     this.kind = kind;
