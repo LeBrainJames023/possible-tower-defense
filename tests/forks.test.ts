@@ -6,6 +6,7 @@ import { firstHallClick } from '../src/game/footprint';
 import { Game } from '../src/game/Game';
 import { TROOP_STATS, troopStatsAt } from '../src/game/troops';
 import { LEVELS } from '../src/game/levels';
+import { sellValueFor, upgradeCostFor } from '../src/game/balance';
 import { CombatSandbox, makeFakeCanvas } from './helpers/combatSandbox';
 
 function grassBesidePath(grid: CombatSandbox['grid']): { c: number; r: number } | null {
@@ -22,13 +23,26 @@ function firstPath(grid: CombatSandbox['grid']): { c: number; r: number } | null
 }
 
 describe('keep forks', () => {
-  it('gives every keep a Faster vs Heavier path', () => {
+  it('gives every keep two paths', () => {
     for (const kind of TOWER_ORDER) {
       const forks = forksFor(kind);
       expect(forks).not.toBeNull();
       expect(forks!.a.name.length).toBeGreaterThan(0);
       expect(forks!.b.name.length).toBeGreaterThan(0);
     }
+  });
+
+  it('names Element paths Flamethrower / Hail / Arc / Venom / Flicker vs the slow-heavy pair', () => {
+    expect(forksFor('fire')!.a.name).toBe('Flamethrower');
+    expect(forksFor('fire')!.b.name).toBe('Furnace');
+    expect(forksFor('ice')!.a.name).toBe('Hail');
+    expect(forksFor('ice')!.b.name).toBe('Blizzard');
+    expect(forksFor('lightning')!.a.name).toBe('Arc');
+    expect(forksFor('lightning')!.b.name).toBe('Thunder');
+    expect(forksFor('poison')!.a.name).toBe('Venom');
+    expect(forksFor('poison')!.b.name).toBe('Miasma');
+    expect(forksFor('void')!.a.name).toBe('Flicker');
+    expect(forksFor('void')!.b.name).toBe('Abyss');
   });
 
   it('lets Ice / Lightning / Fire / Poison / Void / Longshot fork after Lv3', () => {
@@ -144,5 +158,101 @@ describe('keep forks', () => {
     sim.run(4);
     expect(sim.troops.length).toBeGreaterThan(0);
     expect(sim.troops[0].maxHp).toBe(troopStatsAt('muster', 'b').hp);
+  });
+});
+
+describe('element path ladder', () => {
+  it('keeps Arrow fork-and-done while Fire gets Flamethrower 1→2→3', () => {
+    const arrow = new Tower('arrow', 2, 2, 100, 100);
+    arrow.level = 3;
+    arrow.fork = 'a';
+    expect(arrow.displayName()).toBe('Arrow Faster');
+    expect(arrow.canNumberUpgrade()).toBe(false);
+    expect(arrow.canFork()).toBe(false);
+    expect(arrow.isMaxed()).toBe(true);
+
+    const fire = new Tower('fire', 2, 2, 100, 100);
+    fire.level = 3;
+    expect(fire.displayName()).toBe('Fire Lv 3');
+    expect(fire.canFork()).toBe(true);
+    expect(fire.canNumberUpgrade()).toBe(false);
+
+    const atFork = fire.damageAt(3, 'a');
+    fire.fork = 'a';
+    fire.pathLevel = 1;
+    expect(fire.displayName()).toBe('Flamethrower 1');
+    expect(fire.canFork()).toBe(false);
+    expect(fire.canNumberUpgrade()).toBe(true);
+    expect(fire.isMaxed()).toBe(false);
+    expect(fire.damageAt(3, 'a', 1)).toBeCloseTo(atFork);
+    expect(fire.upgradeCost()).toBe(upgradeCostFor(TOWERS.fire.cost, 1));
+
+    fire.pathLevel = 2;
+    expect(fire.displayName()).toBe('Flamethrower 2');
+    expect(fire.damageAt(3, 'a', 2)).toBeCloseTo(atFork * TOWERS.fire.upgradeMul);
+    expect(fire.upgradeCost()).toBe(upgradeCostFor(TOWERS.fire.cost, 2));
+    expect(fire.sellValue()).toBe(sellValueFor(TOWERS.fire.cost, 3, true, 2));
+    expect(fire.sellValue()).toBeGreaterThan(sellValueFor(TOWERS.fire.cost, 3, true, 1));
+
+    fire.pathLevel = 3;
+    expect(fire.displayName()).toBe('Flamethrower 3');
+    expect(fire.canNumberUpgrade()).toBe(false);
+    expect(fire.isMaxed()).toBe(true);
+    expect(fire.upgradeCost()).toBe(0);
+  });
+
+  it('Forest 1 Game: Fire 1→2→3, pay Flamethrower, other path gone, two more ranks', () => {
+    globalThis.requestAnimationFrame = () => 0;
+    globalThis.cancelAnimationFrame = () => {};
+    const game = new Game(makeFakeCanvas());
+    game.audio.muted = true;
+    game.startLevel(1);
+    game.stopLoop();
+
+    let grass: { c: number; r: number } | null = null;
+    const road = game.level.pathTiles;
+    const from = Math.floor(road.length * 0.38);
+    for (let i = from; i < road.length && !grass; i++) {
+      const cell = road[i];
+      for (const [dc, dr] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ] as const) {
+        const nc = cell.c + dc;
+        const nr = cell.r + dr;
+        if (game.canBuildAt(nc, nr)) {
+          grass = { c: nc, r: nr };
+          break;
+        }
+      }
+    }
+    expect(grass).not.toBeNull();
+    game.gold = 2000;
+    game.selectedKind = 'fire';
+    expect(game.tryPlace(grass!.c, grass!.r)).toBe(true);
+    const fire = game.towers[0];
+    game.selectedTowerId = fire.id;
+    expect(game.upgradeSelected()).toBe(true);
+    expect(game.upgradeSelected()).toBe(true);
+    expect(fire.level).toBe(3);
+    expect(fire.canFork()).toBe(true);
+    expect(game.chooseFork('a')).toBe(true);
+    expect(fire.fork).toBe('a');
+    expect(fire.pathLevel).toBe(1);
+    expect(fire.displayName()).toBe('Flamethrower 1');
+    expect(fire.canFork()).toBe(false);
+    expect(game.chooseFork('b')).toBe(false);
+    expect(fire.fork).toBe('a');
+    expect(game.upgradeSelected()).toBe(true);
+    expect(fire.pathLevel).toBe(2);
+    expect(fire.displayName()).toBe('Flamethrower 2');
+    expect(game.upgradeSelected()).toBe(true);
+    expect(fire.pathLevel).toBe(3);
+    expect(fire.displayName()).toBe('Flamethrower 3');
+    expect(fire.isMaxed()).toBe(true);
+    expect(game.upgradeSelected()).toBe(false);
+    game.stopLoop();
   });
 });

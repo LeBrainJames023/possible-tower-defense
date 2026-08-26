@@ -1,10 +1,11 @@
-import { CHAIN_RANGE, PROJECTILE_FEEL, VOID_VORTEX_EVERY, isTroopHall, u } from './constants';
+import { CHAIN_RANGE, PROJECTILE_FEEL, isTroopHall, u } from './constants';
 import { ENEMIES } from './enemies';
 import { Enemy, Projectile, Tower, type BeamFx } from './entities';
 import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
 import { MUFFLE_FIRE, SANDSTORM_FIRE, isJarlFreeze, isSandstorm, isWardenSeal, muffledTowerIds, towerDamageMul, untargetable } from './verbs';
 import { spawnVortex, stepVortices, type Vortex } from './vortices';
+import { voidPullEvery } from './forks';
 
 export interface CombatWorld {
   enemies: Enemy[];
@@ -145,7 +146,7 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
   let opensVortex = false;
   if (t.kind === 'void') {
     t.voidOrbs += 1;
-    opensVortex = t.voidOrbs % VOID_VORTEX_EVERY === 0;
+    opensVortex = t.voidOrbs % voidPullEvery(t.fork) === 0;
   }
   world.projectiles.push(
     new Projectile({

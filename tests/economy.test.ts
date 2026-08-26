@@ -87,6 +87,7 @@ describe('level-3 forks', () => {
     expect(t.isMaxed()).toBe(true);
     expect(t.sellValue()).toBe(sellValueFor(TOWERS.arrow.cost, 3, true));
     expect(t.sellValue()).toBeGreaterThan(sellValueFor(TOWERS.arrow.cost, 3, false));
+    expect(t.canNumberUpgrade()).toBe(false);
   });
 
   it('gives Cannon rapid-fire vs mortar after Lv3', () => {

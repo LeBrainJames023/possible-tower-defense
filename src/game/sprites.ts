@@ -248,9 +248,7 @@ export function drawTower(
     if (isTroopHall(t.kind) && rallyPreview) {
       drawRangeRing(ctx, x, y, t.range, '#f4d35e', true, [], 3 * PX, 'ee', ink);
     } else if (upgradePreview && !isTroopHall(t.kind)) {
-      const fork = t.previewFork ?? t.fork;
-      const lv = t.canNumberUpgrade() ? t.level + 1 : t.level;
-      drawRangeRing(ctx, x, y, t.rangeAt(lv, fork), '#f4d35e', true, [], 3 * PX, 'ee', ink);
+      drawRangeRing(ctx, x, y, t.previewRange(), '#f4d35e', true, [], 3 * PX, 'ee', ink);
     }
     drawRangeRing(ctx, x, y, t.range, def.color, true, [7 * PX, 6 * PX], 2.6 * PX, 'ee', ink);
   }

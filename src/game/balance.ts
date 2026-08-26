@@ -82,15 +82,16 @@ export function upgradeCostFor(buildCost: number, fromLevel: number): number {
   return Math.round(buildCost * Math.pow(UPGRADE_PRICE_MUL, fromLevel));
 }
 
-export function investedGold(buildCost: number, level: number, forked = false): number {
+export function investedGold(buildCost: number, level: number, forked = false, pathLevel = 0): number {
   let paid = buildCost;
   for (let lv = 1; lv < level; lv++) paid += upgradeCostFor(buildCost, lv);
   if (forked) paid += upgradeCostFor(buildCost, 3);
+  for (let lv = 1; lv < pathLevel; lv++) paid += upgradeCostFor(buildCost, lv);
   return paid;
 }
 
-export function sellValueFor(buildCost: number, level: number, forked = false): number {
-  return Math.round(investedGold(buildCost, level, forked) * SELL_REFUND);
+export function sellValueFor(buildCost: number, level: number, forked = false, pathLevel = 0): number {
+  return Math.round(investedGold(buildCost, level, forked, pathLevel) * SELL_REFUND);
 }
 
 export function scaleGold(amount: number, goldMul: number): number {

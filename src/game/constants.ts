@@ -25,8 +25,9 @@ export const LEVEL_COUNT = STAGES_PER_WORLD;
 /** Max lightning jump distance between chained foes. */
 export const CHAIN_RANGE = u(108);
 
-/** Every Nth Void orb opens a pull. Everyday shot stays an orb. */
+/** Every Nth Void orb opens a pull. Everyday shot stays an orb. Flicker / unforked = 4th. Abyss = 3rd. */
 export const VOID_VORTEX_EVERY = 4;
+export const VOID_VORTEX_ABYSS_EVERY = 3;
 export const VOID_VORTEX_LIFE = 2.4;
 export const VOID_VORTEX_RADIUS = u(96);
 export const VOID_VORTEX_PULL = u(70);
@@ -48,6 +49,11 @@ export type TowerKind =
 /** Muster and Chapter spawn troops. Rally, combat skip, and spawn all key off this. */
 export function isTroopHall(kind: TowerKind): boolean {
   return kind === 'muster' || kind === 'chapter';
+}
+
+/** Ice / Lightning / Fire / Poison / Void — named fork, then a second 1→2→3. */
+export function isElementKeep(kind: TowerKind): boolean {
+  return kind === 'ice' || kind === 'lightning' || kind === 'fire' || kind === 'poison' || kind === 'void';
 }
 
 export interface TowerDef {
@@ -269,7 +275,7 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     kind: 'muster',
     name: 'Muster',
     cost: 70,
-    description: 'Sends 3 warriors to a rally flag. Faster, thinner stall.',
+    description: 'Sends 3 warriors to a rally flag. Three fights; extra walkers keep going. Faster, thinner stall.',
     role: 'Stall',
     color: '#c4a06a',
     colorDark: '#4a2810',
@@ -291,7 +297,7 @@ export const TOWERS: Record<TowerKind, TowerDef> = {
     kind: 'chapter',
     name: 'Chapter',
     cost: 95,
-    description: 'Sends 3 knights to a rally flag. Slower, tankier stall.',
+    description: 'Sends 3 knights to a rally flag. Three fights; extra walkers keep going. Slower, tankier stall.',
     role: 'Stall',
     color: '#8a9bb0',
     colorDark: '#2a3444',

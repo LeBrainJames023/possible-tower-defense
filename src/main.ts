@@ -30,7 +30,7 @@ import {
   worldClearedCount,
 } from './game/progress';
 import { DIFFICULTY, killPayout, type DifficultyId } from './game/balance';
-import { forkDef, forksFor, type ForkId } from './game/forks';
+import { forksFor, voidPullEvery, type ForkId } from './game/forks';
 import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
 import { WORLDS, buildSurfaceWord, worldById, worldByIndex } from './game/worlds';
@@ -440,7 +440,7 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
   const tower = game.getSelectedTower();
   const rangeWorld = tower
     ? game.upgradePreview
-      ? tower.rangeAt(tower.canNumberUpgrade() ? tower.level + 1 : tower.level, tower.previewFork ?? tower.fork)
+      ? tower.previewRange()
       : tower.range
     : game.selectedKind
       ? TOWERS[game.selectedKind].range
@@ -543,6 +543,9 @@ function forkExtraRows(t: Tower, previewFork: ForkId): Array<[string, string]> {
   if (t.def.poisonDps > 0) {
     extra.push(['Poison', arrowStat(t.poisonDpsAt(null), t.poisonDpsAt(previewFork)) + '/s']);
   }
+  if (t.kind === 'void') {
+    extra.push(['Pull', voidPullEvery(previewFork) === 3 ? 'Every 3rd orb' : 'Every 4th orb']);
+  }
   return extra;
 }
 
@@ -551,12 +554,7 @@ function fillInspectTower(t: Tower): void {
   const curD = Math.round(game.shotDamage(t));
   const curR = t.range / TILE;
   const curRate = t.fireRate;
-  const forkName = t.fork ? forkDef(t.kind, t.fork)?.name : null;
-  selectionTitle.textContent = forkName
-    ? `${t.def.name} ${forkName}`
-    : hall
-      ? t.def.name
-      : `${t.def.name} Lv ${t.level}`;
+  selectionTitle.textContent = t.displayName();
   const previewingFork = inspectStep === 'forkA' || inspectStep === 'forkB';
   const previewFork = inspectStep === 'forkA' ? 'a' : inspectStep === 'forkB' ? 'b' : null;
   selectionBlurb.textContent =
@@ -566,6 +564,7 @@ function fillInspectTower(t: Tower): void {
         ? forksFor(t.kind)![previewFork].blurb
         : t.def.description;
   const preview = inspectStep === 'preview' && t.canNumberUpgrade();
+  const next = preview ? t.previewUpgradeArgs() : null;
   const living = game.troops.filter((tr) => tr.hallId === t.id).length;
   const hallNow = troopStatsFor(t);
   const rows: Array<[string, string]> = hall
@@ -581,11 +580,11 @@ function fillInspectTower(t: Tower): void {
           ['Rally', `${curR.toFixed(1)} tiles`],
           ['HP', String(hallNow.hp)],
         ]
-    : preview
+    : preview && next
       ? [
-          ['Range', arrowStat(curR, t.rangeAt(t.level + 1) / TILE, 1) + ' tiles'],
-          ['Attack', arrowStat(curD, Math.round(t.damageAt(t.level + 1) * game.mods.damage))],
-          ['Fire', arrowStat(curRate, t.fireRateAt(t.level + 1), 1) + ' /s'],
+          ['Range', arrowStat(curR, t.rangeAt(next.level, next.fork, next.pathLevel) / TILE, 1) + ' tiles'],
+          ['Attack', arrowStat(curD, Math.round(t.damageAt(next.level, next.fork, next.pathLevel) * game.mods.damage))],
+          ['Fire', arrowStat(curRate, t.fireRateAt(next.level, next.fork, next.pathLevel), 1) + ' /s'],
           ['Cost', `${t.upgradeCost()}g`],
         ]
       : previewingFork && previewFork
@@ -602,7 +601,7 @@ function fillInspectTower(t: Tower): void {
             ['Fire', `${curRate.toFixed(1)} /s`],
           ];
   if (!hall && t.kind === 'void' && !preview && !previewingFork) {
-    rows.push(['Pull', 'Every 4th orb']);
+    rows.push(['Pull', voidPullEvery(t.fork) === 3 ? 'Every 3rd orb' : 'Every 4th orb']);
   }
   if (!hall) {
     if (t.choked) rows.push(['Status', 'Sandstorm — firing slow']);

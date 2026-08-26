@@ -1,5 +1,5 @@
 import { upgradeCostFor } from './balance';
-import type { TowerKind } from './constants';
+import { VOID_VORTEX_ABYSS_EVERY, VOID_VORTEX_EVERY, type TowerKind } from './constants';
 
 /** After Lv3 (halls: from inspect), every keep picks a path. Not a 4th number. */
 export type ForkId = 'a' | 'b';
@@ -106,8 +106,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   ice: {
     a: {
       id: 'a',
-      name: 'Faster',
-      blurb: 'More frost volleys. Shorter chill.',
+      name: 'Hail',
+      blurb: 'Rapid shards. Small splash, brief chill.',
       damageMul: 0.85,
       fireRateMul: 1.65,
       rangeMul: 1,
@@ -119,8 +119,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
-      blurb: 'Harder freeze. Slower shots, wider pack.',
+      name: 'Blizzard',
+      blurb: 'Slow wide frost. The pack gets held.',
       damageMul: 1.12,
       fireRateMul: 0.72,
       rangeMul: 1.06,
@@ -134,8 +134,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   lightning: {
     a: {
       id: 'a',
-      name: 'Faster',
-      blurb: 'Snappier bolts. Fewer hops.',
+      name: 'Arc',
+      blurb: 'Snappy bolts, fewer hops.',
       damageMul: 0.78,
       fireRateMul: 1.7,
       rangeMul: 1,
@@ -146,8 +146,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
-      blurb: 'Fatter bolts. More hops. Pierces armor.',
+      name: 'Thunder',
+      blurb: 'Slower fatter bolt, more hops, punches armor.',
       damageMul: 1.42,
       fireRateMul: 0.72,
       rangeMul: 1.04,
@@ -161,8 +161,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   fire: {
     a: {
       id: 'a',
-      name: 'Faster',
-      blurb: 'More napalm. Smaller boom, shorter burn.',
+      name: 'Flamethrower',
+      blurb: 'Rapid small napalm. Tight splash, short hot burn.',
       damageMul: 0.7,
       fireRateMul: 1.75,
       rangeMul: 0.98,
@@ -174,8 +174,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
-      blurb: 'Fatter splash. Longer burn.',
+      name: 'Furnace',
+      blurb: 'Slow fat boom. Wide splash, long cook.',
       damageMul: 1.28,
       fireRateMul: 0.7,
       rangeMul: 1.06,
@@ -189,8 +189,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   poison: {
     a: {
       id: 'a',
-      name: 'Faster',
-      blurb: 'More darts. Weaker melt.',
+      name: 'Venom',
+      blurb: 'Rapid darts, weak short melt, almost single-target.',
       damageMul: 0.85,
       fireRateMul: 1.65,
       rangeMul: 1,
@@ -202,8 +202,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
-      blurb: 'Longer melt. Slower darts.',
+      name: 'Miasma',
+      blurb: 'Slow cloud-ish splash, long melt. Tiny slow so the cloud feels sticky.',
       damageMul: 1.1,
       fireRateMul: 0.7,
       rangeMul: 1.04,
@@ -217,8 +217,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   void: {
     a: {
       id: 'a',
-      name: 'Faster',
-      blurb: 'Snappier orbs. Smaller boom.',
+      name: 'Flicker',
+      blurb: 'Rapid small orbs, smaller splash. Pull every 4th orb.',
       damageMul: 0.72,
       fireRateMul: 1.7,
       rangeMul: 0.98,
@@ -228,8 +228,8 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
-      blurb: 'Fatter dark splash. Still an orb — no vortex.',
+      name: 'Abyss',
+      blurb: 'Slow fatter orbs, bigger splash. Pull every 3rd orb.',
       damageMul: 1.38,
       fireRateMul: 0.7,
       rangeMul: 1.06,
@@ -315,4 +315,9 @@ export function forkDef(kind: TowerKind, id: ForkId): TowerFork | null {
 /** Same gold as a 1→2→3 step would have charged for “level 4”. */
 export function forkCostFor(buildCost: number): number {
   return upgradeCostFor(buildCost, 3);
+}
+
+/** Abyss (Void heavier) opens the hole every 3rd orb. Flicker / unforked stay every 4th. */
+export function voidPullEvery(fork: ForkId | null): number {
+  return fork === 'b' ? VOID_VORTEX_ABYSS_EVERY : VOID_VORTEX_EVERY;
 }

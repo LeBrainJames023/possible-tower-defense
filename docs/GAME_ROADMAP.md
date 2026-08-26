@@ -2,7 +2,7 @@
 
 Worlds (Forest → Hollow) and the ten-keep tray are laid out. This file is the live plan for making the game feel finished **before** we reopen every keep’s fork names, shots, and upgrade art.
 
-Pickup paste: `docs/FUTURE_FEATURES.md`. Ten-keep history: `docs/TOWER_ROADMAP.md`. Worlds history: `docs/WORLD_ROADMAP.md`.
+Pickup paste: `docs/FUTURE_FEATURES.md`. Fork names + jobs: `docs/FORK_PLAN.md`. Ten-keep history: `docs/TOWER_ROADMAP.md`. Worlds history: `docs/WORLD_ROADMAP.md`.
 
 They are **playing** first (finish Forest, start the next world). Do not wipe `localStorage`. Do not start the fork/art era until they say so.
 
@@ -13,7 +13,7 @@ They are **playing** first (finish Forest, start the next world). Do not wipe `l
 - Fixed-path TD. **Buildings** never sit on the path. Troops may stand on it and stall (Kingdom Rush). Enemies follow the painted road.
 - BCI-first: large buttons, click-to-place, no drag, no hover-only, no hotkey instructions.
 - Ten keeps. No 11th. No Wind. No gold-farm keep. Void owns pull-to-a-point.
-- Everyday Void is a small splash orb. Every **4th** orb opens a path-pull. Heavy fork stays a fatter orb (cadence change waits for the fork era).
+- Everyday Void is a small splash orb. Every **4th** orb opens a path-pull. **Abyss** (Void heavier) opens the hole every **3rd**.
 - Place UX: grass → 2×3 Keeps / Elements tray → pick → Build.
 - Halls are 1×2. Rally stays. Base troop HP / Rally math stay until play says otherwise.
 - Do not regen world keepers or halls unless they ask. Walk/flap sheets shipped Aug 24. Do not commit `public/preview/` unless asked.
@@ -34,19 +34,13 @@ Finish Forest. Start Desert (or whichever world opens). Write notes only if some
 
 Do these **before** named forks and new upgrade art.
 
-### 1. Sound
+### 1. Sound — in (Aug 25)
 
-The match is too quiet. Fix / fill the existing audio bus first: place, fire, impact, leak, wave start, and a real battle/prepare bed (wind/water already exist). Not a licensed orchestral score unless they ask. Large mute control stays.
+Filled the existing bus: louder place / fire / impact / leak / wave-start horn, wind+water up, prepare/battle drone (not a licensed score). SFX no longer skip if the context is still unlocking. Mute is a full HUD button. Next in this era is sharper-read.
 
-### 2. Sharper, slightly bigger read
+### 2. Sharper, slightly bigger read — in (Aug 25)
 
-Make **keeps, troops, enemies, and the map** read clearer on the same 1280×768 seat.
-
-- Grow **up** a little (keeps taller; troops/enemies a bit larger). Width still respects one grass tile (halls stay 1×2).
-- Dark rim / sticker edge so painted bodies pop off grass.
-- Sharper draw of the files we already have (less mush). Do **not** chase 720p source files as the first lever — a huge PNG on a 64px tile does not look like HD.
-- Combat radius, range, HP, and gold stay put unless play says a size change broke feel.
-- Do **not** regen all towers or halls in this era. Walk/flap already shipped; troop/keep regen still waits for the fork/art era so we do not paint twice.
+Cropped keep/troop/enemy stills to the painted body (padding was eating height), grew a little, hard dark sticker rim, medium smoothing instead of blurry-high. Path ink a bit stronger. Combat radius / range / HP / gold unchanged. No tower/hall regen.
 
 ### 3. Play notes
 
@@ -71,14 +65,16 @@ Pencil this as its own pass after sound / sharper-read, or when they peel it off
 
 ## Circle-back era — named forks + new looks
 
-One era, not three overlapping windows.
+Element names, the second 3-rank ladder, and Abyss every-3rd are **in** (Aug 26). Fork muls stayed the live Faster/Heavier numbers. Paid keeps swap to `{kind}-a.png` / `{kind}-b.png` when those files exist.
 
-1. **Names, not Faster/Heavier.** Every keep gets two real path names (example only: Fire → something like Lava vs Flamethrower). Cannon can keep Rapid-fire / Mortar if those still sing. Talk all ten, then lock the list.
-2. **What the shot does.** Each path’s projectile / attack look and combat identity (Void’s every-3rd hole lives here, with pull growing on number upgrades).
-3. **New stills.** A paid path must **look like a different building**. New `{kind}-a.png` / `{kind}-b.png`. Halls only if their paths need new yard/house art.
-4. **Motion art in the same era.** Real walk/fly sheets (today’s Forest cards are near-duplicate poses). Attack frames if we still want them. 4-dir troops only if they ask.
+Keeps (Arrow, Longshot, Muster, Chapter) still need names. Cannon keeps Rapid-fire / Mortar.
 
-Do not start this era while they are still playing the campaign unless they say start.
+1. **Names** — Elements done. Keeps still Faster/Heavier except Cannon.
+2. **What the shot does** — Element jobs live. Abyss = every 3rd hole.
+3. **New stills.** Draw `{kind}-a.png` / `{kind}-b.png` per `docs/FORK_PLAN.md` when they ask, so a paid path looks like a different building.
+4. **Motion art in the same era.** Attack frames if we still want them. 4-dir troops only if they ask. Walk/flap already shipped.
+
+Do not generate fork art until they explicitly ask.
 
 ---
 

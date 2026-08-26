@@ -190,17 +190,49 @@ describe('tower combat sandbox', () => {
     expect(sim.projectiles.every((p) => p.kind === 'void')).toBe(true);
   });
 
-  it('void heavy fork still fires orbs; 4th impact still pulls', () => {
+  it('void heavy fork still fires orbs; Abyss pulls on the 3rd', () => {
     const sim = new CombatSandbox();
     sim.freezeEnemies = true;
     const t = sim.place('void', 6, 5);
     t.fork = 'b';
+    t.pathLevel = 1;
     const e = sim.spawn('grunt', 8);
     e.pos = { x: t.x + 24, y: t.y };
-    sim.run(6);
-    expect(t.voidOrbs).toBeGreaterThanOrEqual(4);
-    expect(sim.vortices.length).toBeGreaterThanOrEqual(1);
+    let pullAt = 0;
+    for (let i = 0; i < 600 && pullAt === 0; i++) {
+      const before = t.voidOrbs;
+      sim.step(1 / 30);
+      if (t.voidOrbs > before) {
+        const shot = sim.projectiles.find((p) => p.alive && p.opensVortex);
+        if (shot) pullAt = t.voidOrbs;
+      }
+    }
+    expect(t.voidOrbs).toBeGreaterThanOrEqual(3);
+    expect(pullAt).toBe(3);
     expect(sim.projectiles.every((p) => p.kind === 'void')).toBe(true);
+  });
+
+  it('Flicker stays on the 4th orb; Abyss is greedier on the 3rd', () => {
+    const firstPullAt = (fork: 'a' | 'b'): number => {
+      const sim = new CombatSandbox();
+      sim.freezeEnemies = true;
+      const t = sim.place('void', 6, 5);
+      t.fork = fork;
+      t.pathLevel = 1;
+      const e = sim.spawn('grunt', 8);
+      e.pos = { x: t.x + 24, y: t.y };
+      let pullAt = 0;
+      for (let i = 0; i < 600 && pullAt === 0; i++) {
+        const before = t.voidOrbs;
+        sim.step(1 / 30);
+        if (t.voidOrbs > before && sim.projectiles.some((p) => p.alive && p.opensVortex)) {
+          pullAt = t.voidOrbs;
+        }
+      }
+      return pullAt;
+    };
+    expect(firstPullAt('a')).toBe(4);
+    expect(firstPullAt('b')).toBe(3);
   });
 
   it('vortex slides walkers together along the path and skips a melee hold', () => {

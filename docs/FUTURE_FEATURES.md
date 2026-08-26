@@ -1,16 +1,14 @@
 # Future features
 
-## Last window — post-kit roadmap (Aug 24)
+## Last window — Element identity + second ladder (Aug 26)
 
-Worlds and ten keeps are laid out. Formal plan: `docs/GAME_ROADMAP.md`. Forest 10 notes in `docs/DAILY_FEEDBACK_624.md`: keep-click vs Build tray and world-clear buttons are fixed. Named fork titles still parked. Walk/flap regen landed Aug 24 (2×2 plant-pass or wing flap on every unique body). They play Forest → next world first. Next **build** era (in order): sound, then sharper/slightly bigger read (existing stills, grow up + dark rim, no regen-all). Named forks + new upgrade art are one later era. Endless is a post–stage-10 congrats card (Main menu / Keep playing) even later.
+Wired locked Element names on the two fork buttons. After Lv3, pay one path (same two-click); the other is gone; the keep’s name **is** that path (“Flamethrower 1”, not “Fire Flamethrower”). That named keep then upgrades three ranks on the same Upgrade button and gold curve (`upgradeCostFor` / `upgradeMul`). Fork muls stayed the live Faster/Heavier numbers. Arrow / Cannon / Longshot stay 3-then-fork-and-done. Halls still fork from inspect with no number ladder. **Abyss** pulls every 3rd orb; Flicker / unforked Void stay every 4th. Everyday shot stays an orb. Rally melee-hold still wins. How-to-play + Muster/Chapter blurbs: three troops, three fights; extra walkers keep going. HP / Rally / cap 3 unchanged. Did not generate art; paid keeps already swap to `{kind}-a.png` / `{kind}-b.png`. Sticky place stayed dead. Did not commit `public/preview/`.
 
 ### Next window
-Reload the in-editor preview and check Forest 1: Raiders should stride, Imps should flap. Ask how Forest / Desert felt. If a walk/flap body looks like a cousin of its still, regen that sheet only. If they say **start building**: **sound first**, then sharper/bigger read per `docs/GAME_ROADMAP.md`. Do not start named forks, new keep/hall art, endless, or an 11th keep. Do not wipe localStorage.
+Play Forest with an Element fork (Fire 1→2→3 → Flamethrower → two more Upgrades) and an Abyss pull. Then **Keep names** (Arrow / Longshot / Muster / Chapter) or new Element stills if the current a/b pictures don’t sing — only if they peel one off. Do not add an 11th keep, Wind, gold farm, attack frames, or sticky place.
 
 ### Parked
-**Void growth (locked idea, not built):** number upgrades make the hole stronger (pull / life / radius). Faster stays every 4th until the named-fork era. Heavier stays slower + more damage/splash, and will open the hole every 3rd in that era. Everyday shot stays an orb. Rally melee-hold still wins.
-
-Named fork titles (624 item 2), new fork stills, attack frames, 4-dir troops, unique north/south walk faces, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
+Named Keep forks (Arrow, Longshot, Muster, Chapter), new Element stills if they want a redraw, attack frames, 4-dir troops, unique north/south walk faces, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
 
 **Layout curve (later):** worlds 2–5 already have unique tracks in `worldPaths.ts`. A later pass can reshape them so early maps have fewer loops (harder) and later maps snake for stacking. Not Forest color-flips. Do not regen all 40 until they peel that pass off.
 
@@ -24,15 +22,60 @@ Named fork titles (624 item 2), new fork stills, attack frames, 4-dir troops, un
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-Read docs/GAME_ROADMAP.md first (formal post-kit plan), then docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome/system browser unless they explicitly ask. Do not wait to be asked for the in-editor preview. Worlds and the ten-keep tray are done. Forest 10 keep-click vs Build tray, world-clear Desert/Main menu, hall Left/Right/Turn, and tile-accurate keep clicks are live. Real 4-phase walk/flap sheets shipped (`bae422f`). Named fork titles still parked. First: reload preview and check Forest 1 stride/flap, then ask what Forest / Desert felt like. Cursor browser MCP often failed this window — View → Browser or Ports → 5173, not Chrome. Do not wipe localStorage. Do not commit public/preview/ unless asked. Do not bring sticky place back. Do not add an 11th keep, Wind, or a gold farm. Local main is several commits ahead of origin; push only if they ask.
+Read docs/FORK_PLAN.md, docs/GAME_ROADMAP.md, docs/FUTURE_FEATURES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome unless they ask. Do not wipe localStorage. Do not commit public/preview/. Do not bring sticky place back. No 11th keep, Wind, or gold farm. Local main is ahead of origin; push only if they ask.
 
-If they say start building, do the next-build era IN ORDER from GAME_ROADMAP: (1) sound — fix/fill the existing audio bus and a battle/prepare bed, not a full licensed score unless they ask; (2) sharper/slightly bigger read — grow up, dark rim, sharper draw of EXISTING stills for keeps, troops, enemies, and map. Combat numbers stay. Do NOT regen all towers or halls in this era. Walk/flap already shipped.
+Last window wired Element names + a second 3-rank ladder (Flamethrower 1→2→3 after pay), Abyss every 3rd orb, and hall/how-to copy. Arrow/Cannon/Longshot stay fork-and-done. Halls still fork from inspect with no number ladder.
 
-Place UX (locked): click grass beside the path → 2×3 tray with Keeps / Elements tabs → pick → Build. Upgrade is two-click. After Lv3, shooters still show Faster vs Heavier (Cannon Rapid-fire / Mortar) until the named-fork era. Halls are 1×2; Rally stays. Path tiles refuse BUILDINGS. Troops may stand on the path (Kingdom Rush stall). Void everyday orb; every 4th orb pulls.
+THIS WINDOW WAITS unless they peel one off: play notes, Keep names (Arrow/Longshot/Muster/Chapter), or new Element stills if the live a/b pictures don’t sing. Do not retune DPS tables, do not add attack frames, do not add Wind or an 11th keep.
 
-Do not start named fork titles, new upgrade art, attack frames, 4-dir troops, unique north/south faces, or endless unless they peel one off on purpose. Endless lock (later): after a world stage-10 boss, large card — Congratulations you won — Main menu / Keep playing.
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
+```
 
-Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks buildings). Push only if they ask.
+## Last window — element fork plan (Aug 25)
+
+Names + jobs locked in `docs/FORK_PLAN.md`: Fire Flamethrower/Furnace, Ice Hail/Blizzard, Lightning Arc/Thunder, Poison Venom/Miasma, Void Flicker/Abyss. Buttons in the match still say Faster/Heavier until we wire names. **Art for both variants still needs to be drawn.** Keep names (Arrow, Longshot, halls) not locked. Cannon stays Rapid-fire / Mortar.
+
+### Next window
+**Pictures first, then wire the keeps, combat later.** Draw both stills for each locked Element (`{kind}-a` fast, `{kind}-b` slow) with generate2dsprite (magenta `#FF00FF`, log `docs/ASSETS.md`). Show them, copy winners into `public/sprites/towers/`. Then the live forked building uses those pictures. Do **not** retune shots, Abyss every-3rd, attack frames, or Keep names in that window unless they peel one off. Do not wipe localStorage.
+
+### Parked
+**Void growth (locked idea, not built):** number upgrades make the hole stronger (pull / life / radius). Faster stays every 4th until the named-fork era. Heavier stays slower + more damage/splash, and will open the hole every 3rd in that era. Everyday shot stays an orb. Rally melee-hold still wins.
+
+Named Keep forks (Arrow, Longshot, Muster, Chapter), new fork stills (element art not drawn yet — see `docs/FORK_PLAN.md`), attack frames, 4-dir troops, unique north/south walk faces, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
+
+**Layout curve (later):** worlds 2–5 already have unique tracks in `worldPaths.ts`. A later pass can reshape them so early maps have fewer loops (harder) and later maps snake for stacking. Not Forest color-flips. Do not regen all 40 until they peel that pass off.
+
+### Watch-outs
+- Fixed-path TD; **buildings** never on path. Troops may stand on it. BCI: large buttons, no drag, no hover-only.
+- Campaign save is live — do not wipe localStorage (Forest may be 9/10 or finished; Desert may be started).
+- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → wave → damage. Path blocked.
+
+### Continue prompt (paste into a new chat)
+
+```
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+
+Read docs/FORK_PLAN.md first (locked element names + jobs), then docs/GAME_ROADMAP.md, docs/FUTURE_FEATURES.md, docs/ASSETS.md, docs/PLAYTEST_NOTES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome/system browser unless they explicitly ask. Do not wait to be asked for the in-editor preview. Do not wipe localStorage. Do not commit public/preview/ unless asked. Do not bring sticky place back. Do not add an 11th keep, Wind, or a gold farm. Local main is several commits ahead of origin; push only if they ask. Cursor browser MCP often failed — View → Browser or Ports → 5173, not Chrome.
+
+THIS WINDOW IS PICTURES FIRST, THEN WIRE THE KEEPS. Combat / attack feel waits. They asked to generate the art.
+
+Locked Elements (fast a / slow-heavy b):
+- Fire: Flamethrower / Furnace
+- Ice: Hail / Blizzard
+- Lightning: Arc / Thunder
+- Poison: Venom / Miasma
+- Void: Flicker / Abyss
+
+Jobs and status live in docs/FORK_PLAN.md. A paid path must LOOK like a different building, not a cousin. Match the live tower stills’ 3/4 painted style. One still per variant (not a walk sheet). Magenta #FF00FF background. Use the generate2dsprite skill (built-in image_gen + local chroma-key). Raw in public/preview/sprite-forge/towers-v2/{kind}-a/ and {kind}-b/. Log docs/ASSETS.md. Older Faster/Heavier stills in public/sprites/towers/{kind}-a.png and -b.png may exist — replace them with the new named looks.
+
+Order, do not skip:
+1) Draw all ten stills (show in the in-editor preview as you go; they pick or say continue). Fire a/b, Ice a/b, Lightning a/b, Poison a/b, Void a/b.
+2) Copy accepted winners into public/sprites/towers/{kind}-a.png and {kind}-b.png so a forked keep in the live match uses that picture.
+3) Stop. Do not retune combat, do not wire Flamethrower names onto buttons, do not change Void to every-3rd, do not add attack frames, projectiles, or Keep (Arrow/Longshot/Muster/Chapter) names unless they peel one off after the pictures are in.
+
+Place UX (locked): grass → 2×3 Keeps/Elements tray → pick → Build. Upgrade two-click. Halls 1×2; Rally stays. Path tiles refuse BUILDINGS. Troops may stand on the path. Unforked buildings keep the live unforked still. Width one grass tile; halls stay 1×2. Image-gen is asked for this window.
+
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks buildings). After art: fork an Element (Ice to Lv3 → pick a path) and confirm the keep swaps to the new still. Push only if they ask.
 ```
 
 ## Last window — tile-fit / play (Aug 23)

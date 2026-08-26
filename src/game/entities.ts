@@ -1,4 +1,4 @@
-import { TOWER_FEET, TOWERS, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
+import { TOWER_FEET, TOWERS, isElementKeep, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
 import { ENEMIES, ENEMY_GAIT, facingCardinal, type Cardinal, type EnemyKind } from './enemies';
 import { forkCostFor, forkDef, forksFor, type ForkId } from './forks';
 import { sellValueFor, upgradeCostFor } from './balance';
@@ -181,6 +181,8 @@ export class Tower {
   fork: ForkId | null = null;
   /** Inspect preview of a path — not paid yet. */
   previewFork: ForkId | null = null;
+  /** After an Element pays a path: Flamethrower 1→2→3. Keeps and halls stay 0. */
+  pathLevel = 0;
   choked = false;
   frozen = false;
   hazed = false;
@@ -191,7 +193,7 @@ export class Tower {
   rallyRow: number;
   /** Seconds until the next troop walks out the door. */
   trainCooldown = 0;
-  /** Void orbs fired this keep — every 4th opens a pull. */
+  /** Void orbs fired this keep — cadence is 4th, or 3rd on Abyss. */
   voidOrbs = 0;
   /** Two-tile halls: side-by-side or stacked. One-tile keeps ignore this. */
   hallAxis: 'h' | 'v' = 'h';
@@ -246,16 +248,16 @@ export class Tower {
     };
   }
 
-  damageAt(level: number, fork: ForkId | null = this.fork): number {
-    return this.def.damage * Math.pow(this.def.upgradeMul, level - 1) * this.forkMods(fork).damageMul;
+  damageAt(level: number, fork: ForkId | null = this.fork, pathLevel: number = this.pathLevel): number {
+    return this.def.damage * Math.pow(this.def.upgradeMul, this.effectiveLevel(level, fork, pathLevel) - 1) * this.forkMods(fork).damageMul;
   }
 
-  rangeAt(level: number, fork: ForkId | null = this.fork): number {
-    return this.def.range * (1 + (level - 1) * 0.08) * this.forkMods(fork).rangeMul;
+  rangeAt(level: number, fork: ForkId | null = this.fork, pathLevel: number = this.pathLevel): number {
+    return this.def.range * (1 + (this.effectiveLevel(level, fork, pathLevel) - 1) * 0.08) * this.forkMods(fork).rangeMul;
   }
 
-  fireRateAt(level: number, fork: ForkId | null = this.fork): number {
-    return this.def.fireRate * (1 + (level - 1) * 0.1) * this.forkMods(fork).fireRateMul;
+  fireRateAt(level: number, fork: ForkId | null = this.fork, pathLevel: number = this.pathLevel): number {
+    return this.def.fireRate * (1 + (this.effectiveLevel(level, fork, pathLevel) - 1) * 0.1) * this.forkMods(fork).fireRateMul;
   }
 
   splashAt(fork: ForkId | null = this.fork): number {
@@ -275,7 +277,7 @@ export class Tower {
   }
 
   burnDpsAt(fork: ForkId | null = this.fork): number {
-    return this.def.burnDps * this.statusScale() * this.forkMods(fork).burnDpsMul;
+    return this.def.burnDps * this.statusScale(fork) * this.forkMods(fork).burnDpsMul;
   }
 
   burnDurationAt(fork: ForkId | null = this.fork): number {
@@ -283,7 +285,7 @@ export class Tower {
   }
 
   poisonDpsAt(fork: ForkId | null = this.fork): number {
-    return this.def.poisonDps * this.statusScale() * this.forkMods(fork).poisonDpsMul;
+    return this.def.poisonDps * this.statusScale(fork) * this.forkMods(fork).poisonDpsMul;
   }
 
   poisonDurationAt(fork: ForkId | null = this.fork): number {
@@ -298,12 +300,50 @@ export class Tower {
     return this.forkMods().pierceArmor;
   }
 
-  statusScale(): number {
-    return Math.pow(this.def.upgradeMul, this.level - 1);
+  statusScale(fork: ForkId | null = this.fork, pathLevel: number = this.pathLevel): number {
+    return Math.pow(this.def.upgradeMul, this.effectiveLevel(this.level, fork, pathLevel) - 1);
+  }
+
+  /**
+   * Unforked Lv1–3, then after an Element path: path rank 1 stays at the old Lv3,
+   * ranks 2 and 3 apply upgradeMul / range / fire the same way as the first ladder.
+   */
+  effectiveLevel(level: number = this.level, fork: ForkId | null = this.fork, pathLevel: number = this.pathLevel): number {
+    if (fork && isElementKeep(this.kind)) {
+      return level + Math.max(pathLevel, 1) - 1;
+    }
+    return level;
+  }
+
+  displayName(): string {
+    const forkName = this.fork ? forkDef(this.kind, this.fork)?.name : null;
+    if (isTroopHall(this.kind)) return forkName ? `${this.def.name} ${forkName}` : this.def.name;
+    if (forkName && isElementKeep(this.kind)) return `${forkName} ${this.pathLevel}`;
+    if (forkName) return `${this.def.name} ${forkName}`;
+    return `${this.def.name} Lv ${this.level}`;
+  }
+
+  /** Next number rank for inspect / range-ring preview. Fork preview uses the paid-or-preview path at rank 1. */
+  previewUpgradeArgs(): { level: number; fork: ForkId | null; pathLevel: number } {
+    const fork = this.previewFork ?? this.fork;
+    if (this.canNumberUpgrade() && this.fork && isElementKeep(this.kind)) {
+      return { level: this.level, fork, pathLevel: this.pathLevel + 1 };
+    }
+    if (this.canNumberUpgrade()) {
+      return { level: this.level + 1, fork, pathLevel: this.pathLevel };
+    }
+    return { level: this.level, fork, pathLevel: this.pathLevel };
+  }
+
+  previewRange(): number {
+    const next = this.previewUpgradeArgs();
+    return this.rangeAt(next.level, next.fork, next.pathLevel);
   }
 
   canNumberUpgrade(): boolean {
-    return this.level < 3 && !isTroopHall(this.kind);
+    if (isTroopHall(this.kind)) return false;
+    if (this.fork) return isElementKeep(this.kind) && this.pathLevel < 3;
+    return this.level < 3;
   }
 
   canFork(): boolean {
@@ -314,17 +354,21 @@ export class Tower {
 
   isMaxed(): boolean {
     if (isTroopHall(this.kind)) return this.fork != null;
+    if (isElementKeep(this.kind)) return this.fork != null && this.pathLevel >= 3;
     return this.level >= 3 && (!forksFor(this.kind) || this.fork != null);
   }
 
   upgradeCost(): number {
     if (this.canFork()) return forkCostFor(this.def.cost);
+    if (this.fork && isElementKeep(this.kind) && this.pathLevel < 3) {
+      return upgradeCostFor(this.def.cost, this.pathLevel);
+    }
     if (this.level < 3) return upgradeCostFor(this.def.cost, this.level);
     return 0;
   }
 
   sellValue(): number {
-    return sellValueFor(this.def.cost, this.level, this.fork != null);
+    return sellValueFor(this.def.cost, this.level, this.fork != null, this.pathLevel);
   }
 
   /**
@@ -378,7 +422,7 @@ export class Projectile {
   alive = true;
   trail: boolean;
   age = 0;
-  /** True on every 4th Void orb — impact opens a path pull. */
+  /** True when this Void orb should open a path pull. */
   opensVortex = false;
 
   constructor(opts: {

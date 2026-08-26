@@ -1,5 +1,27 @@
 # Playtest notes
 
+## This session — Element identity + second ladder (Aug 26)
+
+Wired Flamethrower / Furnace, Hail / Blizzard, Arc / Thunder, Venom / Miasma, Flicker / Abyss on the two fork buttons. After pay, inspect title is the path plus rank (“Flamethrower 1”), not “Fire Flamethrower”. That keep upgrades three more ranks on the same Upgrade button and gold curve. Arrow / Cannon / Longshot still max after the path. Halls still fork from inspect. Abyss pulls every 3rd orb; Flicker / unforked stay every 4th. Muster/Chapter + how-to-play now say three troops, three fights; extra walkers keep going. HP / Rally / cap 3 unchanged. Did not generate art.
+
+Check 1x: Forest 1 smoke, then an Element 1→2→3 → pay Flamethrower (or Hail) → other button gone → two more Upgrades to rank 3. Void Abyss should pull on the 3rd orb.
+
+## This session — element fork plan (Aug 25)
+
+Locked names + jobs in `docs/FORK_PLAN.md`. Fire Flamethrower/Furnace, Ice Hail/Blizzard, Lightning Arc/Thunder, Poison Venom/Miasma, Void Flicker/Abyss. Fast = more shots / lighter status. Slow = heavier damage / fatter status. Art for both variants still needs drawing. Buttons not wired yet.
+
+## This session — sharper read (Aug 25)
+
+Keeps, troops, enemies, trees, and portals crop empty PNG padding so the painted body fills the billboard, then sit a little taller with a hard dark sticker rim (no blur shadow). Path tiles got a stronger ink edge. Combat radius, range, HP, and gold unchanged. No tower/hall regen.
+
+Check 1x after a reload: Forest 1 Arrow should read taller on one grass tile; wave 1 Raiders bigger with a dark edge; path still blocks buildings.
+
+## This session — sound bus (Aug 25)
+
+The match was too quiet. Place, fire, impact, leak, and wave-start now have real body; prepare is a slow drone, battle a lower pulse that ducks under shots. Wind/water beds are louder. Mute is a full-size HUD button (Sound on / Sound off). Not a licensed score. Combat numbers unchanged.
+
+Check 1x after a reload: Sound on, click grass → Build (wood thud), Start wave (horn + bed), Arrow shots, a leak if one slips. Path still blocks buildings.
+
 ## This session — real walk and flap (Aug 24)
 
 Every unique body got a 2×2 sheet: walkers plant / pass / plant / pass, flyers wing up / mid / down / mid. Stamped onto live `{n,e,s,w}` files so the old frozen 4-dir poses do not win. East is a flip so right-bound Raiders still face right. Combat numbers unchanged. Unique back/front faces parked.

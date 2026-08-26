@@ -5,6 +5,7 @@ import {
   MAP_W,
   MAP_H,
   u,
+  isElementKeep,
   isTroopHall,
   type TowerKind,
 } from './constants';
@@ -429,7 +430,11 @@ export class Game {
     const cost = t.upgradeCost();
     if (this.gold < cost) return false;
     this.gold -= cost;
-    t.level += 1;
+    if (t.fork && isElementKeep(t.kind)) {
+      t.pathLevel += 1;
+    } else {
+      t.level += 1;
+    }
     this.upgradePreview = false;
     t.previewFork = null;
     this.fx.burst(t.x, t.y, t.def.color, 14, 'spark');
@@ -437,7 +442,7 @@ export class Game {
     this.floats.push({
       x: t.x,
       y: t.y - 24,
-      text: `Lv${t.level}`,
+      text: t.fork && isElementKeep(t.kind) ? t.displayName() : `Lv${t.level}`,
       color: '#57cc99',
       life: 0.9,
     });
@@ -453,6 +458,7 @@ export class Game {
     this.gold -= cost;
     t.fork = id;
     t.previewFork = null;
+    if (isElementKeep(t.kind)) t.pathLevel = 1;
     this.upgradePreview = false;
     if (isTroopHall(t.kind)) applyHallForkToTroops(t, this.troops);
     this.fx.burst(t.x, t.y, t.def.color, 18, 'spark');
