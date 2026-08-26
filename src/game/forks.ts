@@ -32,7 +32,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   arrow: {
     a: {
       id: 'a',
-      name: 'Faster',
+      name: 'Repeater',
       blurb: 'Snappier string. Weaker hits.',
       damageMul: 0.88,
       fireRateMul: 1.55,
@@ -43,7 +43,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
+      name: 'Ballista',
       blurb: 'Harder hits, slower string. Pierces armor.',
       damageMul: 1.55,
       fireRateMul: 0.78,
@@ -57,7 +57,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   cannon: {
     a: {
       id: 'a',
-      name: 'Rapid-fire',
+      name: 'Gatling',
       blurb: 'Faster shots, smaller boom.',
       damageMul: 0.62,
       fireRateMul: 1.9,
@@ -81,7 +81,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   longshot: {
     a: {
       id: 'a',
-      name: 'Faster',
+      name: 'Marksman',
       blurb: 'Quicker bolts. Still long, a bit thinner.',
       damageMul: 0.82,
       fireRateMul: 1.55,
@@ -92,7 +92,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
+      name: 'Puncture',
       blurb: 'Fatter poke. Slower string. Pierces armor.',
       damageMul: 1.55,
       fireRateMul: 0.7,
@@ -241,7 +241,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   muster: {
     a: {
       id: 'a',
-      name: 'Faster',
+      name: 'Scout',
       blurb: 'Warriors train quicker. A bit thinner.',
       damageMul: 1,
       fireRateMul: 1,
@@ -256,7 +256,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
+      name: 'Veteran',
       blurb: 'Tankier warriors. Slower train.',
       damageMul: 1,
       fireRateMul: 1,
@@ -273,7 +273,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
   chapter: {
     a: {
       id: 'a',
-      name: 'Faster',
+      name: 'Lance',
       blurb: 'Knights train quicker. A bit thinner.',
       damageMul: 1,
       fireRateMul: 1,
@@ -288,7 +288,7 @@ export const TOWER_FORKS: Partial<Record<TowerKind, { a: TowerFork; b: TowerFork
     },
     b: {
       id: 'b',
-      name: 'Heavier',
+      name: 'Paladin',
       blurb: 'Tankier knights. Slower train.',
       damageMul: 1,
       fireRateMul: 1,

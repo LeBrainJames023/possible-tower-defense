@@ -45,6 +45,22 @@ describe('keep forks', () => {
     expect(forksFor('void')!.b.name).toBe('Abyss');
   });
 
+  it('names shooter keeps Repeater / Ballista, Gatling / Mortar, Marksman / Puncture', () => {
+    expect(forksFor('arrow')!.a.name).toBe('Repeater');
+    expect(forksFor('arrow')!.b.name).toBe('Ballista');
+    expect(forksFor('cannon')!.a.name).toBe('Gatling');
+    expect(forksFor('cannon')!.b.name).toBe('Mortar');
+    expect(forksFor('longshot')!.a.name).toBe('Marksman');
+    expect(forksFor('longshot')!.b.name).toBe('Puncture');
+  });
+
+  it('names halls Scout / Veteran and Lance / Paladin', () => {
+    expect(forksFor('muster')!.a.name).toBe('Scout');
+    expect(forksFor('muster')!.b.name).toBe('Veteran');
+    expect(forksFor('chapter')!.a.name).toBe('Lance');
+    expect(forksFor('chapter')!.b.name).toBe('Paladin');
+  });
+
   it('lets Ice / Lightning / Fire / Poison / Void / Longshot fork after Lv3', () => {
     for (const kind of ['ice', 'lightning', 'fire', 'poison', 'void', 'longshot'] as const) {
       const t = new Tower(kind, 2, 2, 100, 100);
@@ -95,6 +111,18 @@ describe('keep forks', () => {
     expect(heavy.trainTime).toBeGreaterThan(TROOP_STATS.warrior.trainTime);
     expect(troopStatsAt('muster', null).hp).toBe(TROOP_STATS.warrior.hp);
     expect(troopStatsAt('chapter', null).hp).toBe(TROOP_STATS.knight.hp);
+    expect(muster.displayName()).toBe('Muster');
+    muster.fork = 'a';
+    expect(muster.displayName()).toBe('Scout');
+    expect(muster.canNumberUpgrade()).toBe(false);
+    expect(muster.canFork()).toBe(false);
+    expect(muster.isMaxed()).toBe(true);
+    const chapter = new Tower('chapter', 2, 2, 100, 100);
+    expect(chapter.displayName()).toBe('Chapter');
+    chapter.fork = 'b';
+    expect(chapter.displayName()).toBe('Paladin');
+    expect(chapter.canNumberUpgrade()).toBe(false);
+    expect(chapter.isMaxed()).toBe(true);
   });
 
   it('Forest 1 Game: Arrow damages, path blocked, Muster fork restats troops', () => {
@@ -144,6 +172,8 @@ describe('keep forks', () => {
     expect(game.chooseFork('b')).toBe(true);
     expect(game.gold).toBeLessThan(beforeGold);
     expect(hall.fork).toBe('b');
+    expect(hall.displayName()).toBe('Veteran');
+    expect(hall.canFork()).toBe(false);
     expect(game.troops[0].maxHp).toBe(troopStatsAt('muster', 'b').hp);
     game.stopLoop();
   });
@@ -166,7 +196,7 @@ describe('element path ladder', () => {
     const arrow = new Tower('arrow', 2, 2, 100, 100);
     arrow.level = 3;
     arrow.fork = 'a';
-    expect(arrow.displayName()).toBe('Arrow Faster');
+    expect(arrow.displayName()).toBe('Repeater');
     expect(arrow.canNumberUpgrade()).toBe(false);
     expect(arrow.canFork()).toBe(false);
     expect(arrow.isMaxed()).toBe(true);

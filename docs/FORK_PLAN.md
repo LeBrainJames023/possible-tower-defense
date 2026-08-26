@@ -18,13 +18,28 @@ Everyday Void stays an **orb**. The hole is a pull along the painted road, not a
 | Poison | **Venom** | **Miasma** | Rapid darts, weak short melt, almost single-target. | Slow cloud-ish splash, long melt. | **Poison** short vs long / stronger. Miasma keeps Poison’s tiny slow so the cloud feels sticky. |
 | Void | **Flicker** | **Abyss** | Rapid small orbs, smaller splash. Pull every **4th** orb. | Slow fatter orbs, bigger splash. Pull every **3rd** orb, a bit greedier. | **Pull** on the hole. Everyday shot stays an orb. |
 
-Unforked Fire / Ice / Lightning / Poison / Void stay the live Lv1–3 building until a path is paid. After pay, the keep’s name **is** the path (title “Flamethrower”, not “Fire Flamethrower”), it swaps to `{kind}-a.png` / `{kind}-b.png` if those stills exist, and that named keep then upgrades three ranks: Flamethrower 1 → 2 → 3. Same Upgrade button, same gold curve (`upgradeCostFor` / `upgradeMul`). Arrow / Cannon / Longshot stay 3-then-fork-and-done. Halls still fork from inspect with no number ladder.
+Unforked Fire / Ice / Lightning / Poison / Void stay the live Lv1–3 building until a path is paid. After pay, the keep’s name **is** the path (title “Flamethrower”, not “Fire Flamethrower”), it swaps to `{kind}-a.png` / `{kind}-b.png` if those stills exist, and that named keep then upgrades three ranks: Flamethrower 1 → 2 → 3. Same Upgrade button, same gold curve (`upgradeCostFor` / `upgradeMul`). Arrow / Cannon / Longshot stay 3-then-fork-and-done. Halls fork from inspect with no number ladder.
 
 ---
 
-## Not locked — Keeps
+## Locked — Halls
 
-Arrow, Longshot, Muster, and Chapter still say Faster / Heavier until we name them. Cannon already has **Rapid-fire** / **Mortar** — keep those unless play says they do not sing.
+| Keep | Fast (a) | Slow / heavy (b) | Fast job | Slow job |
+| --- | --- | --- | --- | --- |
+| Muster | **Scout** | **Veteran** | Warriors train quicker. A bit thinner. | Tankier warriors. Slower train. |
+| Chapter | **Lance** | **Paladin** | Knights train quicker. A bit thinner. | Tankier knights. Slower train. |
+
+After pay, the hall’s name **is** the path (title “Scout”, not “Muster Scout”). Same two-click pay, then the other path is gone. No second number ladder. Troop HP / Rally / cap 3 / train muls stay the live Faster/Heavier numbers.
+
+## Locked — Shooter keeps
+
+| Keep | Fast (a) | Slow / heavy (b) |
+| --- | --- | --- |
+| Arrow | **Repeater** | **Ballista** |
+| Cannon | **Gatling** | **Mortar** |
+| Longshot | **Marksman** | **Puncture** |
+
+After pay, the keep’s name **is** the path (title “Repeater”, not “Arrow Repeater”). These stay 3-then-fork-and-done — no second number ladder.
 
 ---
 

@@ -1,14 +1,14 @@
 # Future features
 
-## Last window — Element identity + second ladder (Aug 26)
+## Last window — hall names (Aug 26)
 
-Wired locked Element names on the two fork buttons. After Lv3, pay one path (same two-click); the other is gone; the keep’s name **is** that path (“Flamethrower 1”, not “Fire Flamethrower”). That named keep then upgrades three ranks on the same Upgrade button and gold curve (`upgradeCostFor` / `upgradeMul`). Fork muls stayed the live Faster/Heavier numbers. Arrow / Cannon / Longshot stay 3-then-fork-and-done. Halls still fork from inspect with no number ladder. **Abyss** pulls every 3rd orb; Flicker / unforked Void stay every 4th. Everyday shot stays an orb. Rally melee-hold still wins. How-to-play + Muster/Chapter blurbs: three troops, three fights; extra walkers keep going. HP / Rally / cap 3 unchanged. Did not generate art; paid keeps already swap to `{kind}-a.png` / `{kind}-b.png`. Sticky place stayed dead. Did not commit `public/preview/`.
+Wired Muster **Scout / Veteran** and Chapter **Lance / Paladin**. Same two-click pay from inspect, fork-and-done (no second ladder). Inspect title is the path (“Scout”, not “Muster Scout”). Combat / troop HP / Rally / cap 3 / train muls unchanged. How-to-play has one hall-path line; shooter and Element lines stayed. Did not generate art. Sticky place stayed dead. Did not commit `public/preview/`.
 
 ### Next window
-Play Forest with an Element fork (Fire 1→2→3 → Flamethrower → two more Upgrades) and an Abyss pull. Then **Keep names** (Arrow / Longshot / Muster / Chapter) or new Element stills if the current a/b pictures don’t sing — only if they peel one off. Do not add an 11th keep, Wind, gold farm, attack frames, or sticky place.
+Play the named hall paths (Muster → Scout vs Veteran, Chapter → Lance vs Paladin), or new stills if a paid path still looks like a cousin. Do not add an 11th keep, Wind, gold farm, attack frames, or sticky place.
 
 ### Parked
-Named Keep forks (Arrow, Longshot, Muster, Chapter), new Element stills if they want a redraw, attack frames, 4-dir troops, unique north/south walk faces, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
+New Element/Keep/hall stills if they want a redraw, attack frames, 4-dir troops, unique north/south walk faces, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
 
 **Layout curve (later):** worlds 2–5 already have unique tracks in `worldPaths.ts`. A later pass can reshape them so early maps have fewer loops (harder) and later maps snake for stacking. Not Forest color-flips. Do not regen all 40 until they peel that pass off.
 
@@ -24,9 +24,44 @@ Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defen
 
 Read docs/FORK_PLAN.md, docs/GAME_ROADMAP.md, docs/FUTURE_FEATURES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome unless they ask. Do not wipe localStorage. Do not commit public/preview/. Do not bring sticky place back. No 11th keep, Wind, or gold farm. Local main is ahead of origin; push only if they ask.
 
-Last window wired Element names + a second 3-rank ladder (Flamethrower 1→2→3 after pay), Abyss every 3rd orb, and hall/how-to copy. Arrow/Cannon/Longshot stay fork-and-done. Halls still fork from inspect with no number ladder.
+Last window named halls: Muster Scout/Veteran, Chapter Lance/Paladin. Shooters: Arrow Repeater/Ballista, Cannon Gatling/Mortar, Longshot Marksman/Puncture. Elements already have Flamethrower 1→2→3. Abyss every 3rd. Halls stay fork-and-done from inspect (no number ladder). Title is the path (“Scout”, not “Muster Scout”).
 
-THIS WINDOW WAITS unless they peel one off: play notes, Keep names (Arrow/Longshot/Muster/Chapter), or new Element stills if the live a/b pictures don’t sing. Do not retune DPS tables, do not add attack frames, do not add Wind or an 11th keep.
+THIS WINDOW WAITS unless they peel one off: play notes, or new stills if a paid path looks like a cousin. Do not retune DPS tables, do not add attack frames, do not add Wind or an 11th keep.
+
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
+```
+
+## Last window — shooter keep names (Aug 26)
+
+Wired Arrow **Repeater / Ballista**, Cannon **Gatling / Mortar**, Longshot **Marksman / Puncture**. Same two-click pay, fork-and-done (no second ladder). Inspect title is the path (“Repeater”, not “Arrow Repeater”). Combat muls unchanged. Muster / Chapter still Faster / Heavier.
+
+## Last window — Element identity + second ladder (Aug 26)
+
+Wired locked Element names on the two fork buttons. After Lv3, pay one path (same two-click); the other is gone; the keep’s name **is** that path (“Flamethrower 1”, not “Fire Flamethrower”). That named keep then upgrades three ranks on the same Upgrade button and gold curve (`upgradeCostFor` / `upgradeMul`). Fork muls stayed the live Faster/Heavier numbers. Arrow / Cannon / Longshot stay 3-then-fork-and-done. Halls still fork from inspect with no number ladder. **Abyss** pulls every 3rd orb; Flicker / unforked Void stay every 4th. Everyday shot stays an orb. Rally melee-hold still wins. How-to-play + Muster/Chapter blurbs: three troops, three fights; extra walkers keep going. HP / Rally / cap 3 unchanged. Did not generate art; paid keeps already swap to `{kind}-a.png` / `{kind}-b.png`. Sticky place stayed dead. Did not commit `public/preview/`.
+
+### Next window
+Play the named shooter paths (Arrow to Lv3 → Repeater vs Ballista). Then **Muster / Chapter names**, or new stills if a paid path still looks like a cousin. Do not add an 11th keep, Wind, gold farm, attack frames, or sticky place.
+
+### Parked
+Named hall forks (Muster, Chapter), new Element/Keep stills if they want a redraw, attack frames, 4-dir troops, unique north/south walk faces, endless extras, splash retune, 14-arrow Forest 10 start gold, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
+
+**Layout curve (later):** worlds 2–5 already have unique tracks in `worldPaths.ts`. A later pass can reshape them so early maps have fewer loops (harder) and later maps snake for stacking. Not Forest color-flips. Do not regen all 40 until they peel that pass off.
+
+### Watch-outs
+- Fixed-path TD; **buildings** never on path. Troops may stand on it. BCI: large buttons, no drag, no hover-only.
+- Campaign save is live — do not wipe localStorage (Forest may be 9/10 or finished; Desert may be started).
+- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → wave → damage. Path blocked.
+
+### Continue prompt (paste into a new chat)
+
+```
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+
+Read docs/FORK_PLAN.md, docs/GAME_ROADMAP.md, docs/FUTURE_FEATURES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome unless they ask. Do not wipe localStorage. Do not commit public/preview/. Do not bring sticky place back. No 11th keep, Wind, or gold farm. Local main is ahead of origin; push only if they ask.
+
+Last window named shooter keeps: Arrow Repeater/Ballista, Cannon Gatling/Mortar, Longshot Marksman/Puncture. Elements already have Flamethrower 1→2→3. Abyss every 3rd. Halls still Faster/Heavier from inspect with no number ladder.
+
+THIS WINDOW WAITS unless they peel one off: play notes, Muster/Chapter names, or new stills if a paid path looks like a cousin. Do not retune DPS tables, do not add attack frames, do not add Wind or an 11th keep.
 
 Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
 ```

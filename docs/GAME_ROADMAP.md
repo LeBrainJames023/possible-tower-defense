@@ -67,9 +67,9 @@ Pencil this as its own pass after sound / sharper-read, or when they peel it off
 
 Element names, the second 3-rank ladder, and Abyss every-3rd are **in** (Aug 26). Fork muls stayed the live Faster/Heavier numbers. Paid keeps swap to `{kind}-a.png` / `{kind}-b.png` when those files exist.
 
-Keeps (Arrow, Longshot, Muster, Chapter) still need names. Cannon keeps Rapid-fire / Mortar.
+Keeps (Arrow, Longshot) named Repeater / Ballista and Marksman / Puncture. Cannon is Gatling / Mortar. Halls: Muster Scout / Veteran, Chapter Lance / Paladin.
 
-1. **Names** — Elements done. Keeps still Faster/Heavier except Cannon.
+1. **Names** — Elements, shooter keeps, and halls done.
 2. **What the shot does** — Element jobs live. Abyss = every 3rd hole.
 3. **New stills.** Draw `{kind}-a.png` / `{kind}-b.png` per `docs/FORK_PLAN.md` when they ask, so a paid path looks like a different building.
 4. **Motion art in the same era.** Attack frames if we still want them. 4-dir troops only if they ask. Walk/flap already shipped.

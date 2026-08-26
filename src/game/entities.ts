@@ -317,9 +317,9 @@ export class Tower {
 
   displayName(): string {
     const forkName = this.fork ? forkDef(this.kind, this.fork)?.name : null;
-    if (isTroopHall(this.kind)) return forkName ? `${this.def.name} ${forkName}` : this.def.name;
+    if (isTroopHall(this.kind)) return forkName ?? this.def.name;
     if (forkName && isElementKeep(this.kind)) return `${forkName} ${this.pathLevel}`;
-    if (forkName) return `${this.def.name} ${forkName}`;
+    if (forkName) return forkName;
     return `${this.def.name} Lv ${this.level}`;
   }
 
