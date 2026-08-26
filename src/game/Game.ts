@@ -689,6 +689,7 @@ export class Game {
           this.fx.addShake(2.2);
         }
         this.audio.impact(p.kind);
+        if (p.opensVortex) this.audio.pull();
       },
       afterHits: () => this.collectBounties(),
     };

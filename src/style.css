@@ -298,6 +298,12 @@ h3 {
   color: white;
 }
 
+.btn-rally {
+  background: linear-gradient(180deg, #4ec8a8, #1a7a62);
+  border-color: #9ff5e4;
+  color: #061410;
+}
+
 .btn-hud {
   min-width: 118px;
   min-height: 48px;

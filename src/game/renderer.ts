@@ -183,7 +183,7 @@ export class Renderer {
       const img = forestTiles[Math.floor(hash(c, r, 2) * forestTiles.length) % forestTiles.length];
       ctx.drawImage(img, x, y, TILE, TILE);
       ctx.globalCompositeOperation = 'overlay';
-      ctx.fillStyle = 'rgba(92, 168, 78, 0.38)';
+      ctx.fillStyle = 'rgba(92, 168, 78, 0.44)';
       ctx.fillRect(x, y, TILE, TILE);
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = 'rgba(180, 220, 120, 0.08)';
@@ -301,13 +301,13 @@ export class Renderer {
       ctx.fillRect(x, y, TILE, TILE);
       ctx.strokeStyle =
         this.world === 'hollow'
-          ? 'rgba(40, 12, 60, 0.48)'
+          ? 'rgba(40, 12, 60, 0.58)'
           : this.world === 'fire'
-            ? 'rgba(80, 16, 8, 0.5)'
+            ? 'rgba(80, 16, 8, 0.6)'
             : this.world === 'ice'
-              ? 'rgba(40, 70, 90, 0.38)'
-              : 'rgba(42, 24, 12, 0.42)';
-      ctx.lineWidth = 1.4 * PX;
+              ? 'rgba(40, 70, 90, 0.52)'
+              : 'rgba(42, 24, 12, 0.58)';
+      ctx.lineWidth = 1.85 * PX;
       ctx.strokeRect(x + 0.7 * PX, y + 0.7 * PX, TILE - 1.4 * PX, TILE - 1.4 * PX);
       this.stampWater(x, y);
       drawWorldPath(ctx, theme, this.world, x, y, this.time);

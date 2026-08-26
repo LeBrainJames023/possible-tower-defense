@@ -2,7 +2,8 @@ import type { Enemy, Tower } from './entities';
 import { PX, TILE, TOWER_FEET, isTroopHall, towerPaintHeight, type TowerKind } from './constants';
 import { hallFootprint } from './footprint';
 import { ENEMY_GAIT, creatureFor, walkFrameIndex, ENEMIES } from './enemies';
-import { drawHallBillboard } from './billboards';
+import { drawHallBillboard, ENEMY_PAINT_MUL, spriteContentBox } from './billboards';
+import { drawSticker, drawSpriteRim, type SpriteSrc } from './drawSprite';
 import { drawTowerBody } from './drawTowers';
 import { TEX, texReady } from './assets';
 import type { MapTheme } from './worlds';
@@ -31,7 +32,8 @@ function drawFeetBillboard(
   feetY: number,
   fillTile = false
 ): void {
-  let w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  const box = spriteContentBox(img);
+  let w = h * (box.sw / Math.max(1, box.sh));
   if (fillTile && w < TILE * 0.9) {
     const s = (TILE * 0.9) / w;
     w *= s;
@@ -42,7 +44,7 @@ function drawFeetBillboard(
     w = TILE;
     h *= s;
   }
-  ctx.drawImage(img, -w / 2, -h + feetY, w, h);
+  drawSticker(ctx, img, -w / 2, -h + feetY, w, h, box);
 }
 
 function drawCenteredBillboard(
@@ -50,8 +52,9 @@ function drawCenteredBillboard(
   img: HTMLImageElement,
   h: number
 ): void {
-  const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
-  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  const box = spriteContentBox(img);
+  const w = h * (box.sw / Math.max(1, box.sh));
+  drawSticker(ctx, img, -w / 2, -h / 2, w, h, box);
 }
 
 /** Painted stills. Ice/fire/lightning/poison never rotate. Arrow ballista and cannon barrel follow aim. */
@@ -173,7 +176,8 @@ function drawTintedSprite(
   dw: number,
   dh: number,
   color: string,
-  alpha: number
+  alpha: number,
+  src?: SpriteSrc,
 ): void {
   const w = Math.max(1, Math.ceil(dw));
   const h = Math.max(1, Math.ceil(dh));
@@ -183,7 +187,8 @@ function drawTintedSprite(
   }
   const off = tintCtx;
   if (!off || !tintScratch) {
-    ctx.drawImage(img, dx, dy, dw, dh);
+    if (src) ctx.drawImage(img, src.sx, src.sy, src.sw, src.sh, dx, dy, dw, dh);
+    else ctx.drawImage(img, dx, dy, dw, dh);
     return;
   }
   if (tintScratch.width !== w || tintScratch.height !== h) {
@@ -192,9 +197,12 @@ function drawTintedSprite(
   } else {
     off.clearRect(0, 0, w, h);
   }
+  off.imageSmoothingEnabled = true;
+  off.imageSmoothingQuality = 'medium';
   off.globalCompositeOperation = 'source-over';
   off.globalAlpha = 1;
-  off.drawImage(img, 0, 0, w, h);
+  if (src) off.drawImage(img, src.sx, src.sy, src.sw, src.sh, 0, 0, w, h);
+  else off.drawImage(img, 0, 0, w, h);
   off.globalCompositeOperation = 'source-atop';
   off.globalAlpha = alpha;
   off.fillStyle = color;
@@ -550,22 +558,24 @@ export function drawEnemy(
 
   if (billboard) {
     const { img, flip } = billboard;
-    const h = r * 3.35;
-    const w = h * (img.naturalWidth / img.naturalHeight);
+    const box = spriteContentBox(img);
+    const h = r * ENEMY_PAINT_MUL;
+    let w = h * (box.sw / Math.max(1, box.sh));
+    if (w > TILE * 1.15) {
+      const s = (TILE * 1.15) / w;
+      w *= s;
+    }
+    const dy = -h + r * 0.55;
     ctx.save();
     ctx.translate(x, y);
     ctx.globalAlpha = e.phased ? 0.38 : 1;
     ctx.scale(flip * (1 + squash), (1 - squash) * sink);
-    ctx.shadowColor = 'rgba(0,0,0,0.72)';
-    ctx.shadowBlur = 3;
-    ctx.shadowOffsetY = 1;
-    drawTintedSprite(ctx, img, -w / 2, -h + r * 0.55, w, h, e.color, 0.28);
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
+    drawSpriteRim(ctx, img, -w / 2, dy, w, h, box);
+    drawTintedSprite(ctx, img, -w / 2, dy, w, h, e.color, 0.28, box);
     if (e.hitFlash > 0.25) {
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = Math.min(0.7, e.hitFlash);
-      ctx.drawImage(img, -w / 2, -h + r * 0.55, w, h);
+      ctx.drawImage(img, box.sx, box.sy, box.sw, box.sh, -w / 2, dy, w, h);
     }
     ctx.restore();
   } else {
@@ -588,7 +598,7 @@ export function drawEnemy(
 
   const hurt = e.hp < e.maxHp - 0.2;
   const showBar = selected || hurt || e.hitFlash > 0.12;
-  const by = y - (billboard ? r * 2.7 : r) - 16;
+  const by = y - (billboard ? r * ENEMY_PAINT_MUL * 0.82 : r) - 16;
   if (showBar) {
     const bw = Math.max(32, r * 2.5);
     const bh = 7;

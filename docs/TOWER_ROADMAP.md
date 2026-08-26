@@ -86,7 +86,7 @@ Invisible Hall on Keeps. Rally click, cap 3, 1:1 melee stall, die/respawn. `proj
 ## Later
 
 - Live plan moved to `docs/GAME_ROADMAP.md` (sound → sharper/bigger read → play notes; then named forks + new looks; then endless after stage 10).
-- Void pull accepted (Aug 24). Cadence / named paths wait for the fork era.
+- Void pull accepted (Aug 24). Element names + jobs: `docs/FORK_PLAN.md`. Art for both variants still needed. Keep names still open except Cannon Rapid-fire / Mortar.
 
 ---
 

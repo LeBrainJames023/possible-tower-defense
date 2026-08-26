@@ -1,4 +1,6 @@
 import { PX, TILE } from './constants';
+import { spriteContentBox } from './billboards';
+import { drawSticker } from './drawSprite';
 import { TEX, texReady } from './assets';
 import type { MapTheme } from './themes';
 import type { WorldId } from './worlds';
@@ -6,6 +8,18 @@ import type { WorldId } from './worlds';
 function hash(c: number, r: number, salt = 0): number {
   const n = Math.sin(c * 12.9898 + r * 78.233 + salt * 4.12) * 43758.5453;
   return n - Math.floor(n);
+}
+
+function drawPaintedProp(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  cx: number,
+  cy: number,
+  tw: number,
+  th: number,
+): void {
+  const box = spriteContentBox(img);
+  drawSticker(ctx, img, cx - tw / 2, cy - th + 18 * PX, tw, th, box);
 }
 
 /** Ground marks on grass tiles. Forest keeps blades; other worlds get their own dirt. */
@@ -214,10 +228,10 @@ export function drawWorldDecor(
     const painted = TEX.desertProps.filter(texReady);
     if (painted.length) {
       const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
-      const scale = 1.05 + hash(c, r, 8) * 0.22;
-      const tw = TILE * 1.05 * scale;
-      const th = TILE * 1.45 * scale;
-      ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      const scale = 1.14 + hash(c, r, 8) * 0.22;
+      const tw = TILE * 1.12 * scale;
+      const th = TILE * 1.58 * scale;
+      drawPaintedProp(ctx, img, cx, cy, tw, th);
       return;
     }
     drawCactus(ctx, theme, cx, cy, c, r);
@@ -227,10 +241,10 @@ export function drawWorldDecor(
     const painted = TEX.iceProps.filter(texReady);
     if (painted.length) {
       const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
-      const scale = 1.08 + hash(c, r, 8) * 0.2;
-      const tw = TILE * 1.02 * scale;
-      const th = TILE * 1.5 * scale;
-      ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      const scale = 1.16 + hash(c, r, 8) * 0.2;
+      const tw = TILE * 1.08 * scale;
+      const th = TILE * 1.62 * scale;
+      drawPaintedProp(ctx, img, cx, cy, tw, th);
       return;
     }
     drawCrystal(ctx, theme, cx, cy, c, r, time);
@@ -240,10 +254,10 @@ export function drawWorldDecor(
     const painted = TEX.fireProps.filter(texReady);
     if (painted.length) {
       const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
-      const scale = 1.06 + hash(c, r, 8) * 0.22;
-      const tw = TILE * 1.04 * scale;
-      const th = TILE * 1.42 * scale;
-      ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      const scale = 1.14 + hash(c, r, 8) * 0.22;
+      const tw = TILE * 1.1 * scale;
+      const th = TILE * 1.54 * scale;
+      drawPaintedProp(ctx, img, cx, cy, tw, th);
       return;
     }
     drawLavaRock(ctx, theme, cx, cy, c, r, time);
@@ -253,10 +267,10 @@ export function drawWorldDecor(
     const painted = TEX.hollowProps.filter(texReady);
     if (painted.length) {
       const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
-      const scale = 1.08 + hash(c, r, 8) * 0.2;
-      const tw = TILE * 1.02 * scale;
-      const th = TILE * 1.5 * scale;
-      ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+      const scale = 1.16 + hash(c, r, 8) * 0.2;
+      const tw = TILE * 1.08 * scale;
+      const th = TILE * 1.62 * scale;
+      drawPaintedProp(ctx, img, cx, cy, tw, th);
       return;
     }
   }
@@ -274,10 +288,10 @@ function drawForestTree(
   const painted = TEX.trees.filter(texReady);
   if (painted.length) {
     const img = painted[Math.floor(hash(c, r, 7) * painted.length) % painted.length];
-    const scale = 1.15 + hash(c, r, 8) * 0.28;
-    const tw = TILE * 1.15 * scale;
-    const th = TILE * 1.55 * scale;
-    ctx.drawImage(img, cx - tw / 2, cy - th + 18 * PX, tw, th);
+    const scale = 1.24 + hash(c, r, 8) * 0.28;
+    const tw = TILE * 1.22 * scale;
+    const th = TILE * 1.68 * scale;
+    drawPaintedProp(ctx, img, cx, cy, tw, th);
     return;
   }
   if (texReady(TEX.tree)) {

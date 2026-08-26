@@ -67,7 +67,8 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/landmarks/portal-hollow-out.png` | Same | Hollow exit spire-gate. |
 | `public/sprites/enemies/{shade,hexknight,hexwarden,magician}.png` | Cursor image gen stills + Sprite Forge | Live Hollow stills from world-monsters picks: Shade **A**, Hex Knight **B**, Hex Warden **B**, The Magician **A**. Warden stays a grounded lantern-keeper. |
 | `public/sprites/enemies/walk/{shade,hexknight,hexwarden,magician}-{n,e,s,w}-1..4.png` | Walk-v3 2×2 (center flap for shade, feet walk for the rest). East is a flip. | Live 4-dir flap/walks. |
-| Combat beeps / shots | Web Audio in `src/game/audio.ts` | Per-tower hits, plus a quiet prepare/battle pad that ducks under shots |
+| Combat beeps / shots | Web Audio in `src/game/audio.ts`, `audioSfx.ts`, `audioSynth.ts` | Place, fire, impact, leak, wave-start sting, kill, Void pull. Prepare/battle drone ducks under shots. Master compressor keeps volleys from clipping. |
+| Live keep / troop / enemy / map draw | Canvas 2D (`drawSprite.ts` sticker rim, `spriteContentBox` crop) | Aug 25 sharper-read: crop padding, grow up a little, hard dark rim, medium smoothing. Same PNGs — no regen. Combat numbers unchanged. |
 
 Fonts: Syne + DM Sans (Google Fonts, SIL OFL). Favicon: inline SVG.
 

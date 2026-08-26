@@ -1,4 +1,6 @@
 import { PX } from './constants';
+import { spriteContentBox } from './billboards';
+import { drawSticker } from './drawSprite';
 import type { MapTheme } from './themes';
 import type { Vec2 } from '../shared/math';
 import type { WorldId } from './worlds';
@@ -54,8 +56,9 @@ function drawPortalBillboard(
 ): void {
   const idle = 0.72 + Math.sin(time * 2.05) * 0.08;
   const pulse = 1 + heat * 0.22 + idle * 0.06;
-  const h = 92 * PX * pulse;
-  const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+  const h = 102 * PX * pulse;
+  const box = spriteContentBox(img);
+  const w = h * (box.sw / Math.max(1, box.sh));
   const cx = x;
   const cy = y - h * 0.38;
   const glowR = (58 + heat * 20) * PX * pulse;
@@ -89,7 +92,7 @@ function drawPortalBillboard(
   ctx.setLineDash([]);
   ctx.restore();
 
-  ctx.drawImage(img, x - w / 2, y - h + 18 * PX, w, h);
+  drawSticker(ctx, img, x - w / 2, y - h + 18 * PX, w, h, box);
 
   ctx.save();
   ctx.translate(cx, cy);

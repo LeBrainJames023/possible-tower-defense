@@ -1,5 +1,11 @@
 # Playtest notes
 
+## This session — shooter keep names (Aug 26)
+
+Arrow is Repeater / Ballista. Cannon is Gatling / Mortar. Longshot is Marksman / Puncture. Inspect title is the path name. Still fork-and-done after Lv3. Halls still Faster / Heavier.
+
+Check 1x: Forest 1 Arrow to Lv3 → two buttons Repeater vs Ballista → pay one → other gone → Max.
+
 ## This session — Element identity + second ladder (Aug 26)
 
 Wired Flamethrower / Furnace, Hail / Blizzard, Arc / Thunder, Venom / Miasma, Flicker / Abyss on the two fork buttons. After pay, inspect title is the path plus rank (“Flamethrower 1”), not “Fire Flamethrower”. That keep upgrades three more ranks on the same Upgrade button and gold curve. Arrow / Cannon / Longshot still max after the path. Halls still fork from inspect. Abyss pulls every 3rd orb; Flicker / unforked stay every 4th. Muster/Chapter + how-to-play now say three troops, three fights; extra walkers keep going. HP / Rally / cap 3 unchanged. Did not generate art.

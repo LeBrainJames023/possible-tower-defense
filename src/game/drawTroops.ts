@@ -1,6 +1,7 @@
 /** Painted Muster / Chapter troops. Missing PNGs fall back to cream/steel dots. */
-import { PX } from './constants';
-import { TROOP_PAINT_H } from './billboards';
+import { PX, TILE } from './constants';
+import { TROOP_PAINT_H, spriteContentBox } from './billboards';
+import { drawSticker } from './drawSprite';
 import { walkFrameIndex } from './enemies';
 import { TEX, texReady } from './assets';
 import type { Troop } from './troops';
@@ -64,21 +65,23 @@ export function drawTroop(ctx: CanvasRenderingContext2D, tr: Troop): void {
 
   const h = TROOP_PAINT_H[tr.kind];
   if (img) {
-    const w = h * (img.naturalWidth / Math.max(1, img.naturalHeight));
+    const box = spriteContentBox(img);
+    let paintH = h;
+    let w = paintH * (box.sw / Math.max(1, box.sh));
+    if (w > TILE) {
+      const s = TILE / w;
+      w = TILE;
+      paintH *= s;
+    }
     const flip = Math.cos(tr.facing) < 0 ? -1 : 1;
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(flip, 1);
-    ctx.shadowColor = 'rgba(0,0,0,0.55)';
-    ctx.shadowBlur = 2;
-    ctx.shadowOffsetY = 1;
-    ctx.drawImage(img, -w / 2, -h + r * 0.5, w, h);
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
+    drawSticker(ctx, img, -w / 2, -paintH + r * 0.5, w, paintH, box);
     if (tr.hitFlash > 0.25) {
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = Math.min(0.65, tr.hitFlash);
-      ctx.drawImage(img, -w / 2, -h + r * 0.5, w, h);
+      ctx.drawImage(img, box.sx, box.sy, box.sw, box.sh, -w / 2, -paintH + r * 0.5, w, paintH);
     }
     ctx.restore();
   } else {
@@ -89,7 +92,7 @@ export function drawTroop(ctx: CanvasRenderingContext2D, tr: Troop): void {
     const bw = Math.max(22, r * 2.2);
     const bh = 5;
     const bx = x - bw / 2;
-    const by = y - (img ? h * 0.78 : r) - 12;
+    const by = y - (img ? TROOP_PAINT_H[tr.kind] * 0.82 : r) - 12;
     ctx.fillStyle = 'rgba(0,0,0,0.7)';
     roundRect(ctx, bx, by, bw, bh, 2);
     ctx.fill();
