@@ -73,6 +73,8 @@ export class Game {
   gold = 0;
   lives = 0;
   waveIndex = 0; // completed waves
+  /** Extra waves after Hollow 10. Same map, same keeps. */
+  endless = false;
   phase: GamePhase = 'prepare';
   selectedKind: TowerKind | null = null;
   selectedTowerId: number | null = null;
@@ -142,6 +144,7 @@ export class Game {
     this.gold = scaleGold(level.startingGold, this.mods.startGold);
     this.lives = scaleLives(level.lives, this.mods.lives);
     this.waveIndex = 0;
+    this.endless = false;
     this.phase = 'prepare';
     this.towers = [];
     this.troops = [];
@@ -210,6 +213,7 @@ export class Game {
     return {
       phase: this.phase,
       waveIndex: this.waveIndex,
+      endless: this.endless,
       lives: this.lives,
       gold: this.gold,
       towers: this.towers.length,
@@ -224,7 +228,18 @@ export class Game {
   }
 
   canStartWave(): boolean {
-    return this.phase === 'prepare' && this.waveIndex < WAVES_PER_LEVEL;
+    if (this.phase !== 'prepare') return false;
+    return this.endless || this.waveIndex < WAVES_PER_LEVEL;
+  }
+
+  /** Stay on this map after Hollow 10. Towers, gold, and lives keep. */
+  enterEndless(): void {
+    this.endless = true;
+    this.phase = 'prepare';
+    this.waveActive = false;
+    this.audio.setScore('prepare');
+    this.onToast?.('Keep playing — extra waves. Same keeps.');
+    this.onHud?.();
   }
 
   startWave(): void {
@@ -648,7 +663,7 @@ export class Game {
       this.waveActive = false;
       const bonus = scaleGold(waveClearBonus(this.waveIndex), this.mods.gold);
       this.gold += bonus;
-      if (this.waveIndex >= WAVES_PER_LEVEL) {
+      if (this.waveIndex >= WAVES_PER_LEVEL && !this.endless) {
         this.phase = 'won';
         this.audio.setScore('off');
         const cur = loadProgress();

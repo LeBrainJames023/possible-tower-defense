@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canPlaceOnCell, expandPath, buildWave, buildGrid, LEVELS, waveRoster } from '../src/game/levels';
+import { canPlaceOnCell, expandPath, authoredWave, buildWave, buildGrid, LEVELS, waveRoster } from '../src/game/levels';
 import { COLS, ROWS, STAGES_PER_WORLD, WAVES_PER_LEVEL, WORLD_COUNT } from '../src/game/constants';
 import { PATH_OVERRIDES } from '../src/game/worldPaths';
 import { WORLDS, buildSurfaceWord, themeFor } from '../src/game/worlds';
@@ -138,6 +138,13 @@ describe('buildWave', () => {
   it('includes a boss on wave 10', () => {
     const groups = buildWave(1, 10);
     expect(groups.some((g) => g.kind === 'boss')).toBe(true);
+  });
+
+  it('reuses late packs for extra waves after 10', () => {
+    expect(authoredWave(11)).toBe(7);
+    expect(authoredWave(14)).toBe(10);
+    expect(buildWave(10, 11, 5).length).toBeGreaterThan(0);
+    expect(buildWave(10, 14, 5).map((g) => g.kind)).toEqual(buildWave(10, 10, 5).map((g) => g.kind));
   });
 
   it('keeps Forest stage 1 free of locals and champions', () => {

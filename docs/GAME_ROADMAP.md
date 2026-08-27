@@ -78,15 +78,9 @@ Do not generate fork art until they explicitly ask.
 
 ---
 
-## Later — endless after a world boss
+## Endless after The Hollow (in)
 
-After they beat a world’s **stage 10 boss**, a large two-button card:
-
-- **Congratulations — you won.**
-- **Main menu**
-- **Keep playing**
-
-Keep playing is the endless door. Extra upgrades / extra toys wait until that door exists. Not this week unless they peel it off on purpose.
+Worlds 1–4 stage 10: **Next world** + **Main menu**. Hollow 10: **Keep playing** + **Main menu**. Keep playing stays on that map; extra waves reuse late packs and climb HP a little. Same ten keeps. Maps 1–9 still say Next map.
 
 ---
 

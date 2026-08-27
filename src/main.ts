@@ -21,7 +21,6 @@ import { Enemy, Tower } from './game/entities';
 import {
   afterWin,
   canPlay,
-  isCampaignClear,
   isCleared,
   isWorldCleared,
   isWorldOpen,
@@ -34,6 +33,7 @@ import { forksFor, voidPullEvery, type ForkId } from './game/forks';
 import { introKindsForLevel, introRoleLabel, markKindsSeen } from './game/intros';
 import { themeFor } from './game/themes';
 import { WORLDS, buildSurfaceWord, worldById, worldByIndex } from './game/worlds';
+import { winResultCopy, type ResultPrimary, type ResultSecondary } from './game/resultCard';
 import { canRallyAt, troopStatsAt, troopStatsFor } from './game/troops';
 import { dist } from './shared/math';
 import { fitCanvasToHost } from './shared/pointer';
@@ -150,7 +150,8 @@ let lastLives = -1;
 let introQueue: EnemyKind[] = [];
 type InspectStep = 'idle' | 'preview' | 'forkA' | 'forkB' | 'sell' | 'rally';
 let inspectStep: InspectStep = 'idle';
-let resultSecondary: 'title' | 'worlds' = 'worlds';
+let resultPrimary: ResultPrimary = 'next-map';
+let resultSecondary: ResultSecondary = 'worlds';
 let buildTab: TrayTab = 'keeps';
 
 const tabKeeps = document.getElementById('tab-keeps') as HTMLButtonElement;
@@ -681,7 +682,7 @@ function fillInspectEnemy(enemy: Enemy): void {
 function updateHud(): void {
   if (!game.level) return;
   hudLevel.innerHTML = `<span class="hud-world">${worldById(game.level.world).name}</span><span class="hud-stage"> - ${game.level.stage}</span>`;
-  hudWave.textContent = `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
+  hudWave.textContent = game.endless ? `Wave ${game.waveIndex}` : `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);
   if (lastGold >= 0 && game.gold !== lastGold) flashChip(chipGold, 'pulse');
@@ -696,12 +697,11 @@ function updateHud(): void {
     hudNext.textContent = 'Line held.';
   }
   btnWave.disabled = !game.canStartWave();
-  btnWave.textContent =
-    game.waveIndex >= WAVES_PER_LEVEL
-      ? 'Complete'
-      : game.phase === 'wave'
-        ? 'Wave running'
-        : `Start wave ${game.waveIndex + 1}`;
+  btnWave.textContent = game.phase === 'wave'
+    ? 'Wave running'
+    : game.canStartWave()
+      ? `Start wave ${game.waveIndex + 1}`
+      : 'Complete';
   updatePauseUi();
 
   const tower = game.getSelectedTower();
@@ -754,39 +754,21 @@ game.onToast = showToast;
 game.onResult = (won) => {
   resultWon = won;
   overlayResult.classList.remove('hidden');
-  resultSecondary = 'worlds';
-  btnResultSecondary.textContent = 'Worlds';
   if (won) {
-    const level = game.level;
-    const next = afterWin(level);
-    if (lookMode) {
-      resultTitle.textContent = 'Look finished';
-      resultBody.textContent = 'Nice hold. This land unlocks when you beat the previous world.';
-      btnResultPrimary.textContent = 'Back to worlds';
-      resultSecondary = 'title';
-      btnResultSecondary.textContent = 'Main menu';
-    } else if (isCampaignClear(next)) {
-      resultTitle.textContent = 'Campaign clear!';
-      resultBody.textContent = 'You held The Hollow. The magician-s door is shut.';
-      btnResultPrimary.textContent = 'Back to worlds';
-      resultSecondary = 'title';
-      btnResultSecondary.textContent = 'Main menu';
-    } else if (next.world > level.worldIndex) {
-      const opened = worldByIndex(next.world);
-      resultTitle.textContent = `${worldById(level.world).name} cleared`;
-      resultBody.textContent = `${opened.name} is open.`;
-      btnResultPrimary.textContent = opened.name;
-      resultSecondary = 'title';
-      btnResultSecondary.textContent = 'Main menu';
-    } else {
-      resultTitle.textContent = 'Level cleared';
-      resultBody.textContent = `${level.name} survived. Next map unlocked.`;
-      btnResultPrimary.textContent = 'Next map';
-    }
+    const copy = winResultCopy(game.level, lookMode);
+    resultTitle.textContent = copy.title;
+    resultBody.textContent = copy.body;
+    btnResultPrimary.textContent = copy.primaryLabel;
+    btnResultSecondary.textContent = copy.secondaryLabel;
+    resultPrimary = copy.primary;
+    resultSecondary = copy.secondary;
   } else {
     resultTitle.textContent = 'Base fallen';
     resultBody.textContent = 'Enemies leaked through. Rebuild with a wider tower mix.';
     btnResultPrimary.textContent = 'Retry';
+    btnResultSecondary.textContent = 'Worlds';
+    resultPrimary = 'retry';
+    resultSecondary = 'worlds';
   }
 };
 
@@ -1041,18 +1023,23 @@ btnBuild.addEventListener('click', () => {
 
 btnResultPrimary.addEventListener('click', () => {
   overlayResult.classList.add('hidden');
-  if (resultWon) {
-    const next = afterWin(game.level);
-    if (lookMode || isCampaignClear(next)) {
-      goWorlds();
-    } else if (next.world > game.level.worldIndex) {
-      openWorldLevels(next.world);
-    } else {
-      startLevel(game.level.id + 1);
-    }
-  } else {
+  if (!resultWon || resultPrimary === 'retry') {
     startLevel(activeLevelId);
+    return;
   }
+  if (resultPrimary === 'keep-playing') {
+    game.enterEndless();
+    return;
+  }
+  if (resultPrimary === 'worlds') {
+    goWorlds();
+    return;
+  }
+  if (resultPrimary === 'next-world') {
+    openWorldLevels(afterWin(game.level).world);
+    return;
+  }
+  startLevel(game.level.id + 1);
 });
 
 btnResultSecondary.addEventListener('click', () => {

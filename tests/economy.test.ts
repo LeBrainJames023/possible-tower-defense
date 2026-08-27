@@ -105,6 +105,8 @@ describe('wave HP curve', () => {
     expect(waveHpMul(10)).toBeCloseTo(1.05 ** 9, 5);
     expect(waveHpMul(10)).toBeGreaterThan(1.4);
     expect(waveHpMul(10)).toBeLessThan(1.7);
+    expect(waveHpMul(11)).toBeCloseTo(waveHpMul(10) * 1.08, 5);
+    expect(waveHpMul(11)).toBeGreaterThan(waveHpMul(10));
   });
 });
 

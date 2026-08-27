@@ -1,5 +1,34 @@
 # Future features
 
+## Last window — Keep playing after The Hollow (Aug 26)
+
+World-clear cards stay two buttons. Lands 1–4: **Next world** + **Main menu**. Hollow 10: **Keep playing** + **Main menu**. Keep playing stays on the last map; extra waves reuse packs 7–10 and climb HP a little. Same ten keeps. Maps 1–9 still Next map. Did not add an 11th keep, Wind, or gold farm.
+
+### Next window
+Play the named-path stills (Forest + a paid Flamethrower or Repeater, Scout vs Veteran). Retune only from notes. Push when they ask.
+
+### Parked
+Attack frames, 4-dir troops, unique north/south walk faces, layout-curve regen, endless extras (new toys), splash retune, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
+
+### Watch-outs
+- Fixed-path TD; **buildings** never on path. Troops may stand on the path. BCI: large buttons, no drag, no hover-only.
+- Campaign save is live — do not wipe localStorage.
+- Quality gates: `npm test`, `npm run build`, smoke title → Forest 1 → place → wave → damage. Path blocked.
+
+### Continue prompt (paste into a new chat)
+
+```
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+
+Read docs/FORK_PLAN.md, docs/GAME_ROADMAP.md, docs/FUTURE_FEATURES.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome unless they ask. Do not wipe localStorage. Do not commit public/preview/. Do not bring sticky place back. No 11th keep, Wind, or gold farm. Local main is ahead of origin; push only if they ask.
+
+Last window: named-path stills are live for all ten keeps. World 1–4 stage 10 is Next world + Main menu. Hollow 10 is Keep playing (extra waves on the same map) + Main menu.
+
+THIS WINDOW WAITS unless they peel one off: play notes, or a HUD click that still misses. Do not retune DPS tables, do not add attack frames, do not add Wind or an 11th keep.
+
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
+```
+
 ## Last window — hall names (Aug 26)
 
 Wired Muster **Scout / Veteran** and Chapter **Lance / Paladin**. Same two-click pay from inspect, fork-and-done (no second ladder). Inspect title is the path (“Scout”, not “Muster Scout”). Combat / troop HP / Rally / cap 3 / train muls unchanged. How-to-play has one hall-path line; shooter and Element lines stayed. Did not generate art. Sticky place stayed dead. Did not commit `public/preview/`.

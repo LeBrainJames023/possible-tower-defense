@@ -425,12 +425,21 @@ export function levelsInWorld(worldIndex: number): LevelDef[] {
   return LEVELS.filter((l) => l.worldIndex === worldIndex);
 }
 
+/** Campaign waves 1–10. Extra waves reuse late packs (7–10) so endless does not invent a new script. */
+export function authoredWave(wave: number): number {
+  const n = Math.max(1, Math.floor(wave));
+  if (n <= WAVES_PER_LEVEL) return n;
+  return 7 + ((n - 11) % 4);
+}
+
 /** Composition only (kind + count). Timing lives in spawnSchedule.ts. */
 export function buildWave(stage: number, wave: number, worldIndex = 1): WaveSpawn[] {
-  const w = Math.max(1, Math.min(WAVES_PER_LEVEL, wave));
+  const n = Math.max(1, Math.floor(wave));
+  const w = authoredWave(n);
   const st = Math.max(1, Math.min(STAGES_PER_WORLD, stage));
   const wi = Math.max(1, worldIndex);
-  const pressure = 1 + (st - 1) * 0.12 + (w - 1) * 0.08 + (wi - 1) * 0.18;
+  const extra = Math.max(0, n - WAVES_PER_LEVEL);
+  const pressure = 1 + (st - 1) * 0.12 + (w - 1) * 0.08 + (wi - 1) * 0.18 + extra * 0.08;
 
   const groups: WaveSpawn[] = [];
   const local1 = specialAt(wi, st, 1);

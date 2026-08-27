@@ -24,6 +24,9 @@ export interface DifficultyMods {
 export const UPGRADE_PRICE_MUL = 1.25;
 /** Refund of gold actually spent (build + upgrades). */
 export const SELL_REFUND = 0.65;
+/** Extra waves after Hollow 10. Gentle climb on top of wave-10 HP. */
+export const ENDLESS_HP_GROWTH = 1.08;
+
 /** Per-wave HP growth inside a level. Wave 10 ≈ 1.55× wave 1. */
 export const WAVE_HP_GROWTH = 1.05;
 
@@ -71,10 +74,13 @@ export function waveClearBonus(waveIndex: number): number {
   return 6 + waveIndex * 2;
 }
 
-/** HP multiplier for a wave inside a level (compounding). Wave 1 = 1. */
+/** HP multiplier for a wave inside a level (compounding). Wave 1 = 1. Extra waves keep climbing. */
 export function waveHpMul(wave: number): number {
-  const w = Math.max(1, Math.min(WAVES_PER_LEVEL, wave));
-  return Math.pow(WAVE_HP_GROWTH, w - 1);
+  const n = Math.max(1, wave);
+  const authored = Math.min(n, WAVES_PER_LEVEL);
+  let mul = Math.pow(WAVE_HP_GROWTH, authored - 1);
+  if (n > WAVES_PER_LEVEL) mul *= Math.pow(ENDLESS_HP_GROWTH, n - WAVES_PER_LEVEL);
+  return mul;
 }
 
 /** Gold to go from `fromLevel` to the next (1 → 2, or 2 → 3). */
