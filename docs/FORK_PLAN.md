@@ -51,9 +51,9 @@ After pay, the keep’s name **is** the path (title “Repeater”, not “Arrow
 
 ---
 
-## Still need to draw
+## Drawn and kept (Aug 26)
 
-Both variants for each locked element. A paid path must **look like a different building**, not a cousin of the same keep.
+A paid path uses `{kind}-a.png` / `{kind}-b.png`. Unforked Lv1–3 keeps still use the old building until a path is paid.
 
 | Keep | Fast still | Slow still |
 | --- | --- | --- |
@@ -62,9 +62,10 @@ Both variants for each locked element. A paid path must **look like a different 
 | Lightning | Arc — `lightning-a.png` | Thunder — `lightning-b.png` |
 | Poison | Venom — `poison-a.png` | Miasma — `poison-b.png` |
 | Void | Flicker — `void-a.png` | Abyss — `void-b.png` |
+| Arrow | Repeater — `arrow-a.png` | Ballista — `arrow-b.png` |
+| Cannon | Gatling — `cannon-a.png` | Mortar — `cannon-b.png` |
+| Longshot | Marksman — `longshot-a.png` | Puncture — `longshot-b.png` |
+| Muster | Scout — `muster-a.png` | Veteran — `muster-b.png` |
+| Chapter | Lance — `chapter-a.png` | Paladin — `chapter-b.png` |
 
-Do **not** generate these until they explicitly ask. Raw sheets go in `public/preview/` if we gen; live files are `public/sprites/towers/{kind}-a.png` and `{kind}-b.png`. Log in `docs/ASSETS.md`. Halls only if their paths need new yard/house art. Image-gen is not default.
-
-### Next window (asked Aug 25): they wanted pictures first — generate all ten stills, then copy winners onto the live forked keeps.
-
-Older `{kind}-a` / `{kind}-b` stills may already exist from the Faster/Heavier pass — replace them when we paint so the names match the building.
+Raw sheets stay in `public/preview/` (do not commit unless asked). Live files are `public/sprites/towers/{kind}-a.png` and `{kind}-b.png`. Logged in `docs/ASSETS.md`.
