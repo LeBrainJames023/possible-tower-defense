@@ -1,6 +1,8 @@
 import type { BeamFx, Projectile } from './entities';
-import { PX } from './constants';
+import { PX, isElementKeep, type TowerKind } from './constants';
 import { TEX, texReady } from './assets';
+import { drawForkShot } from './drawForkShots';
+import type { ForkId } from './forks';
 
 /** In-flight shots. Splash rings live in fx.ts and use each tower's splash radius. */
 const SHOT_SIZE: Record<Projectile['kind'], number> = {
@@ -21,22 +23,32 @@ export function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile): vo
   const y = p.visualY();
   const ang = Math.atan2(p.vy, p.vx || 1);
   const flick = 0.65 + Math.sin(p.age * 22) * 0.35;
-  const shot = TEX.projectiles[p.kind];
-  if (texReady(shot)) {
-    const h = SHOT_SIZE[p.kind] * PX;
-    const w = h * (shot.naturalWidth / Math.max(1, shot.naturalHeight));
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(ang + Math.PI);
-    ctx.drawImage(shot, -w / 2, -h / 2, w, h);
-    ctx.restore();
-    return;
+  if (!p.fork) {
+    const shot = TEX.projectiles[p.kind];
+    if (texReady(shot)) {
+      const h = SHOT_SIZE[p.kind] * PX;
+      const w = h * (shot.naturalWidth / Math.max(1, shot.naturalHeight));
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(ang + Math.PI);
+      ctx.drawImage(shot, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      return;
+    }
   }
 
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(ang);
   ctx.scale(PX, PX);
+
+  if (p.fork && isElementKeep(p.kind)) {
+    drawForkShot(ctx, p);
+    ctx.restore();
+    return;
+  }
+
+  if (p.fork) applyShooterShotScale(ctx, p.kind, p.fork);
 
   if (p.kind !== 'lightning') drawStreak(ctx, p.kind, p.color, p.age);
 
@@ -131,6 +143,13 @@ function drawStreak(ctx: CanvasRenderingContext2D, kind: Projectile['kind'], col
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
+}
+
+/** Repeater tiny / Ballista huge, Gatling pebble / Mortar boulder, Marksman thin / Puncture fat. */
+function applyShooterShotScale(ctx: CanvasRenderingContext2D, kind: TowerKind, fork: ForkId): void {
+  if (kind === 'arrow') ctx.scale(fork === 'a' ? 0.62 : 1.55, fork === 'a' ? 0.62 : 1.55);
+  else if (kind === 'cannon') ctx.scale(fork === 'a' ? 0.55 : 1.38, fork === 'a' ? 0.55 : 1.38);
+  else if (kind === 'longshot') ctx.scale(fork === 'a' ? 0.92 : 1.18, fork === 'a' ? 0.58 : 1.42);
 }
 
 function drawSpark(ctx: CanvasRenderingContext2D, color: string, age: number): void {
@@ -422,7 +441,7 @@ export function drawBeams(ctx: CanvasRenderingContext2D, beams: BeamFx[]): void 
     ctx.fill();
 
     const bolt = TEX.projectiles.lightning;
-    if (texReady(bolt)) {
+    if (!b.fork && texReady(bolt)) {
       const mx = (b.x1 + b.x2) / 2;
       const my = (b.y1 + b.y2) / 2;
       const ang = Math.atan2(b.y2 - b.y1, b.x2 - b.x1);

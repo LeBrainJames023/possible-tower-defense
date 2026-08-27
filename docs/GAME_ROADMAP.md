@@ -22,6 +22,8 @@ They are **playing** first (finish Forest, start the next world). Do not wipe `l
 
 ## They play (now)
 
+**Next pickup (Aug 26 evening):** `docs/FUTURE_FEATURES.md` — Next session plan. Forest 1 live check of Flamethrower stream vs Furnace boom. Image-gen shots only if that fails at postage-stamp size.
+
 Finish Forest. Start Desert (or whichever world opens). Write notes only if something feels wrong (gold, splash, quiet maps, tiny keeps, skate-walks). Retune numbers only from those notes — not in the dark.
 
 **Play note in (Aug 24):** Desert range rings needed a dark rim to read on sand. Ice gets the same ink (snow is light too). Combat range numbers did not change.
@@ -71,10 +73,8 @@ Keeps (Arrow, Longshot) named Repeater / Ballista and Marksman / Puncture. Canno
 
 1. **Names** — Elements, shooter keeps, and halls done.
 2. **What the shot does** — Element jobs live. Abyss = every 3rd hole.
-3. **New stills.** Draw `{kind}-a.png` / `{kind}-b.png` per `docs/FORK_PLAN.md` when they ask, so a paid path looks like a different building.
-4. **Motion art in the same era.** Attack frames if we still want them. 4-dir troops only if they ask. Walk/flap already shipped.
-
-Do not generate fork art until they explicitly ask.
+3. **New stills.** In — paid path uses `{kind}-a.png` / `{kind}-b.png`.
+4. **Shot feel.** In — paid path draws a different in-flight shot and impact (`drawForkShots.ts`, `fx.ts`). Unforked Lv1–3 keep today’s orb. Hit rules stay in `combat.ts`. Attack-frame sheets and 4-dir troops still parked.
 
 ---
 

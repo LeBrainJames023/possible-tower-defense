@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TOWER_ORDER, TOWERS } from '../src/game/constants';
 import { Tower } from '../src/game/entities';
+import { fireTower } from '../src/game/combat';
 import { forksFor } from '../src/game/forks';
 import { firstHallClick } from '../src/game/footprint';
 import { Game } from '../src/game/Game';
@@ -284,5 +285,60 @@ describe('element path ladder', () => {
     expect(fire.isMaxed()).toBe(true);
     expect(game.upgradeSelected()).toBe(false);
     game.stopLoop();
+  });
+});
+
+describe('named-path shot feel', () => {
+  function fireOnce(kind: Tower['kind'], fork: 'a' | 'b' | null) {
+    const sim = new CombatSandbox();
+    const t = sim.place(kind, 6, 5);
+    t.level = 3;
+    t.fork = fork;
+    if (fork) t.pathLevel = 1;
+    const e = sim.spawn('grunt', 8);
+    e.pos = { x: t.x + 40, y: t.y };
+    fireTower(t, e, sim);
+    return { t, sim };
+  }
+
+  it('stamps the paid path onto the in-flight shot and still fires one projectile', () => {
+    const unforked = fireOnce('fire', null);
+    expect(unforked.sim.projectiles).toHaveLength(1);
+    expect(unforked.sim.projectiles[0].fork).toBeNull();
+    expect(unforked.sim.projectiles[0].kind).toBe('fire');
+
+    const flame = fireOnce('fire', 'a');
+    expect(flame.sim.projectiles).toHaveLength(1);
+    expect(flame.sim.projectiles[0].fork).toBe('a');
+    expect(flame.sim.projectiles[0].splash).toBe(flame.t.splash);
+
+    const furnace = fireOnce('fire', 'b');
+    expect(furnace.sim.projectiles).toHaveLength(1);
+    expect(furnace.sim.projectiles[0].fork).toBe('b');
+    expect(furnace.sim.projectiles[0].splash).toBeGreaterThan(flame.sim.projectiles[0].splash);
+  });
+
+  it('keeps Hail / Venom / Flicker as one shot each', () => {
+    for (const kind of ['ice', 'poison', 'void'] as const) {
+      const { sim } = fireOnce(kind, 'a');
+      expect(sim.projectiles).toHaveLength(1);
+      expect(sim.projectiles[0].fork).toBe('a');
+      expect(sim.projectiles[0].kind).toBe(kind);
+    }
+  });
+
+  it('makes Arc thinner and snappier than Thunder without extra beams or projectiles', () => {
+    const arc = fireOnce('lightning', 'a');
+    const thunder = fireOnce('lightning', 'b');
+    const base = fireOnce('lightning', null);
+    expect(arc.sim.projectiles).toHaveLength(0);
+    expect(thunder.sim.projectiles).toHaveLength(0);
+    expect(arc.sim.beams).toHaveLength(1);
+    expect(thunder.sim.beams).toHaveLength(1);
+    expect(base.sim.beams).toHaveLength(1);
+    expect(arc.sim.beams[0].width).toBeLessThan(base.sim.beams[0].width);
+    expect(base.sim.beams[0].width).toBeLessThan(thunder.sim.beams[0].width);
+    expect(arc.sim.beams[0].maxLife).toBeLessThan(thunder.sim.beams[0].maxLife);
+    expect(arc.t.chainAt()).toBeLessThan(thunder.t.chainAt());
   });
 });

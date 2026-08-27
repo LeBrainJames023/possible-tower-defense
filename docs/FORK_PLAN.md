@@ -49,6 +49,8 @@ After pay, the keep’s name **is** the path (title “Repeater”, not “Arrow
 - **Furnace / Blizzard / Thunder / Miasma / Abyss** = today’s Heavier muls (slower, fatter). **Abyss** opens the hole every **3rd** orb. Flicker / unforked Void stay every 4th. Everyday shot stays an orb.
 - Cone, ground pool, and real miasma fog are **feel**, not new hit rules, unless we ask for those systems.
 
+**Shot feel (Aug 26):** after a path is paid, the in-flight shot and impact read as that job (Flamethrower stream vs Furnace boom, Hail shards vs Blizzard burst, and so on). Canvas in `drawForkShots.ts` + `fx.ts`. Unforked Lv1–3 keep today’s orb. Combat splash / fire rate / DPS unchanged. No extra projectiles.
+
 ---
 
 ## Drawn and kept (Aug 26)

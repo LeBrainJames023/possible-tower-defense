@@ -424,6 +424,8 @@ export class Projectile {
   age = 0;
   /** True when this Void orb should open a path pull. */
   opensVortex = false;
+  /** Paid path — visual shot feel only. Null = unforked Lv1–3 orb. */
+  fork: ForkId | null = null;
 
   constructor(opts: {
     x: number;
@@ -448,6 +450,7 @@ export class Projectile {
     arc?: number;
     homing?: number;
     opensVortex?: boolean;
+    fork?: ForkId | null;
   }) {
     this.x = opts.x;
     this.y = opts.y;
@@ -473,6 +476,7 @@ export class Projectile {
     this.arc = opts.arc ?? 0;
     this.homing = opts.homing ?? 1;
     this.opensVortex = opts.opensVortex ?? false;
+    this.fork = opts.fork ?? null;
   }
 
   /** 0 at spawn, 1 at impact — used for mortar hang. */
@@ -522,4 +526,6 @@ export interface BeamFx {
   maxLife: number;
   width: number;
   points: Vec2[];
+  /** Paid lightning path — visual bolt feel only. */
+  fork?: ForkId | null;
 }

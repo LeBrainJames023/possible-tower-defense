@@ -34,7 +34,7 @@ Regenerate with `./tools/build-env-assets.sh`.
 | `public/sprites/towers/chapter.png` | Same pipeline | Two-tile Chapter still — stone tower plus chapel wing. Tray chip uses this same PNG. Raw in `preview/sprite-forge/towers-v2/chapter/`. |
 | `public/sprites/towers/muster-{a,b}.png` / `chapter-{a,b}.png` | Same pipeline | Named hall forks on the same 1×2 pad. Kept Aug 26: Muster **Scout / Veteran**, Chapter **Lance / Paladin**. Raw in `preview/sprite-forge/towers-v2/{kind}-{a,b}/`. |
 | `public/sprites/troops/{warrior,knight}/{idle,walk}-1..4.png` | Cursor image gen 2×2 idle + 2×2 walk (`feet` align, preserve scale, idle scale profile). Raw in `preview/sprite-forge/troops/`. Walk-v2 accepted Aug 23: four stride phases (plant / pass / plant / pass). Live draw uses `TROOP_PAINT_H` (tile-fit Aug 23) — same PNGs, not regen. | Lean warrior + plated knight, single facing, flip on heading. Identity locked idle→walk. Missing PNGs fall back to cream/steel dots. |
-| `public/sprites/projectiles/*.png` | Same pipeline | Live shots matching the picks above. |
+| `public/sprites/projectiles/*.png` | Same pipeline | Live **unforked** shots matching the picks above. Paid-path shots are canvas in `src/game/drawForkShots.ts` + `fx.ts` (Aug 26) — no new projectile PNGs. |
 | `public/sprites/landmarks/portal-in.png` | Cursor image gen + Sprite Forge | Forest entrance rift. |
 | `public/sprites/landmarks/portal-out.png` | Same pipeline | Forest exit rift. |
 | `public/sprites/trees/*.png` | Same pipeline | Oak, pine, apple, willow, dogwood on Forest decor tiles. |

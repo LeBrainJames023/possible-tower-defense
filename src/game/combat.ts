@@ -5,7 +5,7 @@ import { dist, lerpAngle } from '../shared/math';
 import type { Vec2 } from '../shared/math';
 import { MUFFLE_FIRE, SANDSTORM_FIRE, isJarlFreeze, isSandstorm, isWardenSeal, muffledTowerIds, towerDamageMul, untargetable } from './verbs';
 import { spawnVortex, stepVortices, type Vortex } from './vortices';
-import { voidPullEvery } from './forks';
+import { voidPullEvery, type ForkId } from './forks';
 
 export interface CombatWorld {
   enemies: Enemy[];
@@ -20,28 +20,34 @@ export interface CombatHooks {
   /** Multiplies shot damage and status DPS. Default 1. */
   damageMul?: number;
   onMuzzle?(t: Tower): void;
-  onChainHop?(e: Enemy, hop: number, color: string): void;
-  onChainDone?(): void;
+  onChainHop?(e: Enemy, hop: number, color: string, fork?: ForkId | null): void;
+  onChainDone?(fork?: ForkId | null): void;
   onImpact?(p: Projectile): void;
   onDamage?(e: Enemy, amount: number): void;
   afterHits?(): void;
 }
 
-function jaggedBolt(x1: number, y1: number, x2: number, y2: number): Vec2[] {
+function jaggedBolt(x1: number, y1: number, x2: number, y2: number, segs = 5, jitter = u(22)): Vec2[] {
   const pts: Vec2[] = [{ x: x1, y: y1 }];
   const dx = x2 - x1;
   const dy = y2 - y1;
   const len = Math.hypot(dx, dy) || 1;
   const px = -dy / len;
   const py = dx / len;
-  const segs = 5;
   for (let i = 1; i < segs; i++) {
     const t = i / segs;
-    const off = (Math.random() - 0.5) * u(22);
+    const off = (Math.random() - 0.5) * jitter;
     pts.push({ x: x1 + dx * t + px * off, y: y1 + dy * t + py * off });
   }
   pts.push({ x: x2, y: y2 });
   return pts;
+}
+
+/** Visual bolt only — hop count and damage still come from chainAt(). */
+function lightningBoltFeel(fork: ForkId | null, hop: number): { width: number; life: number; segs: number; jitter: number } {
+  if (fork === 'a') return { width: Math.max(0.9, 1.65 - hop * 0.22), life: 0.12, segs: 7, jitter: u(14) };
+  if (fork === 'b') return { width: Math.max(2.4, 5.6 - hop * 0.45), life: 0.3, segs: 4, jitter: u(30) };
+  return { width: 3.2 - hop * 0.4, life: 0.22, segs: 5, jitter: u(22) };
 }
 
 export function canTarget(t: Tower, e: Enemy): boolean {
@@ -111,19 +117,21 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
     for (let i = 0; i < hops && current; i++) {
       hit.add(current.id);
       const hop = enemyAimPoint(current);
+      const bolt = lightningBoltFeel(t.fork, i);
       world.beams.push({
         x1: fromX,
         y1: fromY,
         x2: hop.x,
         y2: hop.y,
         color: def.color,
-        life: 0.22,
-        maxLife: 0.22,
-        width: 3.2 - i * 0.4,
-        points: jaggedBolt(fromX, fromY, hop.x, hop.y),
+        life: bolt.life,
+        maxLife: bolt.life,
+        width: bolt.width,
+        points: jaggedBolt(fromX, fromY, hop.x, hop.y, bolt.segs, bolt.jitter),
+        fork: t.fork,
       });
       hurt(current, dmg, t.pierceArmor, hooks);
-      hooks.onChainHop?.(current, i, def.color);
+      hooks.onChainHop?.(current, i, def.color, t.fork);
       if (t.slowAt() > 0) current.applySlow(t.slowAt(), t.slowDurationAt());
       if (t.burnDpsAt() > 0) current.applyBurn(t.burnDpsAt() * damageMul, t.burnDurationAt());
       if (t.poisonDpsAt() > 0) current.applyPoison(t.poisonDpsAt() * damageMul, t.poisonDurationAt());
@@ -135,7 +143,7 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
           .filter((e) => e.alive && !hit.has(e.id) && dist(current!.pos, e.pos) < CHAIN_RANGE)
           .sort((a, b) => dist(current!.pos, a.pos) - dist(current!.pos, b.pos))[0] ?? null;
     }
-    hooks.onChainDone?.();
+    hooks.onChainDone?.(t.fork);
     return;
   }
 
@@ -179,6 +187,7 @@ export function fireTower(t: Tower, target: Enemy, world: CombatWorld, hooks: Co
       arc: feel.arc * mods.arcMul,
       homing: feel.homing,
       opensVortex,
+      fork: t.fork,
     }),
   );
 }

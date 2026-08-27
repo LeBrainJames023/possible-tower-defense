@@ -634,6 +634,9 @@ export class Game {
     applyPackRally(this.enemies);
     this.collectBounties();
     stepCombat(this, dt, this.combatHooks());
+    for (const p of this.projectiles) {
+      if (p.alive) this.fx.shotTrail(p);
+    }
 
     this.floats = this.floats
       .map((f) => ({ ...f, life: f.life - dt, y: f.y - 24 * dt }))
@@ -684,20 +687,21 @@ export class Game {
       damageMul: this.mods.damage,
       onMuzzle: (t) => {
         const m = t.muzzlePoint();
-        this.fx.muzzle(m.x, m.y, t.aim, t.def.color);
+        this.fx.muzzle(m.x, m.y, t.aim, t.def.color, t.kind, t.fork);
         this.audio.fire(t.kind);
       },
-      onChainHop: (e, hop, color) => {
-        this.fx.flash(e.pos.x, e.pos.y, '#fff8d0', 24 - hop * 3, 0.14);
-        this.fx.burst(e.pos.x, e.pos.y, color, 10, 'spark', -8);
+      onChainHop: (e, hop, color, fork) => {
+        const r = fork === 'a' ? 14 - hop * 2 : fork === 'b' ? 34 - hop * 3 : 24 - hop * 3;
+        this.fx.flash(e.pos.x, e.pos.y, '#fff8d0', r, fork === 'a' ? 0.08 : 0.14);
+        this.fx.burst(e.pos.x, e.pos.y, color, fork === 'b' ? 16 : 10, 'spark', -8);
       },
-      onChainDone: () => {
-        this.fx.addShake(1.4);
+      onChainDone: (fork) => {
+        this.fx.addShake(fork === 'b' ? 2.2 : fork === 'a' ? 0.7 : 1.4);
         this.audio.impact('lightning');
         this.collectBounties();
       },
       onImpact: (p) => {
-        this.fx.impact(p.x, p.y, p.kind, p.color, p.splash);
+        this.fx.impact(p.x, p.y, p.kind, p.color, p.splash, p.fork);
         if (p.opensVortex) {
           this.fx.ring(p.x, p.y, '#140818', Math.max(p.splash * 2.4, u(72)), 6, 0.7);
           this.fx.flash(p.x, p.y, '#2a1048', u(40), 0.22);

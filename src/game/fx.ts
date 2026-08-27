@@ -1,10 +1,11 @@
-import type { Enemy } from './entities';
+import type { Enemy, Projectile } from './entities';
 import type { TowerKind } from './constants';
 import { ENEMIES } from './enemies';
+import type { ForkId } from './forks';
 
 const MAX_PARTICLES = 420;
 
-export type ParticleKind = 'spark' | 'smoke' | 'ember' | 'shard' | 'goo' | 'mote';
+export type ParticleKind = 'spark' | 'smoke' | 'ember' | 'shard' | 'goo' | 'mote' | 'cloud';
 
 export interface Particle {
   x: number;
@@ -97,60 +98,183 @@ export class FxWorld {
     this.flashes.push({ x, y, radius, life, maxLife: life, color });
   }
 
-  muzzle(x: number, y: number, angle: number, color: string): void {
+  muzzle(x: number, y: number, angle: number, color: string, kind?: TowerKind, fork: ForkId | null = null): void {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    for (let i = 0; i < 7; i++) {
-      const spread = (Math.random() - 0.5) * 0.7;
-      const sp = 80 + Math.random() * 120;
+    const stream = kind === 'fire' && fork === 'a';
+    const n = stream ? 12 : fork === 'b' && kind === 'fire' ? 9 : 7;
+    for (let i = 0; i < n; i++) {
+      const spread = (Math.random() - 0.5) * (stream ? 0.42 : 0.7);
+      const sp = (stream ? 120 : 80) + Math.random() * (stream ? 140 : 120);
       this.particles.push({
         x: x + c * 14,
         y: y + s * 14,
         vx: Math.cos(angle + spread) * sp,
         vy: Math.sin(angle + spread) * sp,
-        life: 0.12 + Math.random() * 0.12,
-        maxLife: 0.24,
-        size: 2 + Math.random() * 2.5,
+        life: stream ? 0.16 + Math.random() * 0.12 : 0.12 + Math.random() * 0.12,
+        maxLife: stream ? 0.3 : 0.24,
+        size: stream ? 1.6 + Math.random() * 2.2 : 2 + Math.random() * 2.5,
         color,
-        kind: 'spark',
-        gravity: 20,
+        kind: stream ? 'ember' : 'spark',
+        gravity: stream ? -30 : 20,
+        spin: 0,
+      });
+    }
+    if (kind === 'fire' && fork === 'b') {
+      this.burst(x + c * 10, y + s * 10, '#3a1a10', 8, 'smoke', -36);
+    }
+  }
+
+  /** Wisps that follow a paid-path shot. Paint only — not extra hits. */
+  shotTrail(p: Projectile): void {
+    if (!p.fork || this.particles.length > MAX_PARTICLES - 8) return;
+    const ang = Math.atan2(p.vy, p.vx || 1);
+    const y = p.visualY();
+    const backX = p.x - Math.cos(ang) * 10;
+    const backY = y - Math.sin(ang) * 10;
+    if (p.kind === 'fire' && p.fork === 'a') {
+      this.particles.push({
+        x: backX + (Math.random() - 0.5) * 6,
+        y: backY + (Math.random() - 0.5) * 4,
+        vx: -Math.cos(ang) * 30,
+        vy: -Math.sin(ang) * 30 - 12,
+        life: 0.12,
+        maxLife: 0.12,
+        size: 2.4,
+        color: p.color,
+        kind: 'ember',
+        gravity: -40,
+        spin: 0,
+      });
+    } else if (p.kind === 'ice' && p.fork === 'b') {
+      this.particles.push({
+        x: backX,
+        y: backY,
+        vx: (Math.random() - 0.5) * 18,
+        vy: (Math.random() - 0.5) * 18,
+        life: 0.18,
+        maxLife: 0.18,
+        size: 2.8,
+        color: '#c8f4ff',
+        kind: 'shard',
+        gravity: 10,
+        spin: 4,
+      });
+    } else if (p.kind === 'poison' && p.fork === 'b') {
+      this.particles.push({
+        x: backX,
+        y: backY,
+        vx: (Math.random() - 0.5) * 12,
+        vy: -8,
+        life: 0.22,
+        maxLife: 0.22,
+        size: 3.4,
+        color: p.color,
+        kind: 'cloud',
+        gravity: -12,
         spin: 0,
       });
     }
   }
 
-  impact(x: number, y: number, kind: TowerKind, color: string, splash: number): void {
+  impact(x: number, y: number, kind: TowerKind, color: string, splash: number, fork: ForkId | null = null): void {
     if (kind === 'cannon') {
-      this.flash(x, y, '#ffe08a', splash * 0.7, 0.2);
-      this.burst(x, y, '#2a1810', 24, 'smoke', -50);
-      this.burst(x, y, color, 18, 'ember', 30);
-      this.burst(x, y, '#f4d35e', 16, 'spark', 20);
-      this.ring(x, y, '#ffb14a', splash * 0.4, 7, 0.24);
-      this.ring(x, y, color, splash, 5, 0.55);
-      this.addShake(4.4);
+      if (fork === 'a') {
+        this.flash(x, y, '#ffe08a', splash * 0.45, 0.12);
+        this.burst(x, y, color, 10, 'spark', 16);
+        this.burst(x, y, '#2a1810', 8, 'smoke', -40);
+        this.ring(x, y, color, splash, 3.2, 0.28);
+      } else if (fork === 'b') {
+        this.flash(x, y, '#ffe08a', splash * 0.85, 0.28);
+        this.burst(x, y, '#2a1810', 28, 'smoke', -50);
+        this.burst(x, y, color, 20, 'ember', 30);
+        this.burst(x, y, '#f4d35e', 18, 'spark', 20);
+        this.ring(x, y, '#ffb14a', splash * 0.5, 8, 0.32);
+        this.ring(x, y, color, splash, 6, 0.62);
+        this.addShake(5.2);
+      } else {
+        this.flash(x, y, '#ffe08a', splash * 0.7, 0.2);
+        this.burst(x, y, '#2a1810', 24, 'smoke', -50);
+        this.burst(x, y, color, 18, 'ember', 30);
+        this.burst(x, y, '#f4d35e', 16, 'spark', 20);
+        this.ring(x, y, '#ffb14a', splash * 0.4, 7, 0.24);
+        this.ring(x, y, color, splash, 5, 0.55);
+        this.addShake(4.4);
+      }
     } else if (kind === 'ice') {
-      this.flash(x, y, '#e8fbff', splash * 0.55, 0.18);
-      this.burst(x, y, '#e8fbff', 22, 'shard', 70);
-      this.burst(x, y, color, 8, 'spark', 10);
-      this.ring(x, y, '#c8f4ff', splash, 2.6, 0.46);
+      if (fork === 'a') {
+        this.flash(x, y, '#e8fbff', splash * 0.4, 0.12);
+        this.burst(x, y, '#e8fbff', 16, 'shard', 80);
+        this.ring(x, y, '#c8f4ff', splash, 1.8, 0.28);
+      } else if (fork === 'b') {
+        this.flash(x, y, '#e8fbff', splash * 0.75, 0.26);
+        this.burst(x, y, '#e8fbff', 28, 'shard', 50);
+        this.burst(x, y, color, 10, 'spark', 8);
+        this.ring(x, y, '#c8f4ff', splash, 4.2, 0.58);
+      } else {
+        this.flash(x, y, '#e8fbff', splash * 0.55, 0.18);
+        this.burst(x, y, '#e8fbff', 22, 'shard', 70);
+        this.burst(x, y, color, 8, 'spark', 10);
+        this.ring(x, y, '#c8f4ff', splash, 2.6, 0.46);
+      }
     } else if (kind === 'fire') {
-      this.flash(x, y, '#ff9a4a', splash * 0.6, 0.22);
-      this.burst(x, y, color, 22, 'ember', -70);
-      this.burst(x, y, '#3a1a10', 10, 'smoke', -40);
-      this.ring(x, y, '#ff6b4a', splash, 3.4, 0.46);
+      if (fork === 'a') {
+        this.flash(x, y, '#ff9a4a', splash * 0.45, 0.12);
+        this.burst(x, y, color, 18, 'ember', -90);
+        this.ring(x, y, '#ff6b4a', splash, 2.2, 0.26);
+      } else if (fork === 'b') {
+        this.flash(x, y, '#ff9a4a', splash * 0.85, 0.32);
+        this.burst(x, y, color, 26, 'ember', -55);
+        this.burst(x, y, '#3a1a10', 16, 'smoke', -36);
+        this.ring(x, y, '#ff6b4a', splash, 5.4, 0.58);
+        this.addShake(3.4);
+      } else {
+        this.flash(x, y, '#ff9a4a', splash * 0.6, 0.22);
+        this.burst(x, y, color, 22, 'ember', -70);
+        this.burst(x, y, '#3a1a10', 10, 'smoke', -40);
+        this.ring(x, y, '#ff6b4a', splash, 3.4, 0.46);
+      }
     } else if (kind === 'poison') {
-      this.flash(x, y, color, Math.max(splash, 16), 0.16);
-      this.burst(x, y, color, 14, 'goo', 110);
-      this.ring(x, y, color, Math.max(splash, 12), 2, 0.34);
+      if (fork === 'a') {
+        this.flash(x, y, color, Math.max(splash, 12), 0.1);
+        this.burst(x, y, color, 8, 'spark', 40);
+        this.ring(x, y, color, Math.max(splash, 10), 1.5, 0.2);
+      } else if (fork === 'b') {
+        this.flash(x, y, color, Math.max(splash, 22), 0.24);
+        this.burst(x, y, color, 12, 'goo', 90);
+        this.burst(x, y, color, 14, 'cloud', -18);
+        this.ring(x, y, color, Math.max(splash, 16), 3.2, 0.48);
+      } else {
+        this.flash(x, y, color, Math.max(splash, 16), 0.16);
+        this.burst(x, y, color, 14, 'goo', 110);
+        this.ring(x, y, color, Math.max(splash, 12), 2, 0.34);
+      }
     } else if (kind === 'lightning') {
       this.flash(x, y, '#fff8d0', 28, 0.12);
       this.burst(x, y, '#fff6c2', 14, 'spark', -10);
       this.ring(x, y, color, 26, 2.2, 0.18);
     } else if (kind === 'void') {
-      this.flash(x, y, '#c8b0ff', splash * 0.5, 0.16);
-      this.burst(x, y, color, 12, 'spark', 20);
-      this.burst(x, y, '#1a1028', 8, 'smoke', -30);
-      this.ring(x, y, color, splash, 2.8, 0.36);
+      if (fork === 'a') {
+        this.flash(x, y, '#c8b0ff', splash * 0.35, 0.1);
+        this.burst(x, y, color, 8, 'spark', 16);
+        this.ring(x, y, color, splash, 1.8, 0.22);
+      } else if (fork === 'b') {
+        this.flash(x, y, '#c8b0ff', splash * 0.7, 0.22);
+        this.burst(x, y, color, 14, 'spark', 18);
+        this.burst(x, y, '#1a1028', 12, 'smoke', -28);
+        this.ring(x, y, color, splash, 4.2, 0.46);
+      } else {
+        this.flash(x, y, '#c8b0ff', splash * 0.5, 0.16);
+        this.burst(x, y, color, 12, 'spark', 20);
+        this.burst(x, y, '#1a1028', 8, 'smoke', -30);
+        this.ring(x, y, color, splash, 2.8, 0.36);
+      }
+    } else if (kind === 'arrow') {
+      this.burst(x, y, color, fork === 'b' ? 16 : fork === 'a' ? 6 : 10, 'spark', 40);
+      this.burst(x, y, '#d8e8f8', fork === 'b' ? 6 : 4, 'spark', 20);
+    } else if (kind === 'longshot') {
+      this.burst(x, y, color, fork === 'b' ? 18 : fork === 'a' ? 8 : 10, 'spark', 40);
+      this.burst(x, y, '#d8e8f8', fork === 'b' ? 8 : 4, 'spark', 20);
     } else {
       this.burst(x, y, color, 10, 'spark', 40);
       this.burst(x, y, '#d8e8f8', 4, 'spark', 20);
@@ -343,6 +467,11 @@ export function drawFx(ctx: CanvasRenderingContext2D, fx: FxWorld): void {
       ctx.globalAlpha = a;
       ctx.beginPath();
       ctx.ellipse(p.x, p.y, p.size * 1.3, p.size * 0.9, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (p.kind === 'cloud') {
+      ctx.globalAlpha = a * 0.42;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 2.6, 0, Math.PI * 2);
       ctx.fill();
     } else if (p.kind === 'spark') {
       ctx.globalAlpha = a;

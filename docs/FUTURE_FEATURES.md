@@ -1,11 +1,58 @@
 # Future features
 
+## Next session plan (saved Aug 26, evening)
+
+Pickup after named-path **shot feel** landed in code. They are coming back tonight or tomorrow. Do not start a new era until they see a live Forest 1 shot.
+
+### Done (this window, in the working tree / commit)
+Paid forks draw a different in-flight shot and impact. Unforked Lv1–3 keep today’s orb. Canvas in `src/game/drawForkShots.ts` + `fx.ts`. Combat splash, fire rate, DPS, and pull math unchanged. One projectile per fire — extra tongues/sparks are paint. Tests 184, `npm run build` passed. Did not image-gen shots. Did not commit `public/preview/`. Sticky place stayed dead.
+
+### Do first (do not skip)
+1. **Forest 1 smoke** — title → grass beside the path (not a far corner) → Arrow → Build → Start wave → Raider takes damage. Path still blocks buildings.
+2. **Pay Fire → Flamethrower** — same map, upgrade Fire to Lv3, pay Flamethrower. Confirm the shot reads as a **short stream**, not a cousin of Furnace’s fat boom.
+3. **If it reads** — optional eyeball of Hail vs Blizzard, Arc vs Thunder, Venom vs Miasma, Flicker vs Abyss, Repeater vs Ballista. Play notes only. No retune.
+4. **If it does not read at postage-stamp size** — then (and only then) image-gen a projectile still. Magenta `#FF00FF`, log `docs/ASSETS.md`, raw in `public/preview/` (do not commit preview). They must have seen a live Forest 1 shot first.
+
+### Then they peel one (ask; do not assume)
+- Play notes from Forest → Desert (gold/splash only if they felt it).
+- Image-gen a weak shot if step 4 fired.
+- Anything parked below — only if they name it.
+
+### Parked (do not start)
+Attack frames, 4-dir troops, unique N/S walk faces, layout-curve regen, endless extras, splash retune, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. No 11th keep, Wind, gold farm, sticky place.
+
+### Watch-outs
+- Campaign save is live — do not wipe `localStorage` (Forest 10/10, Desert open).
+- Local `main` is ahead of origin; push only if they ask.
+- Agent in-editor browser rAF can sit still; if the match looks frozen, they play it, or tick via `game.step` — do not assume the canvas is dead.
+
+### Continue prompt (paste into a new chat)
+
+```
+Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
+
+Read docs/FUTURE_FEATURES.md first (Next session plan, saved Aug 26 evening), then docs/FORK_PLAN.md, docs/GAME_ROADMAP.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome unless they ask. Do not wipe localStorage. Do not commit public/preview/. Do not bring sticky place back. No 11th keep, Wind, or gold farm. Local main is ahead of origin; push only if they ask.
+
+Last window: named-path shot feel is in (canvas). Unforked Lv1–3 keep today’s orb; a paid path draws that job. Combat numbers stayed. Halls skipped.
+
+THIS WINDOW: follow the saved plan. 1) Forest 1 smoke (place beside the path). 2) Pay Fire to Flamethrower and confirm stream vs Furnace. 3) If it reads, optional eyeball of the other paths. 4) Image-gen a projectile still only if a live shot cannot read at postage-stamp size, and only after they saw Forest 1. Do not retune gold or splash. Do not add attack frames, Wind, or an 11th keep.
+
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
+```
+
+## Last window — named-path shot feel (Aug 26)
+
+Paid forks now draw a different in-flight shot and impact. Unforked Lv1–3 keep today’s orb. Flamethrower = short stream; Furnace = fat boom. Hail shards / Blizzard frost burst. Arc thin bolt / Thunder fat bolt. Venom dart / Miasma cloud splash. Flicker small orb / Abyss fatter orb (every-3rd hole unchanged). Shooters: Repeater tiny / Ballista huge, Gatling pebble / Mortar boulder, Marksman thin / Puncture fat. Halls skipped. Combat splash, fire rate, and DPS tables stayed. No extra projectiles. Canvas only — did not image-gen shots.
+
+### Next window
+Follow **Next session plan** at the top of this file.
+
 ## Last window — Keep playing after The Hollow (Aug 26)
 
 World-clear cards stay two buttons. Lands 1–4: **Next world** + **Main menu**. Hollow 10: **Keep playing** + **Main menu**. Keep playing stays on the last map; extra waves reuse packs 7–10 and climb HP a little. Same ten keeps. Maps 1–9 still Next map. Did not add an 11th keep, Wind, or gold farm.
 
 ### Next window
-Play the named-path stills (Forest + a paid Flamethrower or Repeater, Scout vs Veteran). Retune only from notes. Push when they ask.
+Landed in the named-path shot feel window above.
 
 ### Parked
 Attack frames, 4-dir troops, unique north/south walk faces, layout-curve regen, endless extras (new toys), splash retune, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked.
@@ -24,9 +71,16 @@ Read docs/FORK_PLAN.md, docs/GAME_ROADMAP.md, docs/FUTURE_FEATURES.md. On sessio
 
 Last window: named-path stills are live for all ten keeps. World 1–4 stage 10 is Next world + Main menu. Hollow 10 is Keep playing (extra waves on the same map) + Main menu.
 
-THIS WINDOW WAITS unless they peel one off: play notes, or a HUD click that still misses. Do not retune DPS tables, do not add attack frames, do not add Wind or an 11th keep.
+THIS WINDOW IS NAMED-PATH SHOT FEEL. They asked to keep building. Paid forks still fire the same family of orbs — the building looks different, the shot does not. Make the in-flight shot and impact look like the locked job in docs/FORK_PLAN.md. Combat.ts hit rules, splash numbers, fire rate, and DPS tables stay. Do not fake extra hits with extra projectiles.
 
-Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
+Order, do not skip:
+1) Elements first (unforked Lv1–3 can keep today’s orb; after a path is paid the shot must read as that path). Fire Flamethrower = short cone/stream look; Furnace = fat slow boom. Ice Hail = shards; Blizzard = wide frost burst. Lightning Arc = snappy thin bolt; Thunder = fatter bolt. Poison Venom = tight dart; Miasma = cloud-ish splash. Void Flicker = small rapid orb; Abyss = fatter orb + the existing every-3rd hole (do not retune pull math).
+2) Shooters if time: Repeater vs Ballista, Gatling vs Mortar, Marksman vs Puncture — visual only (Repeater many small bolts look, Ballista one huge bolt look). Halls skip — troops already differ.
+3) Prefer drawProjectiles.ts + fx.ts. Image-gen a projectile still only if canvas drawing cannot read at postage-stamp size, and only after they see a Forest 1 live shot. Magenta #FF00FF, log docs/ASSETS.md, do not commit public/preview/.
+
+Do not add attack-frame sheets, 4-dir troops, unique N/S faces, layout-curve regen, world-themed fodder, Forest Boar art, endless toys, Wind, or an 11th keep. Do not retune gold or splash radii. Sticky place stays dead.
+
+Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Then pay Fire to Flamethrower and confirm the shot reads as a stream, not a cousin of Furnace. Push only if they ask.
 ```
 
 ## Last window — hall names (Aug 26)
