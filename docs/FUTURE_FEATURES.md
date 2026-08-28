@@ -19,7 +19,7 @@ Paid forks draw a different in-flight shot and impact. Unforked Lv1–3 keep tod
 - Anything parked below — only if they name it.
 
 ### Parked (do not start)
-Attack frames, 4-dir troops, unique N/S walk faces, layout-curve regen, endless extras, splash retune, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. No 11th keep, Wind, gold farm, sticky place.
+**Hall Turn paint (Desert 1, Aug 27):** vertical 1×2 footprint is real; the Muster/Chapter still stays landscape. `drawHallBillboard` ignores axis. Do not fix until they peel it. Attack frames, 4-dir troops, unique N/S walk faces, layout-curve regen, endless extras, splash retune, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. No 11th keep, Wind, gold farm, sticky place.
 
 ### Watch-outs
 - Campaign save is live — do not wipe `localStorage` (Forest 10/10, Desert open).

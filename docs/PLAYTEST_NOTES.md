@@ -1,5 +1,50 @@
 # Playtest notes
 
+## This session — Desert play (Aug 27)
+
+Desert 1: Muster’s brown arena/yard took two grass tiles after Turn, but the picture stayed landscape — it did not stand tall. Footprint is 1×2; paint ignores `hallAxis` (`drawHallBillboard` leaves `_axis` unused; comment says landscape art stays upright). Logged, not fixed this window. They kept playing.
+
+Keeps should stay **bigger for detail** but still read as a **tower** (a pad with a weapon on top), not a giant prop sitting on the sand.
+
+- **Ice** — a bit bigger, still looks like a keep. Fine. Optional later if they want it nudged.
+- **Cannon** — reads as a barrel on the ground, not a tower with a cannon on top. Shot should leave the **muzzle**. Barrel should **rotate toward the target**.
+- **Arrow** — huge; two-tile-tall wooden frame, not a tower with an arrow on top. Should **point the way it shoots**.
+
+Do not fix this window (reloads the match). Aim / rotate / tower-feel art later.
+
+Walk cycle is better (plant/pass reads). On a **north/south** stretch they still show a **side profile** (sidestepping) instead of backs, heels, and steps. Unique N/S faces were already parked — this is that ask, live on Desert 1 Raiders going up. Do not regen this window.
+
+**Projectile pass** (art + in-flight feel; not this window). Canvas named-path shots are a start. They want a real pass so each job reads.
+
+- **Gatling** — actual **cannonballs** with a visible **arc that lands**. Faster than Mortar because it is Gatling, but **not too fast** — it is still a splash cannonball, not a machine gun.
+- **Ballista** — heavier Arrow path: a **fat bolt**, decent speed but **slower** than Repeater (speed for damage). Must stay on-screen long enough to see.
+- **Ice / Fire / Poison** — coming out the **top** is good for the unforked keeps. Light personalization later; the named forks are where they should really split.
+- **Flamethrower** (Desert 1, wave 9) — stream looks like **red lasers from a point above the nozzle**, not a torch from the tip. Nozzle stays parked (aiming left while the troll is down-right). Should **rotate toward the target** and look like it is **torching** them from the muzzle. Same family as Cannon/Arrow aim: shot leaves the weapon, not a hover-spot above the pad.
+
+Do not retune fire rate / splash this window. Do not image-gen shots unless they peel that off after live play.
+
+**Halls (Desert 2, Muster inspect).** Two problems. Do not change this window.
+
+1. **Footprint paint.** Halls are two tiles. The picture must **sit entirely on those two tiles** — no spill north, no extra square. Desert 4 horizontal Muster: yard drifts **up** into the row above and does not fill the two seats. Same family as Turn: a **90° rotate** should still be long-ways **inside** the two tiles, not a wide oval parked on a skinny pad. **Muster** and **Chapter**. Do not paint this window.
+
+2. **Scout and Veteran both show on a fresh hall.** Live today: halls skip the number ladder; inspect offers Scout vs Veteran immediately (fork-and-done). That reads as two mystery jobs on a brand-new yard.
+
+   **Their simple read:** the hall **starts as Scouts**. Upgrade Scouts 1→2→3. After Lv3, pay to make them **Veterans**. After Veteran, maybe a small pick (attack vs armor) — later.
+
+   **If we keep two paths:** then it must match the other keeps: **Lv1→2→3 first**, then Scout **or** Veteran.
+
+   Locked plan today is the two-path fork with no ladder. This note is a design ask, not a retune.
+
+3. **Troop art pass.** Desert 2: paid **Veteran**, three walkers at the flag still look like the **starter brown tunics** — no armor, no “upgraded” read. Halls need distinct people: **what they start as** vs **the upgraded form** (Scout vs Veteran; same idea later for Chapter Lance vs Paladin). Idle/walk sheets. Do not regen this window.
+
+**Portals (Desert 4).** The **leak / exit** reads as a **flat hole on the sand**, not a standing gate. Same family as spawn: both should **stand up** and match each other (even at entrance and exit). Rim can be **thinner**; the opening itself should stay **wide**. Spice: shiny, a little **ectoplasm**, a **swirl**. Art pass later — do not regen this window.
+
+**Tray fill + Normal feel.** Empty slots on Keeps and Elements should become **one more physical keep** and **one more Element** so both pages are **6 and 6**, then ride that kit for a while. Brainstorm later — do not add a keep this window. Locked plan was ten keeps / no 11th / no Wind / no gold farm; this ask is **fill both empties** (twelve total). Not Wind unless they name it.
+
+Upgraded keeps on **Normal** feel **pretty strong**. Desert late waves (8–10): if the right things are upgraded, packs die **easily enough** — not a stomp, not a sweat. Remember for a later gold/HP/splash pass. Do not retune this window.
+
+**Build range (Desert 4, placing Ice).** While the tray is open, **show the range circle**. It must **read on sand** (thin pale ring washes out). Later: either **one standard range color** for every keep, or a tint that matches the **element**. Combat range numbers stay. Aug 24 already inked inspect rings; this is the **place/ghost** ring too. Do not paint this window.
+
 ## This session — shooter keep names (Aug 26)
 
 Arrow is Repeater / Ballista. Cannon is Gatling / Mortar. Longshot is Marksman / Puncture. Inspect title is the path name. Still fork-and-done after Lv3. Halls still Faster / Heavier.

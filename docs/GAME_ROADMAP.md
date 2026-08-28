@@ -26,6 +26,8 @@ They are **playing** first (finish Forest, start the next world). Do not wipe `l
 
 Finish Forest. Start Desert (or whichever world opens). Write notes only if something feels wrong (gold, splash, quiet maps, tiny keeps, skate-walks). Retune numbers only from those notes — not in the dark.
 
+**Play note in (Aug 27):** Desert 1 — Muster arena sat on two tiles after Turn, but the picture stayed landscape (did not stand tall). Logged in `docs/PLAYTEST_NOTES.md`. Do not fix until they peel it.
+
 **Play note in (Aug 24):** Desert range rings needed a dark rim to read on sand. Ice gets the same ink (snow is light too). Combat range numbers did not change.
 
 **Walk/flap (Aug 24):** they asked for real plant/pass and wing flaps. Every unique body now has a 2×2 cycle stamped onto the live 4-dir files. Unique north/south faces stay parked.
