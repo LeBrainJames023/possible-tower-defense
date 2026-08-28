@@ -1,44 +1,60 @@
 # Future features
 
-## Next session plan (saved Aug 26, evening)
+## Next session plan (saved Aug 27, evening)
 
-Pickup after named-path **shot feel** landed in code. They are coming back tonight or tomorrow. Do not start a new era until they see a live Forest 1 shot.
+Pickup after a **Desert play-log** window. They are coming back tonight or tomorrow. Do not start a fix until they name it — a code save reloads the match. Full notes: `docs/PLAYTEST_NOTES.md` (This session — Desert play, Aug 27).
 
-### Done (this window, in the working tree / commit)
-Paid forks draw a different in-flight shot and impact. Unforked Lv1–3 keep today’s orb. Canvas in `src/game/drawForkShots.ts` + `fx.ts`. Combat splash, fire rate, DPS, and pull math unchanged. One projectile per fire — extra tongues/sparks are paint. Tests 184, `npm run build` passed. Did not image-gen shots. Did not commit `public/preview/`. Sticky place stayed dead.
+### Done (this window)
+Play only. Logged notes. No game code. Commits: `116b62c` (notes) + this handoff. Tests 184 / build passed at session start (no code after that). Did not commit `public/preview/`. Sticky place stayed dead. Campaign save not wiped. They played Desert 1–4 on Normal.
 
 ### Do first (do not skip)
-1. **Forest 1 smoke** — title → grass beside the path (not a far corner) → Arrow → Build → Start wave → Raider takes damage. Path still blocks buildings.
-2. **Pay Fire → Flamethrower** — same map, upgrade Fire to Lv3, pay Flamethrower. Confirm the shot reads as a **short stream**, not a cousin of Furnace’s fat boom.
-3. **If it reads** — optional eyeball of Hail vs Blizzard, Arc vs Thunder, Venom vs Miasma, Flicker vs Abyss, Repeater vs Ballista. Play notes only. No retune.
-4. **If it does not read at postage-stamp size** — then (and only then) image-gen a projectile still. Magenta `#FF00FF`, log `docs/ASSETS.md`, raw in `public/preview/` (do not commit preview). They must have seen a live Forest 1 shot first.
+Ask: **keep playing** (log only) or **peel one parked item**. Do not assume.
+
+If they keep playing: append `docs/PLAYTEST_NOTES.md` only. No `src/`. No Vite restart.
 
 ### Then they peel one (ask; do not assume)
-- Play notes from Forest → Desert (gold/splash only if they felt it).
-- Image-gen a weak shot if step 4 fired.
-- Anything parked below — only if they name it.
+From the Aug 27 log, in no implied order:
+
+- **Hall footprint paint** — Muster + Chapter sit entirely on two tiles; 90° Turn is long-ways inside that seat; no spill north. `drawHallBillboard` ignores axis today.
+- **Hall ladder** — Scout/Veteran both show on a fresh hall. Their simple read: start Scouts, 1→2→3, then Veteran. Conflicts with locked fork-on-inspect.
+- **Troop art** — starter vs upgraded people (Scout/Veteran, later Lance/Paladin).
+- **Tower feel + aim** — Cannon/Arrow should read as a pad with a weapon; weapon rotates; shot leaves the muzzle. Flamethrower torch from the nozzle, not a laser above the pad. Ice is fine.
+- **Projectile pass** — Gatling arcing cannonballs (faster, not a spray); Ballista a visible slower fat bolt; Elements out the top OK until forks split.
+- **N/S walk faces** — already parked; Desert play confirmed sidestep on vertical path.
+- **Portals** — stand up, even at both ends, thinner rim, shiny swirl.
+- **Build range ring** — must show while placing; must read on sand (standard color or element tint).
+- **Tray 6+6** — brainstorm one more physical + one more Element later. Locked plan was ten / no 11th / no Wind; this ask is fill both empties. Not Wind unless they name it.
+- **Normal late waves** — upgraded keeps feel pretty strong on Desert 8–10. Remember for a later gold/HP pass. Do not retune in the dark.
 
 ### Parked (do not start)
-**Hall Turn paint (Desert 1, Aug 27):** vertical 1×2 footprint is real; the Muster/Chapter still stays landscape. `drawHallBillboard` ignores axis. Do not fix until they peel it. Attack frames, 4-dir troops, unique N/S walk faces, layout-curve regen, endless extras, splash retune, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. No 11th keep, Wind, gold farm, sticky place.
+Attack frames, 4-dir troops, unique N/S walk faces (confirmed live), layout-curve regen, endless extras, splash/gold retune until they peel it, Forest Boar troll-sprite, world-themed fodder, leftover `public/preview/` unless asked. No Wind, no gold farm, sticky place stays dead. Do not add a 12th keep until they peel the 6+6 brainstorm.
 
 ### Watch-outs
-- Campaign save is live — do not wipe `localStorage` (Forest 10/10, Desert open).
+- Campaign save is live — do not wipe `localStorage` (Forest 10/10, Desert in progress; last seen Desert 4 prepare).
 - Local `main` is ahead of origin; push only if they ask.
 - Agent in-editor browser rAF can sit still; if the match looks frozen, they play it, or tick via `game.step` — do not assume the canvas is dead.
+- Mid-match: do not edit `src/` unless they say the match can reload.
 
 ### Continue prompt (paste into a new chat)
 
 ```
 Continue Possible Tower Defense from Desktop repo ~/Desktop/possible-tower-defense (Vite http://127.0.0.1:5173/). BCI user (Neuralink Prime Study, Patient-23): three clicks only — left/index, right/middle, middle/ring. On-screen cursor. No drag-and-drop, no hover-only, no keyboard shortcuts in instructions. Beginner — explain meaningful changes in plain English. Commit/push only when they say yes.
 
-Read docs/FUTURE_FEATURES.md first (Next session plan, saved Aug 26 evening), then docs/FORK_PLAN.md, docs/GAME_ROADMAP.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome unless they ask. Do not wipe localStorage. Do not commit public/preview/. Do not bring sticky place back. No 11th keep, Wind, or gold farm. Local main is ahead of origin; push only if they ask.
+Read docs/FUTURE_FEATURES.md first (Next session plan, saved Aug 27 evening), then docs/PLAYTEST_NOTES.md (Desert play Aug 27), docs/FORK_PLAN.md, docs/GAME_ROADMAP.md. On session start: if Vite is not on http://127.0.0.1:5173/, start it, then open Cursor’s in-editor Browser beside the chat (position: side). Do not launch Chrome unless they ask. Do not wipe localStorage. Do not commit public/preview/. Do not bring sticky place back. No Wind or gold farm. Do not add a keep until they peel the 6+6 brainstorm. Local main is ahead of origin; push only if they ask.
 
-Last window: named-path shot feel is in (canvas). Unforked Lv1–3 keep today’s orb; a paid path draws that job. Combat numbers stayed. Halls skipped.
+Last window: Desert play-log only. No src/ edits. Notes cover hall footprint/Turn, Scout-then-Veteran ladder ask, troop art, Cannon/Arrow/Flamethrower aim, projectile pass, N/S sidestep, standing portals, build range ring, 6+6 tray, Normal late-wave strength. Commit 116b62c + handoff.
 
-THIS WINDOW: follow the saved plan. 1) Forest 1 smoke (place beside the path). 2) Pay Fire to Flamethrower and confirm stream vs Furnace. 3) If it reads, optional eyeball of the other paths. 4) Image-gen a projectile still only if a live shot cannot read at postage-stamp size, and only after they saw Forest 1. Do not retune gold or splash. Do not add attack frames, Wind, or an 11th keep.
+THIS WINDOW: ask keep-playing vs peel one note. If they play, log only — no code (reloads the match). If they peel, do that one item. Do not retune gold/splash unless they peel the Normal-feel note. Do not image-gen unless they ask.
 
-Quality gates: npm test, npm run build, Forest 1 smoke (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
+Quality gates: npm test, npm run build, Forest 1 smoke if you touch src/ (title → grass → place → Start wave → enemy takes damage; path still blocks). Push only if they ask.
 ```
+
+## Last window — Desert play log (Aug 27)
+
+They played Desert 1–4 on Normal. Agent logged only; no `src/` edits so the match did not reload. Full list in `docs/PLAYTEST_NOTES.md`. Handoff is the **Next session plan** at the top of this file.
+
+### Next window
+Follow **Next session plan** at the top of this file.
 
 ## Last window — named-path shot feel (Aug 26)
 

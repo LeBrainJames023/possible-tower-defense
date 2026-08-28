@@ -22,11 +22,11 @@ They are **playing** first (finish Forest, start the next world). Do not wipe `l
 
 ## They play (now)
 
-**Next pickup (Aug 26 evening):** `docs/FUTURE_FEATURES.md` — Next session plan. Forest 1 live check of Flamethrower stream vs Furnace boom. Image-gen shots only if that fails at postage-stamp size.
+**Next pickup (Aug 27 evening):** `docs/FUTURE_FEATURES.md` — Next session plan. They played Desert; notes are in `docs/PLAYTEST_NOTES.md`. Ask keep-playing vs peel one note. Do not edit `src/` mid-match unless they say it can reload.
 
 Finish Forest. Start Desert (or whichever world opens). Write notes only if something feels wrong (gold, splash, quiet maps, tiny keeps, skate-walks). Retune numbers only from those notes — not in the dark.
 
-**Play note in (Aug 27):** Desert 1 — Muster arena sat on two tiles after Turn, but the picture stayed landscape (did not stand tall). Logged in `docs/PLAYTEST_NOTES.md`. Do not fix until they peel it.
+**Play note in (Aug 27):** Desert 1–4 log — hall footprint/Turn, Scout-then-Veteran ladder ask, troop art, Cannon/Arrow/Flamethrower aim, projectile pass, N/S sidestep, standing portals, build range ring, 6+6 tray brainstorm, Normal late waves feel strong. Do not fix until they peel it.
 
 **Play note in (Aug 24):** Desert range rings needed a dark rim to read on sand. Ice gets the same ink (snow is light too). Combat range numbers did not change.
 
