@@ -1,3 +1,4 @@
+import { assetUrl } from './assets';
 import type { TowerKind } from './constants';
 import {
   sfxFire,
@@ -165,8 +166,8 @@ export class AudioBus {
         try {
           const ctx = this.ensure();
           if (!ctx) return;
-          this.windBuf = await this.decode('/sfx/wind.mp3', ctx);
-          this.waterBuf = await this.decode('/sfx/water.mp3', ctx);
+          this.windBuf = await this.decode(assetUrl('/sfx/wind.mp3'), ctx);
+          this.waterBuf = await this.decode(assetUrl('/sfx/water.mp3'), ctx);
         } catch {
           /* beds optional */
         }

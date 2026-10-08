@@ -42,6 +42,15 @@ body {
   min-height: 100dvh;
 }
 
+/* Arcade plate is hidden on the standalone dev server. */
+#arcade-plate[hidden] {
+  display: none !important;
+}
+
+body.arcade-hud-plate-on #app {
+  padding-top: 78px;
+}
+
 body:has(#screen-game.active) {
   overflow: hidden;
   height: 100dvh;
@@ -93,7 +102,9 @@ body:has(#screen-game.active) {
   background: linear-gradient(180deg, rgba(22, 28, 34, 0.94), rgba(12, 14, 18, 0.96));
   border: 1px solid rgba(196, 176, 120, 0.38);
   border-radius: var(--radius);
-  box-shadow: inset 0 1px 0 rgba(220, 200, 150, 0.16), var(--shadow);
+  box-shadow:
+    inset 0 1px 0 rgba(220, 200, 150, 0.16),
+    var(--shadow);
   padding: clamp(20px, 4vw, 36px) clamp(20px, 4vw, 40px);
   max-width: 640px;
   max-height: min(92vh, 920px);
@@ -488,7 +499,9 @@ h3 {
   background: var(--wood);
   border: 3px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: inset 0 1px 0 rgba(196, 168, 130, 0.28), var(--shadow);
+  box-shadow:
+    inset 0 1px 0 rgba(196, 168, 130, 0.28),
+    var(--shadow);
   overflow: hidden;
   flex: 1;
   min-height: 0;
@@ -606,12 +619,16 @@ h3 {
   height: 16px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 32%, #8ec8f0, #2a5a8a);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 8px rgba(80, 140, 80, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 0 8px rgba(80, 140, 80, 0.35);
 }
 
 #screen-game[data-world='forest'] .ico-flag {
   background: radial-gradient(circle at 32% 30%, #d4f0b0, #3d8f4a 58%, #143820);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 220, 0.55), 0 0 10px rgba(80, 180, 70, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 220, 0.55),
+    0 0 10px rgba(80, 180, 70, 0.45);
 }
 #screen-game[data-world='desert'] .ico-flag {
   background: radial-gradient(circle at 32% 30%, #f0d090, #c4a060 58%, #6a3a08);
@@ -792,7 +809,9 @@ h3 {
   margin: 0;
   font-size: 0.82rem;
   letter-spacing: 0.04em;
-  text-shadow: 0 1px 2px #000, 0 0 8px #000;
+  text-shadow:
+    0 1px 2px #000,
+    0 0 8px #000;
 }
 
 .btn-x {
@@ -814,7 +833,9 @@ h3 {
   color: var(--muted);
   font-size: 0.72rem;
   line-height: 1.25;
-  text-shadow: 0 1px 2px #000, 0 0 6px #000;
+  text-shadow:
+    0 1px 2px #000,
+    0 0 6px #000;
 }
 
 .stat-grid {
@@ -1150,7 +1171,10 @@ h3 {
   text-align: left;
   padding: 12px 14px;
   transform: scale(1);
-  transition: transform 0.16s ease, border-color 0.12s ease, background 0.12s ease;
+  transition:
+    transform 0.16s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
 }
 
 .diff-btn.selected {

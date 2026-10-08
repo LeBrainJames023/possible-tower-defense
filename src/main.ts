@@ -35,6 +35,7 @@ import { themeFor } from './game/themes';
 import { WORLDS, buildSurfaceWord, worldById, worldByIndex } from './game/worlds';
 import { winResultCopy, type ResultPrimary, type ResultSecondary } from './game/resultCard';
 import { canRallyAt, troopStatsAt, troopStatsFor } from './game/troops';
+import { assetUrl } from './game/assets';
 import { dist } from './shared/math';
 import { fitCanvasToHost } from './shared/pointer';
 import { expandRect, panelLimitsForHost, pinRectBeside, tileBoxInHost } from './shared/pinPanel';
@@ -131,8 +132,10 @@ function applyDifficulty(id: DifficultyId): void {
   game.difficulty = id;
   localStorage.setItem(DIFF_KEY, id);
   document.documentElement.dataset.diff = id;
-  document.querySelectorAll('.diff-btn').forEach((el) => {
-    el.classList.toggle('selected', (el as HTMLElement).dataset.diff === id);
+  document.querySelectorAll('[data-diff]').forEach((el) => {
+    const on = (el as HTMLElement).dataset.diff === id;
+    el.classList.toggle('selected', on);
+    el.classList.toggle('is-active', on);
   });
 }
 
@@ -283,7 +286,7 @@ function renderLevels(): void {
         showToast(
           worldOpen
             ? 'Beat the previous map first.'
-            : 'Beat the previous world to play here. Worlds takes you back.',
+            : 'Beat the previous world to play here. Worlds takes you back.'
         );
         return;
       }
@@ -346,7 +349,7 @@ function openBuildMenu(c: number, r: number): void {
 
 function fillBuildDetail(kind: TowerKind): void {
   const def = TOWERS[kind];
-  buildPortrait.src = `/sprites/towers/${kind}.png${isTroopHall(kind) ? '?v=wide2' : ''}`;
+  buildPortrait.src = assetUrl(`/sprites/towers/${kind}.png${isTroopHall(kind) ? '?v=wide2' : ''}`);
   buildPortrait.classList.toggle('hall-look', isTroopHall(kind));
   buildBlurb.textContent = def.description;
   const extra = extraTowerLine(def);
@@ -363,7 +366,8 @@ function fillBuildDetail(kind: TowerKind): void {
   if (extra) rows.push(['Extra', extra]);
   buildStats.innerHTML = statGridHtml(rows);
   btnBuild.disabled = !!(game.level && game.gold < def.cost);
-  btnBuild.textContent = game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build ${def.cost}g`;
+  btnBuild.textContent =
+    game.level && game.gold < def.cost ? `Need ${def.cost}g` : `Build ${def.cost}g`;
   syncHallFit();
 }
 
@@ -406,7 +410,7 @@ function renderShop(): void {
     btn.className = 'tower-btn';
     btn.dataset.kind = kind;
     btn.setAttribute('aria-label', `${def.name} ${def.cost} gold`);
-    const portrait = `<img class="tower-portrait${isTroopHall(kind) ? ' hall-portrait' : ''}" src="/sprites/towers/${kind}.png${isTroopHall(kind) ? '?v=wide2' : ''}" alt="" />`;
+    const portrait = `<img class="tower-portrait${isTroopHall(kind) ? ' hall-portrait' : ''}" src="${assetUrl(`/sprites/towers/${kind}.png${isTroopHall(kind) ? '?v=wide2' : ''}`)}" alt="" />`;
     btn.innerHTML = `
       ${portrait}
       <span class="tower-cost">${def.cost}</span>
@@ -435,7 +439,7 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
   panel.style.maxHeight = `${limits.maxHeight}px`;
   const tile = tileBoxInHost(c, r, COLS, ROWS, canvasRect, hostRect);
   const avoid = (game.level?.pathTiles ?? []).map((p) =>
-    tileBoxInHost(p.c, p.r, COLS, ROWS, canvasRect, hostRect),
+    tileBoxInHost(p.c, p.r, COLS, ROWS, canvasRect, hostRect)
   );
   avoid.push(tile);
   const tower = game.getSelectedTower();
@@ -446,7 +450,8 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
     : game.selectedKind
       ? TOWERS[game.selectedKind].range
       : Math.max(...TOWER_ORDER.map((k) => TOWERS[k].range));
-  const ringPad = game.getSelectedEnemy() && !tower ? tile.width * 1.2 : (rangeWorld / TILE) * tile.width;
+  const ringPad =
+    game.getSelectedEnemy() && !tower ? tile.width * 1.2 : (rangeWorld / TILE) * tile.width;
   avoid.push(expandRect(tile, ringPad));
   const pin = pinRectBeside(
     tile,
@@ -454,7 +459,7 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
     hostRect,
     8,
     8,
-    avoid,
+    avoid
   );
   panel.style.left = `${pin.left}px`;
   panel.style.top = `${pin.top}px`;
@@ -462,7 +467,10 @@ function pinPanelToCell(panel: HTMLElement, c: number, r: number): void {
 
 function statGridHtml(rows: Array<[string, string]>): string {
   return rows
-    .map(([label, value]) => `<div class="stat-row"><span>${label}</span><strong>${value}</strong></div>`)
+    .map(
+      ([label, value]) =>
+        `<div class="stat-row"><span>${label}</span><strong>${value}</strong></div>`
+    )
     .join('');
 }
 
@@ -530,7 +538,10 @@ function updatePauseUi(): void {
 function forkExtraRows(t: Tower, previewFork: ForkId): Array<[string, string]> {
   const extra: Array<[string, string]> = [];
   if (t.def.splash > 0 || t.splashAt(previewFork) > 0) {
-    extra.push(['Splash', arrowStat(t.splash / TILE, t.splashAt(previewFork) / TILE, 1) + ' tiles']);
+    extra.push([
+      'Splash',
+      arrowStat(t.splash / TILE, t.splashAt(previewFork) / TILE, 1) + ' tiles',
+    ]);
   }
   if (t.def.chain > 0) {
     extra.push(['Chain', arrowStat(t.chainAt(null), t.chainAt(previewFork))]);
@@ -573,7 +584,10 @@ function fillInspectTower(t: Tower): void {
       ? [
           ['Troops', '3'],
           ['HP', arrowStat(hallNow.hp, troopStatsAt(t.kind, previewFork).hp)],
-          ['Train', arrowStat(hallNow.trainTime, troopStatsAt(t.kind, previewFork).trainTime, 1) + 's'],
+          [
+            'Train',
+            arrowStat(hallNow.trainTime, troopStatsAt(t.kind, previewFork).trainTime, 1) + 's',
+          ],
           ['Cost', `${t.upgradeCost()}g`],
         ]
       : [
@@ -583,9 +597,21 @@ function fillInspectTower(t: Tower): void {
         ]
     : preview && next
       ? [
-          ['Range', arrowStat(curR, t.rangeAt(next.level, next.fork, next.pathLevel) / TILE, 1) + ' tiles'],
-          ['Attack', arrowStat(curD, Math.round(t.damageAt(next.level, next.fork, next.pathLevel) * game.mods.damage))],
-          ['Fire', arrowStat(curRate, t.fireRateAt(next.level, next.fork, next.pathLevel), 1) + ' /s'],
+          [
+            'Range',
+            arrowStat(curR, t.rangeAt(next.level, next.fork, next.pathLevel) / TILE, 1) + ' tiles',
+          ],
+          [
+            'Attack',
+            arrowStat(
+              curD,
+              Math.round(t.damageAt(next.level, next.fork, next.pathLevel) * game.mods.damage)
+            ),
+          ],
+          [
+            'Fire',
+            arrowStat(curRate, t.fireRateAt(next.level, next.fork, next.pathLevel), 1) + ' /s',
+          ],
           ['Cost', `${t.upgradeCost()}g`],
         ]
       : previewingFork && previewFork
@@ -632,8 +658,10 @@ function fillInspectTower(t: Tower): void {
       const cost = t.upgradeCost();
       const a = document.getElementById('btn-fork-a') as HTMLButtonElement;
       const b = document.getElementById('btn-fork-b') as HTMLButtonElement;
-      a.textContent = inspectStep === 'forkA' ? `Pay ${forks.a.name} ${cost}g` : `${forks.a.name} ${cost}g`;
-      b.textContent = inspectStep === 'forkB' ? `Pay ${forks.b.name} ${cost}g` : `${forks.b.name} ${cost}g`;
+      a.textContent =
+        inspectStep === 'forkA' ? `Pay ${forks.a.name} ${cost}g` : `${forks.a.name} ${cost}g`;
+      b.textContent =
+        inspectStep === 'forkB' ? `Pay ${forks.b.name} ${cost}g` : `${forks.b.name} ${cost}g`;
       a.disabled = inspectStep === 'forkA' && game.gold < cost;
       b.disabled = inspectStep === 'forkB' && game.gold < cost;
     }
@@ -653,7 +681,9 @@ function fillInspectEnemy(enemy: Enemy): void {
     enemy.phased ? 'phased' : '',
     enemy.kind === 'duneRunner' && enemy.verbSpeedMul > 1.4 ? 'dashing' : '',
     enemy.kind === 'iceWolf' && enemy.verbSpeedMul > 1.5 ? 'sliding' : '',
-    enemy.kind === 'iceWolf' && enemy.verbSpeedMul > 1.15 && enemy.verbSpeedMul <= 1.5 ? 'rallied' : '',
+    enemy.kind === 'iceWolf' && enemy.verbSpeedMul > 1.15 && enemy.verbSpeedMul <= 1.5
+      ? 'rallied'
+      : '',
     enemy.kind === 'duneTyrant' ? 'sandstorm' : '',
     enemy.kind === 'packLord' ? 'rally' : '',
     enemy.kind === 'cinderKing' ? 'heat haze' : '',
@@ -665,7 +695,13 @@ function fillInspectEnemy(enemy: Enemy): void {
     .filter(Boolean)
     .join(', ');
   const roleTag =
-    def.role === 'champion' ? 'Champion' : def.role === 'boss' ? 'Boss' : def.role === 'special' ? 'Local' : '';
+    def.role === 'champion'
+      ? 'Champion'
+      : def.role === 'boss'
+        ? 'Boss'
+        : def.role === 'special'
+          ? 'Local'
+          : '';
   selectionTitle.textContent = roleTag ? `${def.name} ${roleTag}` : def.name;
   selectionBlurb.textContent = def.flying ? `${def.blurb} Flying - cannon cannot hit.` : def.blurb;
   const rows: Array<[string, string]> = [
@@ -682,7 +718,9 @@ function fillInspectEnemy(enemy: Enemy): void {
 function updateHud(): void {
   if (!game.level) return;
   hudLevel.innerHTML = `<span class="hud-world">${worldById(game.level.world).name}</span><span class="hud-stage"> - ${game.level.stage}</span>`;
-  hudWave.textContent = game.endless ? `Wave ${game.waveIndex}` : `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
+  hudWave.textContent = game.endless
+    ? `Wave ${game.waveIndex}`
+    : `${game.waveIndex} / ${WAVES_PER_LEVEL}`;
   hudLives.textContent = String(game.lives);
   hudGold.textContent = String(game.gold);
   if (lastGold >= 0 && game.gold !== lastGold) flashChip(chipGold, 'pulse');
@@ -697,11 +735,12 @@ function updateHud(): void {
     hudNext.textContent = 'Line held.';
   }
   btnWave.disabled = !game.canStartWave();
-  btnWave.textContent = game.phase === 'wave'
-    ? 'Wave running'
-    : game.canStartWave()
-      ? `Start wave ${game.waveIndex + 1}`
-      : 'Complete';
+  btnWave.textContent =
+    game.phase === 'wave'
+      ? 'Wave running'
+      : game.canStartWave()
+        ? `Start wave ${game.waveIndex + 1}`
+        : 'Complete';
   updatePauseUi();
 
   const tower = game.getSelectedTower();
@@ -816,6 +855,36 @@ function openWorldLevels(worldIndex: number): void {
 }
 
 document.getElementById('btn-play')?.addEventListener('click', goWorlds);
+
+document.getElementById('arcade-plate-help')?.addEventListener('click', () => {
+  if (screens.game.classList.contains('active') && game.phase === 'wave') {
+    game.togglePause();
+    updateHud();
+  }
+  showScreen('how');
+});
+
+const settingsModal = document.getElementById('settings-modal')!;
+function openSettings(): void {
+  settingsModal.hidden = false;
+  settingsModal.style.display = 'flex';
+  settingsModal.classList.add('is-open');
+}
+function closeSettings(): void {
+  settingsModal.classList.remove('is-open');
+  settingsModal.style.display = 'none';
+  settingsModal.hidden = true;
+}
+document.getElementById('arcade-plate-settings')?.addEventListener('click', openSettings);
+document.getElementById('settings-close')?.addEventListener('click', closeSettings);
+document.getElementById('settings-close-2')?.addEventListener('click', closeSettings);
+settingsModal.addEventListener('click', (e) => {
+  if (e.target === settingsModal) closeSettings();
+});
+
+type ArcadePlate = { wireArcadeHudPlate?: (gameId: string) => void };
+const arcadePlate = (window as unknown as { BCI?: ArcadePlate }).BCI;
+arcadePlate?.wireArcadeHudPlate?.('tower-defense');
 
 document.querySelectorAll('[data-action]').forEach((el) => {
   el.addEventListener('click', () => {
@@ -1139,7 +1208,7 @@ document.addEventListener(
   () => {
     game.audio.unlock();
   },
-  { once: true },
+  { once: true }
 );
 
 declare global {

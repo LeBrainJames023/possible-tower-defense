@@ -50,7 +50,7 @@ export const DIFFICULTY: Record<DifficultyId, DifficultyMods> = {
     lives: 1.25,
   },
   normal: {
-    label: 'Normal',
+    label: 'Medium',
     blurb: 'The intended campaign.',
     gold: 1,
     startGold: 1,
@@ -88,7 +88,12 @@ export function upgradeCostFor(buildCost: number, fromLevel: number): number {
   return Math.round(buildCost * Math.pow(UPGRADE_PRICE_MUL, fromLevel));
 }
 
-export function investedGold(buildCost: number, level: number, forked = false, pathLevel = 0): number {
+export function investedGold(
+  buildCost: number,
+  level: number,
+  forked = false,
+  pathLevel = 0
+): number {
   let paid = buildCost;
   for (let lv = 1; lv < level; lv++) paid += upgradeCostFor(buildCost, lv);
   if (forked) paid += upgradeCostFor(buildCost, 3);
@@ -96,7 +101,12 @@ export function investedGold(buildCost: number, level: number, forked = false, p
   return paid;
 }
 
-export function sellValueFor(buildCost: number, level: number, forked = false, pathLevel = 0): number {
+export function sellValueFor(
+  buildCost: number,
+  level: number,
+  forked = false,
+  pathLevel = 0
+): number {
   return Math.round(investedGold(buildCost, level, forked, pathLevel) * SELL_REFUND);
 }
 
@@ -121,7 +131,7 @@ export function killPayout(reward: number, worldIndex: number, goldMul = 1): num
 export function waveKillGold(stage: number, wave: number, worldIndex = 1): number {
   return buildWave(stage, wave, worldIndex).reduce(
     (sum, g) => sum + killPayout(ENEMIES[g.kind].reward, worldIndex) * g.count,
-    0,
+    0
   );
 }
 

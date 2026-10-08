@@ -5,11 +5,18 @@ import type { Cardinal, CreatureSprite } from './enemies';
 import type { ForkId } from './forks';
 import type { TroopKind } from './troops';
 
+/** Site-root in dev. `/games/tower-defense/` when built for the arcade. */
+export function assetUrl(path: string): string {
+  const base = import.meta.env.BASE_URL || '/';
+  const clean = path.replace(/^\/+/, '');
+  return `${base}${clean}`;
+}
+
 export function loadImage(src: string): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
   const img = new Image();
   img.decoding = 'async';
-  img.src = src;
+  img.src = src.startsWith('/') ? assetUrl(src) : src;
   return img;
 }
 
@@ -187,18 +194,16 @@ export const TEX = {
   portalFireOut: loadImage('/sprites/landmarks/portal-fire-out.png'),
   portalHollowIn: loadImage('/sprites/landmarks/portal-hollow-in.png'),
   portalHollowOut: loadImage('/sprites/landmarks/portal-hollow-out.png'),
-  creatures: Object.fromEntries(CREATURES.map((name) => [name, loadImage(`/sprites/enemies/${name}.png`)])) as Record<
-    CreatureSprite,
-    HTMLImageElement | null
-  >,
+  creatures: Object.fromEntries(
+    CREATURES.map((name) => [name, loadImage(`/sprites/enemies/${name}.png`)])
+  ) as Record<CreatureSprite, HTMLImageElement | null>,
   creatureWalks: Object.fromEntries(CREATURES.map((name) => [name, walkSheet(name)])) as Record<
     CreatureSprite,
     Array<HTMLImageElement | null>
   >,
-  creatureDirWalks: Object.fromEntries(CREATURES.map((name) => [name, dirWalkSheet(name)])) as Record<
-    CreatureSprite,
-    Record<Cardinal, Array<HTMLImageElement | null>>
-  >,
+  creatureDirWalks: Object.fromEntries(
+    CREATURES.map((name) => [name, dirWalkSheet(name)])
+  ) as Record<CreatureSprite, Record<Cardinal, Array<HTMLImageElement | null>>>,
   creatureFaces: Object.fromEntries(CREATURES.map((name) => [name, faceSheet(name)])) as Record<
     CreatureSprite,
     Record<Cardinal, HTMLImageElement | null>
