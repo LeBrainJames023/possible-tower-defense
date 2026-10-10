@@ -75,6 +75,65 @@ body:has(#screen-game.active) {
   place-items: stretch;
 }
 
+/*
+  Arcade play screen. The rule above sets padding as a shorthand, which
+  wipes the 78px plate clearance and parks the game HUD inside the fixed
+  arcade bar. It also keeps 108px at the bottom for Cursor's follow-up
+  bar. On the arcade the plate is a real row, and the map uses whatever
+  window is left — including past the 1280×768 bitmap, via fitCanvasToHost.
+*/
+body.arcade-hud-plate-on:has(#screen-game.active) {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+body.arcade-hud-plate-on:has(#screen-game.active) #arcade-plate.arcade-hud--overlay {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  flex: 0 0 auto;
+  width: 100%;
+  z-index: 5;
+}
+
+body.arcade-hud-plate-on:has(#screen-game.active) #app {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  padding: 8px 8px 10px;
+  overflow: hidden;
+  place-items: stretch;
+}
+
+body.arcade-hud-plate-on:has(#screen-game.active) #screen-game.screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+/* Gold brim frames the map, not the control row sitting under the arcade bar. */
+body.arcade-hud-plate-on:has(#screen-game.active) #screen-game .game-shell {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+body.arcade-hud-plate-on:has(#screen-game.active) #screen-game .game-body {
+  border: 3px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow:
+    inset 0 1px 0 rgba(196, 168, 130, 0.28),
+    var(--shadow);
+}
+
 .screen {
   display: none;
   width: min(1180px, 100%);
