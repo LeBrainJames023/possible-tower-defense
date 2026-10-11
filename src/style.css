@@ -134,6 +134,86 @@ body.arcade-hud-plate-on:has(#screen-game.active) #screen-game .game-body {
     var(--shadow);
 }
 
+/*
+  Campaign picker. The list was vertically centered in the whole window, so
+  the last world sat under the dock while empty space stayed above the card.
+  Center the title, tighten it a little, and center the card in the band
+  under the arcade bar and above a dock-sized gap.
+*/
+body.arcade-hud-plate-on:has(#screen-worlds.active) #app {
+  padding: 78px 16px 72px;
+  overflow: hidden;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) #screen-worlds .panel.wide {
+  padding: 12px 28px 14px;
+  max-height: calc(100dvh - 150px);
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) #screen-worlds .screen-nav {
+  padding: 0 0 6px;
+  margin-bottom: 2px;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) #screen-worlds h2 {
+  text-align: center;
+  font-size: 1.15rem;
+  margin: 0 0 2px;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) #screen-worlds .lede.subtle {
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin: 0 0 10px;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-list {
+  gap: 5px;
+  margin-bottom: 0;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-card {
+  min-height: 64px;
+  padding: 6px 12px;
+  gap: 12px;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-thumb {
+  width: 108px;
+  height: 48px;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-copy {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  column-gap: 8px;
+  row-gap: 1px;
+  align-items: baseline;
+  width: 100%;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-copy .level-badge {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-copy strong {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-copy .world-meta {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+body.arcade-hud-plate-on:has(#screen-worlds.active) .world-copy .world-blurb {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  line-height: 1.2;
+}
+
 .screen {
   display: none;
   width: min(1180px, 100%);
